@@ -19,7 +19,7 @@ import {
 	invertArrayToFlatMap,
 } from "../maps.js";
 import {
-	clusterGeneric,
+	clusterUnsortedIndices,
 } from "../../general/cluster.js";
 import {
 	getVerticesClusters,
@@ -103,7 +103,7 @@ export const getSimilarEdges = (
 
 	return edgeSweep
 		.map(({ start }) => start)
-		.flatMap(edges => clusterGeneric(edges, comparison));
+		.flatMap(edges => clusterUnsortedIndices(edges, comparison));
 };
 
 /**

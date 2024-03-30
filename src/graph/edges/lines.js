@@ -1,3 +1,6 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import {
 	EPSILON,
 } from "../../math/constant.js";

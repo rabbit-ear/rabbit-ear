@@ -2,12 +2,12 @@
  * Rabbit Ear (c) Kraft
  */
 
-// each "branches" is an "and" group (containing a list of "andItem")
-// each "andItem" is also a group, a "subgroup"
-// each "subgroup" is an "or" group (containing a list of "orItem")
-// to compile a solution, follow these rules:
-// - encountering an "and" group, gather all branch results into the solution.
-// - encountering an "or" group, only choose one branch to be in the solution.
+// each "branches" is an "and" list (containing a list of "andItem")
+// each "andItem" is also a list, a "subgroup"
+// each "subgroup" is an "or" list (containing a list of "orItem")
+// to compile a solution, when you encounter a:
+// - "and" list: gather all list elements into the solution.
+// - "or" list: only choose one list element to be in the solution.
 
 /**
  *

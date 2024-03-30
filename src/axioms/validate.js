@@ -20,7 +20,7 @@ import {
 } from "../math/overlap.js";
 import {
 	intersectLineLine,
-	intersectConvexPolygonLine,
+	// intersectConvexPolygonLine,
 } from "../math/intersect.js";
 import {
 	clipLineConvexPolygon,
@@ -239,34 +239,37 @@ export const validateAxiom6 = function (boundary, solutions, line1, line2, point
  * @linkcode Origami ./src/axioms/validate.js 194
  */
 export const validateAxiom7 = (boundary, solutions, line1, line2, point) => {
-	// check if the point parameter is inside the polygon
-	const paramPointTest = overlapConvexPolygonPoint(
-		boundary,
-		point,
-		include,
-	).overlap;
-	// check if the reflected point on the fold line is inside the polygon
-	if (!solutions.length) { return [false]; }
-	const reflected = reflectPoint(solutions[0], point);
-	const reflectTest = overlapConvexPolygonPoint(boundary, reflected, include).overlap;
-	// check if the line to fold onto itself is somewhere inside the polygon
-	const paramLineTest = (intersectConvexPolygonLine(
-		boundary,
-		line2,
-		includeS,
-		includeL,
-	) !== undefined);
-	// same test we do for axiom 4
-	const intersect = intersectLineLine(
-		line2,
-		solutions[0],
-		includeL,
-		includeL,
-	).point;
-	const intersectInsideTest = intersect
-		? overlapConvexPolygonPoint(boundary, intersect, include).overlap
-		: false;
-	return [paramPointTest && reflectTest && paramLineTest && intersectInsideTest];
+	// this method has been commented out because intersectConvexPolygonLine
+	// has been removed. the implementation was no good. need to rewrite.
+	return [true];
+	// // check if the point parameter is inside the polygon
+	// const paramPointTest = overlapConvexPolygonPoint(
+	// 	boundary,
+	// 	point,
+	// 	include,
+	// ).overlap;
+	// // check if the reflected point on the fold line is inside the polygon
+	// if (!solutions.length) { return [false]; }
+	// const reflected = reflectPoint(solutions[0], point);
+	// const reflectTest = overlapConvexPolygonPoint(boundary, reflected, include).overlap;
+	// // check if the line to fold onto itself is somewhere inside the polygon
+	// const paramLineTest = (intersectConvexPolygonLine(
+	// 	boundary,
+	// 	line2,
+	// 	includeS,
+	// 	includeL,
+	// ) !== undefined);
+	// // same test we do for axiom 4
+	// const intersect = intersectLineLine(
+	// 	line2,
+	// 	solutions[0],
+	// 	includeL,
+	// 	includeL,
+	// ).point;
+	// const intersectInsideTest = intersect
+	// 	? overlapConvexPolygonPoint(boundary, intersect, include).overlap
+	// 	: false;
+	// return [paramPointTest && reflectTest && paramLineTest && intersectInsideTest];
 };
 
 /**

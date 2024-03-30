@@ -23,223 +23,6 @@ test("intersectLineLine include exclude", () => {
 	expect(res2).toBe(undefined);
 });
 
-test("intersectConvexPolygonLine include exclude vertex aligned", () => {
-	const poly = [[1, 0], [0, 1], [-1, 0], [0, -1]];
-	// two lines, vertex aligned
-	const res0 = ear.math.intersectConvexPolygonLine(
-		poly,
-		{ vector: [0, 1], origin: [1, -5] },
-		ear.math.includeS,
-		ear.math.includeL,
-	);
-	const res1 = ear.math.intersectConvexPolygonLine(
-		poly,
-		{ vector: [0, 1], origin: [1, -5] },
-		ear.math.excludeS,
-		ear.math.excludeL,
-	);
-	// two segements endpoint on vertex
-	const res2 = ear.math.intersectConvexPolygonLine(
-		poly,
-		{ vector: [0, 1], origin: [1, -1] },
-		ear.math.includeS,
-		ear.math.includeS,
-	);
-	const res3 = ear.math.intersectConvexPolygonLine(
-		poly,
-		{ vector: [0, 1], origin: [1, -1] },
-		ear.math.includeS,
-		ear.math.excludeS,
-	);
-	const res4 = ear.math.intersectConvexPolygonLine(
-		poly,
-		{ vector: [0, 1], origin: [1, -1] },
-		ear.math.excludeS,
-		ear.math.includeS,
-	);
-	const res5 = ear.math.intersectConvexPolygonLine(
-		poly,
-		{ vector: [0, 1], origin: [1, -1] },
-		ear.math.excludeS,
-		ear.math.excludeS,
-	);
-	// line works if polygon is inclusive
-	expect(res0).not.toBe(undefined);
-	expect(res1).toBe(undefined);
-	// segment vertex aligned works only if both are inclusive
-	// if either or both are exclusive, does not intersect
-	expect(res2).not.toBe(undefined);
-	expect(res3).toBe(undefined);
-	expect(res4).toBe(undefined);
-	expect(res5).toBe(undefined);
-});
-
-test("intersectConvexPolygonLine include exclude edge aligned", () => {
-	const poly = [[0, 0], [1, 0], [1, 1], [0, 1]];
-	const res0 = ear.math.intersectConvexPolygonLine(
-		poly,
-		{ vector: [0, 1], origin: [1, -5] },
-		ear.math.includeS,
-		ear.math.excludeL,
-	);
-	const res1 = ear.math.intersectConvexPolygonLine(
-		poly,
-		{ vector: [0, 1], origin: [1, -5] },
-		ear.math.excludeS,
-		ear.math.excludeL,
-	);
-	expect(res0).not.toBe(undefined);
-	expect(res1).toBe(undefined);
-});
-
-const convexPolyLineInclusive = (poly, vec, org, ep) => ear.math.intersectConvexPolygonLine(
-	poly,
-	{ vector: vec, origin: org },
-	ear.math.includeS,
-	ear.math.includeL,
-	ep,
-);
-const convexPolyRayInclusive = (poly, vec, org, ep) => ear.math.intersectConvexPolygonLine(
-	poly,
-	{ vector: vec, origin: org },
-	ear.math.includeS,
-	ear.math.includeR,
-	ep,
-);
-const convexPolySegmentInclusive = (poly, pt0, pt1, ep) => ear.math.intersectConvexPolygonLine(
-	poly,
-	{ vector: ear.math.subtract(pt1, pt0), origin: pt0 },
-	ear.math.includeS,
-	ear.math.includeS,
-	ep,
-);
-const convexPolyLineExclusive = (poly, vec, org, ep) => ear.math.intersectConvexPolygonLine(
-	poly,
-	{ vector: vec, origin: org },
-	ear.math.excludeS,
-	ear.math.excludeL,
-	ep,
-);
-const convexPolyRayExclusive = (poly, vec, org, ep) => ear.math.intersectConvexPolygonLine(
-	poly,
-	{ vector: vec, origin: org },
-	ear.math.excludeS,
-	ear.math.excludeR,
-	ep,
-);
-const convexPolySegmentExclusive = (poly, pt0, pt1, ep) => ear.math.intersectConvexPolygonLine(
-	poly,
-	{ vector: ear.math.subtract(pt1, pt0), origin: pt0 },
-	ear.math.excludeS,
-	ear.math.excludeS,
-	ep,
-);
-test("core polygon intersection lines", () => {
-	const poly = [[0, 0], [1, 0], [0.5, 0.866]];
-	const vector = [1, 1];
-	const point = [0.5, 0.866 / 2];
-	const segmentA = [...point];
-	const segmentB = [point[0] + 4, point[1] + 4];
-
-	expect(convexPolyLineExclusive(poly, vector, point).length)
-		.toBe(2);
-	expect(convexPolyRayInclusive(poly, vector, point).length)
-		.toBe(1);
-	expect(convexPolyRayExclusive(poly, vector, point).length)
-		.toBe(1);
-	expect(convexPolySegmentInclusive(poly, segmentA, segmentB).length)
-		.toBe(1);
-	expect(convexPolySegmentExclusive(poly, segmentA, segmentB).length)
-		.toBe(1);
-});
-
-test("core polygon intersection lines, collinear to edge", () => {
-	const poly = [[0, 0], [1, 0], [0.5, 0.866]];
-	const vector = [1, 0];
-	const point = [-5, 0];
-	const segmentA = [0, 0];
-	const segmentB = [1, 0];
-
-	expect(convexPolyLineInclusive(poly, vector, point).length)
-		.toBe(2);
-	expect(convexPolyLineExclusive(poly, vector, point))
-		.toBe(undefined);
-	expect(convexPolyRayInclusive(poly, vector, point).length)
-		.toBe(2);
-	expect(convexPolyRayExclusive(poly, vector, point))
-		.toBe(undefined);
-	expect(convexPolySegmentInclusive(poly, segmentA, segmentB).length)
-		.toBe(2);
-	expect(convexPolySegmentExclusive(poly, segmentA, segmentB))
-		.toBe(undefined);
-});
-
-test("core polygon intersection lines, collinear to vertex", () => {
-	const poly = [[0, 0], [1, 0], [0.5, 0.866]];
-	const vector = [1, 0];
-	const point = [-5, 0.866];
-	const segmentA = [0, 0.866];
-	const segmentB = [1, 0.866];
-
-	expect(convexPolyLineInclusive(poly, vector, point).length)
-		.toBe(1);
-	expect(convexPolyLineExclusive(poly, vector, point))
-		.toBe(undefined);
-	expect(convexPolyRayInclusive(poly, vector, point).length)
-		.toBe(1);
-	expect(convexPolyRayExclusive(poly, vector, point))
-		.toBe(undefined);
-	expect(convexPolySegmentInclusive(poly, segmentA, segmentB).length)
-		.toBe(1);
-	expect(convexPolySegmentExclusive(poly, segmentA, segmentB))
-		.toBe(undefined);
-});
-
-test("core polygon intersection lines, collinear to polygon vertices", () => {
-	const polygon = [[1, 0], [0, 1], [-1, 0], [0, -1]];
-	const lineSeg = convexPolyLineInclusive(polygon, [1, 0], [0, 0]);
-	expect(Math.abs(lineSeg[0][0])).toBeCloseTo(1);
-	expect(lineSeg[0][1]).toBeCloseTo(0);
-	expect(Math.abs(lineSeg[1][0])).toBeCloseTo(1);
-	expect(lineSeg[1][1]).toBeCloseTo(0);
-
-	const raySeg1 = convexPolyRayInclusive(polygon, [1, 0], [0, 0]);
-	expect(raySeg1.length).toBe(1);
-	expect(Math.abs(raySeg1[0][0])).toBeCloseTo(1);
-	expect(raySeg1[0][1]).toBeCloseTo(0);
-	const raySeg2 = convexPolyRayInclusive(polygon, [1, 0], [-10, 0]);
-	expect(raySeg2.length).toBe(2);
-	expect(Math.abs(raySeg2[0][0])).toBeCloseTo(1);
-	expect(raySeg2[0][1]).toBeCloseTo(0);
-	expect(Math.abs(raySeg2[1][0])).toBeCloseTo(1);
-	expect(raySeg2[1][1]).toBeCloseTo(0);
-	const raySeg3 = convexPolyRayInclusive(polygon, [1, 0], [10, 0]);
-	expect(raySeg3).toBe(undefined);
-});
-
-test("core polygon intersection lines, no intersections", () => {
-	const poly = [[0, 0], [1, 0], [0.5, 0.866]];
-	const vector = [1, 0];
-	const point = [-5, 10];
-	const segmentA = [0, 10];
-	const segmentB = [1, 10];
-
-	expect(convexPolyLineExclusive(poly, vector, point))
-		.toBe(undefined);
-	expect(convexPolyRayInclusive(poly, vector, point))
-		.toBe(undefined);
-	expect(convexPolyRayExclusive(poly, vector, point))
-		.toBe(undefined);
-	expect(convexPolySegmentInclusive(poly, segmentA, segmentB))
-		.toBe(undefined);
-	expect(convexPolySegmentExclusive(poly, segmentA, segmentB))
-		.toBe(undefined);
-});
-
-// test("core polygon intersection circle", () => {
-//   convex_poly_circle(poly, center, radius)
-// });
-
 test("collinear line intersections", () => {
 	const intersect = (a, b, c, d, ...args) => ear.math.intersectLineLine(
 		{ vector: a, origin: b },
@@ -460,23 +243,25 @@ test("polygon polygon, epsilon", () => {
 });
 
 test("polygon polygon collinear edge", () => {
-	// problems because polygon1 has a pair of collinear edges.
-	// method succeeds in one order but not the other.
-	const polygon1 = [
-		[-0.565685424949238, -0.14142135623730953],
-		[-0.07071067811865475, 0.07071067811865477],
-		[0, 0],
-		[-0.3535533905932738, -0.35355339059327373],
-		[-0.42426406871192857, -0.28284271247461895],
-	];
-	const polygon2 = [
-		[-0.3535533905932738, -0.35355339059327373],
-		[0, 0],
-		[-0.21213203435596423, 0.21213203435596426],
-		[-0.42426406871192857, -0.28284271247461895],
-	];
-	const res1 = ear.math.clipPolygonPolygon(polygon1, polygon2);
-	const res2 = ear.math.clipPolygonPolygon(polygon2, polygon1);
+	// these two polygons overlap and have 2 overlapping edges
+	const poly1clock = [[0, 0], [-1, 1], [0, 2], [2, 0]];
+	const poly2clock = [[0, 2], [1, 1], [1, -1], [-1, 1]];
+	const poly1counter = poly1clock.slice().reverse();
+	const poly2counter = poly2clock.slice().reverse();
+
+	// the only one guaranteed to work
+	expect(ear.math.clipPolygonPolygon(poly1counter, poly2counter)).not.toBeUndefined();
+	expect(ear.math.clipPolygonPolygon(poly2counter, poly1counter)).not.toBeUndefined();
+
+	// all of these have undefined behavior
+	expect(ear.math.clipPolygonPolygon(poly1clock, poly2clock)).toBeUndefined();
+	expect(ear.math.clipPolygonPolygon(poly2clock, poly1clock)).toBeUndefined();
+
+	expect(ear.math.clipPolygonPolygon(poly1clock, poly2counter)).not.toBeUndefined();
+	expect(ear.math.clipPolygonPolygon(poly2counter, poly1clock)).toBeUndefined();
+
+	expect(ear.math.clipPolygonPolygon(poly1counter, poly2clock)).toBeUndefined();
+	expect(ear.math.clipPolygonPolygon(poly2clock, poly1counter)).not.toBeUndefined();
 });
 
 test("intersect lines", () => {
@@ -517,39 +302,4 @@ test("intersect lines", () => {
 		ear.math.includeS,
 	);
 	ear.math.epsilonEqualVectors(shouldBeSeg, clipSeg[0]);
-});
-
-test("circle circle intersect", () => {
-	// intersect
-	const result0 = ear.math.intersectCircleCircle(
-		{ radius: 2, origin: [0, 0] },
-		{ radius: 2, origin: [1, 0] },
-	);
-	expect(result0[0][0]).toBeCloseTo(0.5);
-	expect(result0[1][0]).toBeCloseTo(0.5);
-	expect(result0[0][1]).toBeCloseTo(-Math.sqrt(3.75));
-	expect(result0[1][1]).toBeCloseTo(Math.sqrt(3.75));
-	// same origin
-	expect(ear.math.intersectCircleCircle(
-		{ radius: 1, origin: [0, 0] },
-		{ radius: 2, origin: [0, 0] },
-	)).toBe(undefined);
-	// kissing circles
-	const result1 = ear.math.intersectCircleCircle(
-		{ radius: 1, origin: [0, 0] },
-		{ radius: 1, origin: [2, 0] },
-	);
-	expect(result1[0][0]).toBe(1);
-	expect(result1[0][1]).toBe(0);
-	const result2 = ear.math.intersectCircleCircle(
-		{ radius: 1, origin: [0, 0] },
-		{ radius: 1, origin: [Math.SQRT2, Math.SQRT2] },
-	);
-	expect(result2[0][0]).toBeCloseTo(Math.SQRT1_2);
-	expect(result2[0][1]).toBeCloseTo(Math.SQRT1_2);
-	// circles are contained
-	expect(ear.math.intersectCircleCircle(
-		{ radius: 10, origin: [0, 0] },
-		{ radius: 1, origin: [2, 0] },
-	)).toBe(undefined);
 });

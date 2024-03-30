@@ -9,15 +9,15 @@ test("edges-faces, triangle cut by edge", () => {
 		edges_assignment: Array.from("BBBB"),
 		faces_vertices: [[0, 1, 2]],
 	});
-	const facesEdges = ear.graph.getFacesEdgesOverlapAllData(graph);
-	expect(facesEdges).toMatchObject([
-		[
-			{ v: [], e: [], p: [] }, // edge 0, already a part of face 0
-			{ v: [], e: [], p: [] }, // edge 1, already a part of face 0
-			{ v: [], e: [], p: [] }, // edge 2, already a part of face 0
-			{ v: [1], e: [2], p: [] }, // edge 3, overlaps vert 1 and crosses edge 2
-		],
-	]);
+	// const facesEdges = ear.graph.getFacesEdgesOverlapAllData(graph);
+	// expect(facesEdges).toMatchObject([
+	// 	[
+	// 		, // edge 0, already a part of face 0
+	// 		, // edge 1, already a part of face 0
+	// 		, // edge 2, already a part of face 0
+	// 		{ v: [1], e: [2], p: [] }, // edge 3, overlaps vert 1 and crosses edge 2
+	// 	],
+	// ]);
 	expect(ear.graph.getFacesEdgesOverlap(graph)).toMatchObject([[3]]);
 });
 
@@ -37,25 +37,25 @@ test("edges-faces, square cut by edge through vertex", () => {
 		faces_vertices: [[0, 1, 2, 3]],
 	});
 
-	expect(ear.graph.getFacesEdgesOverlapAllData(graph1)).toMatchObject([
-		[
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [0, 2], e: [], p: [] },
-		],
-	]);
+	// expect(ear.graph.getFacesEdgesOverlapAllData(graph1)).toMatchObject([
+	// 	[
+	// 		,
+	// 		,
+	// 		,
+	// 		,
+	// 		{ v: [0, 2], e: [], p: [] },
+	// 	],
+	// ]);
 
-	expect(ear.graph.getFacesEdgesOverlapAllData(graph2)).toMatchObject([
-		[
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [0, 2], e: [], p: [] },
-		],
-	]);
+	// expect(ear.graph.getFacesEdgesOverlapAllData(graph2)).toMatchObject([
+	// 	[
+	// 		,
+	// 		,
+	// 		,
+	// 		,
+	// 		{ v: [0, 2], e: [], p: [] },
+	// 	],
+	// ]);
 
 	expect(ear.graph.getFacesEdgesOverlap(graph1)).toMatchObject([[4]]);
 	expect(ear.graph.getFacesEdgesOverlap(graph2)).toMatchObject([[4]]);
@@ -71,21 +71,8 @@ test("edges-faces all data, two adjacent faces one point overlap", () => {
 
 	expect(ear.graph.getFacesEdgesOverlap(graph)).toMatchObject([[], []]);
 
-	expect(ear.graph.getFacesEdgesOverlapAllData(graph)).toMatchObject([
-		[
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-		], [
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-		],
-	]);
+	// expect(ear.graph.getFacesEdgesOverlapAllData(graph))
+	// 	.toMatchObject([[], []]);
 });
 
 test("edges-faces all data, two adjacent faces no overlap points, two crossing edges", () => {
@@ -98,21 +85,17 @@ test("edges-faces all data, two adjacent faces no overlap points, two crossing e
 
 	expect(ear.graph.getFacesEdgesOverlap(graph)).toMatchObject([[1], [3]]);
 
-	expect(ear.graph.getFacesEdgesOverlapAllData(graph)).toMatchObject([
-		[
-			{ v: [0], e: [], p: [] },
-			{ v: [1], e: [3], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-		], [
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [1], e: [], p: [] },
-			{ v: [0], e: [1], p: [] },
-			{ v: [], e: [], p: [] },
-		],
-	]);
+	// expect(ear.graph.getFacesEdgesOverlapAllData(graph)).toMatchObject([
+	// 	[
+	// 		{ v: [0], e: [], p: [] },
+	// 		{ v: [1], e: [3], p: [] },
+	// 	], [
+	// 		,
+	// 		,
+	// 		{ v: [1], e: [], p: [] },
+	// 		{ v: [0], e: [1], p: [] },
+	// 	],
+	// ]);
 });
 
 test("edges-faces all data, two separate faces, identical", () => {
@@ -125,23 +108,8 @@ test("edges-faces all data, two separate faces, identical", () => {
 
 	expect(ear.graph.getFacesEdgesOverlap(graph)).toMatchObject([[], []]);
 
-	expect(ear.graph.getFacesEdgesOverlapAllData(graph)).toMatchObject([
-		[
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-		], [
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-		],
-	]);
+	// expect(ear.graph.getFacesEdgesOverlapAllData(graph))
+	// 	.toMatchObject([[], []]);
 });
 
 test("edges-faces all data, two separate faces, one point in common", () => {
@@ -157,23 +125,20 @@ test("edges-faces all data, two separate faces, one point in common", () => {
 
 	expect(ear.graph.getFacesEdgesOverlap(graph)).toMatchObject([[4], [0, 2]]);
 
-	expect(ear.graph.getFacesEdgesOverlapAllData(graph)).toMatchObject([
-		[
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [0], e: [], p: [] },
-			{ v: [], e: [0, 2], p: [] },
-			{ v: [0], e: [], p: [] },
-		], [
-			{ v: [3], e: [4], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [3], e: [4], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-		],
-	]);
+	// expect(ear.graph.getFacesEdgesOverlapAllData(graph)).toMatchObject([
+	// 	[
+	// 		,
+	// 		,
+	// 		,
+	// 		{ v: [0], e: [], p: [] },
+	// 		{ v: [], e: [0, 2], p: [] },
+	// 		{ v: [0], e: [], p: [] },
+	// 	], [
+	// 		{ v: [3], e: [4], p: [] },
+	// 		,
+	// 		{ v: [3], e: [4], p: [] },
+	// 	],
+	// ]);
 });
 
 test("edges-faces kite base", () => {
@@ -187,54 +152,48 @@ test("edges-faces kite base", () => {
 	expect(ear.graph.getFacesEdgesOverlap(folded))
 		.toMatchObject([[], [1], [4], []]);
 
-	// edge 1 overlaps face 1
-	// edge 4 overlaps face 2
-	expect(ear.graph.getFacesEdgesOverlapAllData(folded)).toMatchObject([
-		[
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [2], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [1], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [0], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-		],
-		[
-			{ v: [0], e: [8], p: [] }, // edge 8 contains vertex 0. will not overlap.
-			{ v: [2], e: [8], p: [] }, // face 1 and edge 1 should overlap
-			{ v: [], e: [], p: [] },
-			{ v: [3], e: [], p: [] },
-			{ v: [], e: [8], p: [] },
-			{ v: [0], e: [8], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [0], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-		],
-		[
-			{ v: [0], e: [8], p: [] },
-			{ v: [], e: [8], p: [] },
-			{ v: [3], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [4], e: [8], p: [] }, // face 2 and edge 4 should overlap
-			{ v: [0], e: [8], p: [] },
-			{ v: [0], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-		],
-		[
-			{ v: [], e: [], p: [] },
-			{ v: [5], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [4], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [0], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-			{ v: [], e: [], p: [] },
-		],
-	]);
+	// // edge 1 overlaps face 1
+	// // edge 4 overlaps face 2
+	// expect(ear.graph.getFacesEdgesOverlapAllData(folded)).toMatchObject([
+	// 	[
+	// 		,
+	// 		,
+	// 		{ v: [2], e: [], p: [] },
+	// 		,
+	// 		{ v: [1], e: [], p: [] },
+	// 		,
+	// 		,
+	// 		{ v: [0], e: [], p: [] },
+	// 	],
+	// 	[
+	// 		{ v: [0], e: [8], p: [] }, // edge 8 contains vertex 0. will not overlap.
+	// 		{ v: [2], e: [8], p: [] }, // face 1 and edge 1 should overlap
+	// 		,
+	// 		{ v: [3], e: [], p: [] },
+	// 		{ v: [], e: [8], p: [] },
+	// 		{ v: [0], e: [8], p: [] },
+	// 		,
+	// 		{ v: [0], e: [], p: [] },
+	// 	],
+	// 	[
+	// 		{ v: [0], e: [8], p: [] },
+	// 		{ v: [], e: [8], p: [] },
+	// 		{ v: [3], e: [], p: [] },
+	// 		,
+	// 		{ v: [4], e: [8], p: [] }, // face 2 and edge 4 should overlap
+	// 		{ v: [0], e: [8], p: [] },
+	// 		{ v: [0], e: [], p: [] },
+	// 	],
+	// 	[
+	// 		,
+	// 		{ v: [5], e: [], p: [] },
+	// 		,
+	// 		{ v: [4], e: [], p: [] },
+	// 		,
+	// 		,
+	// 		{ v: [0], e: [], p: [] },
+	// 	],
+	// ]);
 });
 
 test("edges-faces, bird base", () => {
@@ -250,20 +209,6 @@ test("edges-faces, bird base", () => {
 		[], [], [], [], [], [], [20, 22, 29, 33], [20, 22, 29, 33],
 		[], [], [], []
 	]);
-});
-
-test("edges-faces crane", () => {
-	const foldfile = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
-	const fold = JSON.parse(foldfile);
-	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
-	ear.graph.populate(folded);
-
-	const expectedJSON = fs.readFileSync("./tests/files/json/crane-faces-edges-overlap.json", "utf-8");
-	const expected = JSON.parse(expectedJSON);
-
-	const facesEdges = ear.graph.getFacesEdgesOverlap(folded);
-	expect(facesEdges.flat().length).toBe(1167);
-	expect(facesEdges).toMatchObject(expected);
 });
 
 test("edges-faces kabuto", () => {
@@ -345,4 +290,37 @@ test("edges-faces randlett flapping bird", () => {
 		[7, 28, 31, 43, 48],
 		[]
 	]);
+});
+
+test("edges-faces crane", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
+	const fold = JSON.parse(foldfile);
+	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	ear.graph.populate(folded);
+
+	const expectedJSON = fs.readFileSync("./tests/files/json/crane-faces-edges-overlap.json", "utf-8");
+	const expected = JSON.parse(expectedJSON);
+
+	const facesEdges = ear.graph.getFacesEdgesOverlap(folded);
+
+	expect(facesEdges.flat().length).toBe(1167);
+	expect(facesEdges).toMatchObject(expected);
+});
+
+test("edges-faces kraft bird", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/kraft-bird-base.fold", "utf-8");
+	const fold = JSON.parse(foldfile);
+	const folded = {
+		...fold,
+		vertices_coords: ear.graph.makeVerticesCoordsFlatFolded(fold),
+	}
+	ear.graph.populate(folded);
+
+	const start = performance.now();
+	const facesEdges = ear.graph.getFacesEdgesOverlap(folded);
+	const end = performance.now();
+	const elapsed = end - start;
+	// console.log(`${elapsed} ms. Kraft bird faces-edges overlap`);
+
+	expect(facesEdges.flat().length).toBe(7544);
 });

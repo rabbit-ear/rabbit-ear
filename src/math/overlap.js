@@ -11,11 +11,7 @@ import {
 import {
 	dot2,
 	magSquared,
-	magnitude2,
-	distance2,
 	cross2,
-	add2,
-	midpoint2,
 	subtract2,
 	rotate90,
 } from "./vector.js";
@@ -48,76 +44,6 @@ export const overlapLinePoint = (
 	const proj = dot2(p2p, vector) / lineMagSq;
 	return Math.abs(cross) < epsilon && lineDomain(proj, epsilon / lineMag);
 };
-
-/**
- * @description Test if two lines overlap each other, generalized
- * and works for lines, rays, and segments.
- * @param {VecLine} a a line in "vector" "origin" form
- * @param {VecLine} b a line in "vector" "origin" form
- * @param {function} aFn the domain of the first line parameter
- * @param {function} bFn the domain of the second line parameter
- * @param {number} [epsilon=1e-6] an optional epsilon
- * @linkcode Math ./src/intersect/overlap.js 55
-*/
-export const overlapLineLine = (
-	a,
-	b,
-	aDomain = includeL,
-	bDomain = includeL,
-	epsilon = EPSILON,
-) => {
-	const denominator0 = cross2(a.vector, b.vector);
-	const denominator1 = -denominator0;
-	const a2b = subtract2(b.origin, a.origin);
-	const b2a = [-a2b[0], -a2b[1]];
-	if (Math.abs(denominator0) < epsilon) { // parallel
-		if (Math.abs(cross2(a2b, a.vector)) > epsilon) { return false; }
-		// project each line's two endpoints onto the vector of the other line.
-		// todo: project all these points onto one range, see if the ranges overlap
-		const aPt1 = b2a;
-		const aPt2 = add2(aPt1, a.vector);
-		const aPt3 = midpoint2(aPt1, aPt2); // midpoint
-		const bPt1 = a2b;
-		const bPt2 = add2(bPt1, b.vector);
-		const bPt3 = midpoint2(bPt1, bPt2); // midpoint
-		const aProjLen = dot2(a.vector, a.vector);
-		const bProjLen = dot2(b.vector, b.vector);
-		// these will be between 0 and 1 if the two segments overlap
-		const aProj1 = dot2(aPt1, b.vector) / bProjLen;
-		const aProj2 = dot2(aPt2, b.vector) / bProjLen;
-		const aProj3 = dot2(aPt3, b.vector) / bProjLen;
-		const bProj1 = dot2(bPt1, a.vector) / aProjLen;
-		const bProj2 = dot2(bPt2, a.vector) / aProjLen;
-		const bProj3 = dot2(bPt3, a.vector) / aProjLen;
-		// use the supplied function parameters to allow line/ray/segment
-		// clamping and check if either point from either line is inside
-		// the other line's vector, and if the function (l/r/s) allows it
-		return aDomain(bProj1, epsilon) || aDomain(bProj2, epsilon)
-			|| bDomain(aProj1, epsilon) || bDomain(aProj2, epsilon)
-			|| aDomain(bProj3, epsilon) || bDomain(aProj3, epsilon);
-	}
-	const t0 = cross2(a2b, b.vector) / denominator0;
-	const t1 = cross2(b2a, a.vector) / denominator1;
-	return aDomain(t0, epsilon / magnitude2(a.vector))
-		&& bDomain(t1, epsilon / magnitude2(b.vector));
-};
-
-/**
- * @description Test if a point lies inside of a circle.
- * @param {Circle} circle a circle in radius origin form
- * @param {number[]} point a point in array form
- * @param {function} fn is the circle's boundary inclusive or exclusive
- * @param {number} [epsilon=1e-6] an optional epsilon
- * @linkcode Math ./src/intersect/overlap.js 99
-*/
-export const overlapCirclePoint = (
-	{ radius, origin },
-	point,
-	circleDomain = exclude,
-	epsilon = EPSILON,
-) => (
-	circleDomain(radius - distance2(origin, point), epsilon)
-);
 
 /**
  * @description Test if a point is inside a convex polygon.
@@ -155,6 +81,9 @@ export const overlapConvexPolygonPoint = (
 /**
  * @description Find out if two convex polygons are overlapping by searching
  * for a dividing axis, which should be one side from one of the polygons.
+ * This method is hard-coded to be exclusive, if two otherwise non-overlapping
+ * polygons share an overlapping edge, the method will still count the
+ * two polygons as not overlapping.
  * @param {number[][]} poly1 a polygon as an array of points
  * @param {number[][]} poly2 a polygon as an array of points
  * @param {number} [epsilon=1e-6] an optional epsilon
@@ -214,34 +143,3 @@ export const overlapBoundingBoxes = (box1, box2, epsilon = EPSILON) => {
 	}
 	return true;
 };
-
-/**
- * @param {Segment} segment a segment, an array of two points
- * @param {Box} box an axis-aligned bounding box
- * @param {number} [epsilon=1e-6] an optional epsilon,
- * positive value (default) is inclusive, negative is exclusive.
- * @returns {boolean} true if the bounding boxes overlap each other
- * @linkcode Math ./src/intersect/overlap.js 176
- */
-// export const overlapSegmentBox = (segment, box, epsilon = EPSILON) => {};
-
-// really great function and it works for non-convex polygons
-// but it has inconsistencies around inclusive and exclusive points
-// when the lie along the polygon edge.
-// for example, the unit square, point at 0 and at 1 alternate in/exclusive
-// keeping it around in case someone can clean it up.
-//
-// export const point_in_poly = (point, poly) => {
-//   // W. Randolph Franklin
-//   // https://wrf.ecse.rpi.edu/Research/Short_Notes/pnpoly.html
-//   let isInside = false;
-//   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-//     if ((poly[i][1] > point[1]) != (poly[j][1] > point[1])
-//       && point[0] < (poly[j][0] - poly[i][0])
-//       * (point[1] - poly[i][1]) / (poly[j][1] - poly[i][1])
-//       + poly[i][0]) {
-//       isInside = !isInside;
-//     }
-//   }
-//   return isInside;
-// };

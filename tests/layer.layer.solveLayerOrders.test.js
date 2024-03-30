@@ -228,8 +228,8 @@ test("layer four flaps", () => {
 	// four branches, each branch has 2 solutions
 	expect(branches.length).toBe(4);
 	expect(branches).toMatchObject([
-		[{ orders: { "0 3": 1 } }, { orders: { "0 3": 2 } }],
 		[{ orders: { "0 4": 1 } }, { orders: { "0 4": 2 } }],
+		[{ orders: { "0 3": 1 } }, { orders: { "0 3": 2 } }],
 		[{ orders: { "2 3": 1 } }, { orders: { "2 3": 2 } }],
 		[{ orders: { "2 4": 1 } }, { orders: { "2 4": 2 } }],
 	]);

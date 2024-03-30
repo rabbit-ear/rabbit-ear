@@ -70,8 +70,8 @@ export const getFacesFacesOverlap = ({
 	const facesPolygon = makeFacesPolygon({ vertices_coords, faces_vertices });
 	const facesBounds = facesPolygon.map(polygon => boundingBox(polygon));
 
-	// the result will go here, in a index-based sparse array.
-	const overlapMatrix = faces_vertices.map(() => []);
+	/** @type {number[][]} */
+	const facesFacesOverlap = faces_vertices.map(() => []);
 
 	// store here string-separated face pair keys "a b" where a < b
 	// to avoid doing duplicate work
@@ -103,15 +103,15 @@ export const getFacesFacesOverlap = ({
 						return;
 					}
 
-					// faces overlap. mark both entries in the matrix
-					overlapMatrix[f1][f2] = true;
-					overlapMatrix[f2][f1] = true;
+					facesFacesOverlap[f1].push(f2);
+					facesFacesOverlap[f2].push(f1);
 				}));
 
 			// these are faces which are leaving the sweep line, remove them from the set
 			end.forEach(e => delete setOfFaces[e]);
 		});
-	return overlapMatrix.map(faces => Object.keys(faces).map(n => parseInt(n, 10)));
+
+	return facesFacesOverlap;
 };
 
 /**
@@ -151,33 +151,17 @@ export const getEdgesEdgesCollinearOverlap = ({
 	return edgesEdgesOverlap;
 };
 
-
-
-
-// a valid face has 2 of these conditions:
-// - face_vertices which are crossed by this edge
-// - face_edges which are crossed by this edge
-// - this edge's one or two endpoints lie inside of this face
-
-// the data we have available is:
-// - vertices-vertices overlap: are edge endpoints touching or not?
-// - edges-vertices-overlap, exclusive.
-// - edges-edges, exclusive
-// - vertices-polygon-overlap, exclusive. (must be exclusive)
-// and how this plays out in terms of between a face and an edge
-// - vertex overlaps: taken from both vertices-vertices and edges-vertices
-//   using faces_vertices[face]
-// - edge overlaps: taken from edges-edges using faces_edges[face]
-// - point overlaps: taken from vertices-polygon overlaps. simple.
-
-// alternatively:
-// - edges-vertices-overlap, exclusive. this edge, iterate over face_vertices
-//   exclude case where 2 vertices make up an edge
-// - edges-edges, exclusive
-// - vertices-polygon-overlap, inclusive
-// this does not work because vertices-polygon overlap now includes cases where
-// both points of the same edge lie along a single polygon boundary edge.
-
+/**
+ * @description
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {{
+ *   verticesVertices: boolean[][],
+ *   verticesEdges: boolean[][],
+ *   edgesEdges: boolean[][],
+ *   facesVertices: boolean[][],
+ * }}
+ */
 export const getOverlappingComponents = ({
 	vertices_coords, edges_vertices, faces_vertices,
 }, epsilon = EPSILON) => {
@@ -236,9 +220,10 @@ export const getOverlappingComponents = ({
  * @description
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {number[][]} for every edge, a list of faces which overlap the edge
+ * @returns {number[][]} for every face, a list of edge indices
+ * which overlap this face.
  */
-export const getFacesEdgesOverlapAllData = ({
+export const getFacesEdgesOverlap = ({
 	vertices_coords, edges_vertices, faces_vertices, faces_edges,
 }, epsilon = EPSILON) => {
 	// - vertex overlaps: taken from both vertices-vertices and edges-vertices
@@ -260,6 +245,10 @@ export const getFacesEdgesOverlapAllData = ({
 	 * @description Given a face's vertices, and a list of vertex indices
 	 * in no particular order, filter out any pairs of indices which are
 	 * neighbors according to the ordering in face_vertices.
+	 * @param {number[]} face_vertices the vertices of one face
+	 * @param {number[]} indices a list of vertices from this face
+	 * @returns {number[]} a copy of indices, where all neighbor indices
+	 * have been removed.
 	 */
 	const filterFaceVerticesNeighbors = (face_vertices, indices) => {
 		// create a lookup for all indices
@@ -290,6 +279,9 @@ export const getFacesEdgesOverlapAllData = ({
 	 * - a square face with vertices (4, 5, 6, 7) and an edge
 	 * between vertices (8, 9) where 8 and 9 lie on top of 4 and 6 respectively
 	 * should return vertices (4, 6).
+	 * @param {number} edge an edge index
+	 * @param {number} face a face index
+	 * @returns {number[]} a list of vertices involved in the overlap
 	 */
 	const getVerticesOverlap = (edge, face) => {
 		// a list of the face's vertices which this edge crosses and
@@ -328,52 +320,49 @@ export const getFacesEdgesOverlapAllData = ({
 	// for every face, gather all intersected edges and vertices and filter
 	//   by the formula i've written many times, either: edges + vertces = 2
 	//   where vertices are not adjacent
-	return faces_vertices
-		.map((_, face) => edges_vertices
-			.map((__, edge) => ({
-				v: getVerticesOverlap(edge, face),
-				e: getEdgesOverlap(edge, face),
-				p: getPointsOverlap(edge, face),
-			})));
+	/** @type {number[][]} */
+	const facesEdgesOverlap = faces_vertices.map(() => []);
+	faces_vertices.forEach((_, face) => edges_vertices.forEach((__, edge) => {
+		const vertices = getVerticesOverlap(edge, face);
+		const edges = getEdgesOverlap(edge, face);
+		const points = getPointsOverlap(edge, face);
+		if (vertices.length + edges.length + points.length !== 2) { return; }
+		// filter faces which have one edge being crossed and
+		// one vertex being overlapped, and if that edge's edges_vertices
+		// contains this vertex, then the "overlap" is simply a collinear overlap.
+		if (vertices.length === 1 && edges.length === 1) {
+			if (edges_vertices[edges[0]].includes(vertices[0])) { return; }
+		}
+
+		facesEdgesOverlap[face].push(edge);
+	}));
+
+	return facesEdgesOverlap;
 };
 
-/**
- * @description
- * @param {FOLD} graph a FOLD object
- * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {number[][]} for every face, a list of edge indices
- * which overlap this face.
- */
-export const getFacesEdgesOverlap = ({
-	vertices_coords, edges_vertices, faces_vertices, faces_edges,
-}, epsilon = EPSILON) => {
-	const facesEdgesOverlap = getFacesEdgesOverlapAllData({
-		vertices_coords, edges_vertices, faces_vertices, faces_edges,
-	}, epsilon);
+// a valid face has 2 of these conditions:
+// - face_vertices which are crossed by this edge
+// - face_edges which are crossed by this edge
+// - this edge's one or two endpoints lie inside of this face
 
-	facesEdgesOverlap
-		.forEach((array, i) => array
-			.forEach(({ v, e, p }, j) => {
-				if (v.length + e.length + p.length !== 2) {
-					delete facesEdgesOverlap[i][j];
-				}
-			}));
+// the data we have available is:
+// - vertices-vertices overlap: are edge endpoints touching or not?
+// - edges-vertices-overlap, exclusive.
+// - edges-edges, exclusive
+// - vertices-polygon-overlap, exclusive. (must be exclusive)
+// and how this plays out in terms of between a face and an edge
+// - vertex overlaps: taken from both vertices-vertices and edges-vertices
+//   using faces_vertices[face]
+// - edge overlaps: taken from edges-edges using faces_edges[face]
+// - point overlaps: taken from vertices-polygon overlaps. simple.
 
-	// filter faces which have one edge being crossed and
-	// one vertex being overlapped, and if that edge's edges_vertices
-	// contains this vertex, then the "overlap" is simply a collinear overlap.
-	facesEdgesOverlap
-		.forEach((array, i) => array
-			.forEach(({ v, e }, j) => {
-				if (v.length === 1 && e.length === 1) {
-					if (edges_vertices[e[0]].includes(v[0])) {
-						delete facesEdgesOverlap[i][j];
-					}
-				}
-			}));
-
-	return lookupArrayToArrayArray(facesEdgesOverlap);
-};
+// alternatively:
+// - edges-vertices-overlap, exclusive. this edge, iterate over face_vertices
+//   exclude case where 2 vertices make up an edge
+// - edges-edges, exclusive
+// - vertices-polygon-overlap, inclusive
+// this does not work because vertices-polygon overlap now includes cases where
+// both points of the same edge lie along a single polygon boundary edge.
 
 /**
  * @description

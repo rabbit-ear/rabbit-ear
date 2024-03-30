@@ -1,8 +1,12 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../math/constant.js";
-import { epsilonEqual } from "../math/compare.js";
+import {
+	EPSILON,
+} from "../math/constant.js";
+import {
+	epsilonEqual,
+} from "../math/compare.js";
 
 /**
  * @description Given a list of any type, return a copy of the array
@@ -49,8 +53,6 @@ export const uniqueSortedNumbers = (array) => {
 	array.forEach(n => { hash[n] = true; });
 	return Object.keys(hash).map(parseFloat);
 };
-// export const uniqueSortedNumbers = (array) => uniqueElements(array)
-//   .sort((a, b) => a - b);
 
 /**
  * @description Given an array of numbers, sort the list and
@@ -248,7 +250,13 @@ export const mergeArraysWithHoles = (...arrays) => {
 };
 
 /**
- *
+ * @description Clusters are arrays of arrays of indices, where every index
+ * in the inner arrays are clustered together. This method converts this array
+ * into a vertices_vertices or faces_faces style array, where for every index
+ * its list contains the set of all indices (not including itself) which are
+ * a member of the same cluster.
+ * @param {number[][]} cluster a cluster array
+ * @returns {number[][]} a reflexive array (like vertices_vertices)
  */
 export const clustersToReflexiveArrays = (clusters) => {
 	const result = [];
@@ -262,6 +270,15 @@ export const clustersToReflexiveArrays = (clusters) => {
 	return result;
 };
 
+/**
+ * @description Convert an array of arrays of numbers into an array of array
+ * of booleans where the booleans are at the index positions of the numbers,
+ * making this array act as a quick hash lookup for whether or not an index
+ * exists.
+ * @param {number[][]} array_array an array of arrays of numbers
+ * @returns {boolean[][]} for every top level array, an array that contains
+ * true values at every index of a number in the array.
+ */
 export const arrayArrayToLookupArray = (array_array) => array_array
 	.map(array => {
 		const lookup = [];
@@ -269,6 +286,14 @@ export const arrayArrayToLookupArray = (array_array) => array_array
 		return lookup;
 	});
 
+/**
+ * @description Convert an array of arrays of booleans into an array
+ * of arrays of numbers, where those numbers are the indices in the array
+ * at which those booleans appear.
+ * @param {boolean[][]} lookupArray an array of arrays of booleans
+ * @returns {number[][]} for every top level array, an array that contains
+ * the indices with truthy values.
+ */
 export const lookupArrayToArrayArray = (lookupArray) => lookupArray
 	.map(array => array
 		.map((overlap, i) => (overlap ? i : undefined))

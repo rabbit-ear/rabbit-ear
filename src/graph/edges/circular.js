@@ -9,7 +9,7 @@ import remove from "../remove.js";
  * edges where both of its edges_vertices is the same vertex.
  * @param {FOLD} graph a FOLD object
  * @returns {number[]} array of indices of circular edges. empty if none.
- * @linkcode Origami ./src/graph/edgesViolations.js 21
+ * @linkcode
  */
 export const circularEdges = ({ edges_vertices = [] }) => edges_vertices
 	.map((vertices, i) => (vertices[0] === vertices[1] ? i : undefined))
@@ -48,7 +48,7 @@ const spliceRemoveValuesFromSuffixes = (graph, suffix, remove_indices) => {
  * circularEdges() has already been called, provide the result here to speed
  * up the algorithm.
  * @returns {object} a summary of changes
- * @linkcode Origami ./src/graph/edgesViolations.js 100
+ * @linkcode
  */
 export const removeCircularEdges = (graph, remove_indices) => {
 	if (!remove_indices) {

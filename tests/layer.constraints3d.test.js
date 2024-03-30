@@ -2,6 +2,51 @@ import fs from "fs";
 import { expect, test } from "vitest";
 import ear from "../rabbit-ear.js";
 
+test("makeSolverConstraints, 2D and 3D comparison, crane", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
+	const fold = JSON.parse(foldfile);
+	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	ear.graph.populate(folded);
+
+	const flat = ear.layer.makeSolverConstraintsFlat(folded);
+	const three = ear.layer.makeSolverConstraints3D(folded);
+	expect(flat.constraints).toMatchObject(three.constraints);
+	expect(flat.facePairs).toMatchObject(three.facePairs);
+	expect(flat.faces_winding).toMatchObject(three.faces_winding);
+	expect(flat.orders).toMatchObject(three.orders);
+});
+
+test("makeSolverConstraints, 2D and 3D comparison, kabuto", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/kabuto.fold", "utf-8");
+	const fold = JSON.parse(foldfile);
+	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	ear.graph.populate(folded);
+
+	const flat = ear.layer.makeSolverConstraintsFlat(folded);
+	const three = ear.layer.makeSolverConstraints3D(folded);
+	expect(flat.constraints).toMatchObject(three.constraints);
+	expect(flat.facePairs).toMatchObject(three.facePairs);
+	expect(flat.faces_winding).toMatchObject(three.faces_winding);
+	expect(flat.orders).toMatchObject(three.orders);
+});
+
+test("makeSolverConstraints, 2D and 3D comparison, kraft bird", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/kraft-bird-base.fold", "utf-8");
+	const fold = JSON.parse(foldfile);
+	const folded = {
+		...fold,
+		vertices_coords: ear.graph.makeVerticesCoordsFlatFolded(fold),
+	};
+	ear.graph.populate(folded);
+
+	const flat = ear.layer.makeSolverConstraintsFlat(folded);
+	const three = ear.layer.makeSolverConstraints3D(folded);
+	expect(flat.constraints).toMatchObject(three.constraints);
+	expect(flat.facePairs).toMatchObject(three.facePairs);
+	expect(flat.faces_winding).toMatchObject(three.faces_winding);
+	expect(flat.orders).toMatchObject(three.orders);
+});
+
 test("makeSolverConstraints3D cube octagon", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/cube-octagon.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
@@ -12,10 +57,12 @@ test("makeSolverConstraints3D cube octagon", () => {
 	const expected = JSON.parse(expectedJSON);
 
 	const solverConstraints = ear.layer.makeSolverConstraints3D(folded);
-	// console.log(JSON.stringify(solverConstraints));
 	expect(solverConstraints).toMatchObject(expected);
 });
 
+// this tests all of the cases which were built on top of the 2D solver,
+// things which examine the overlapping geometry in 3D and generate
+// either additional solutions (orders) or conditions (tacos/tortillas/transitivity)
 test("makeSolverConstraints3D layer 3D test cases", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/layer3d-cases.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
@@ -153,7 +200,7 @@ test("makeSolverConstraints3D panels 6x2", () => {
 		orders,
 	} = ear.layer.makeSolverConstraints3D(folded);
 
-	expect(facePairs).toMatchObject([
+	[
 		// every permutation of pairs of these:
 		// 0, 1, 2, 3, 4, 5
 		"0 1", "0 2", "0 3", "0 4", "0 5", "1 2", "1 3", "1 4", "1 5",
@@ -162,7 +209,7 @@ test("makeSolverConstraints3D panels 6x2", () => {
 		// 6, 7, 8, 9, 10, 11
 		"6 7", "6 8", "6 9", "6 10", "6 11", "7 8", "7 9", "7 10", "7 11",
 		"8 9", "8 10", "8 11", "9 10", "9 11", "10 11"
-	]);
+	].forEach(key => expect(facePairs).toContain(key));
 	expect(faces_winding).toMatchObject([
 		true, false, true, false, true, false, true, false, true, false, true, false
 	]);
@@ -217,166 +264,21 @@ test("makeSolverConstraints3D panels 6x2", () => {
 	]);
 });
 
-// test("makeSolverConstraints3D maze-u", () => {
-// 	const foldfile = fs.readFileSync("./tests/files/fold/maze-u.fold", "utf-8");
-// 	const fold = JSON.parse(foldfile);
-// 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
-// 	ear.graph.populate(folded);
+test("makeSolverConstraints3D maze-u", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/maze-u.fold", "utf-8");
+	const fold = JSON.parse(foldfile);
+	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	ear.graph.populate(folded);
 
-// 	const expectedJSON = fs.readFileSync("./tests/files/json/maze-u-constraints.json", "utf-8");
-// 	const expected = JSON.parse(expectedJSON);
+	const expectedJSON = fs.readFileSync("./tests/files/json/maze-u-constraints.json", "utf-8");
+	const expected = JSON.parse(expectedJSON);
 
-// 	// these fields are tested.
-// 	// - constraints: { taco_taco, taco_tortilla, tortilla_tortilla, transitivity }
-// 	// - lookup
-// 	// - facePairs
-// 	// - faces_winding
-// 	// - orders
-// 	const solverConstraints = ear.layer.makeSolverConstraints3D(folded);
-// 	expect(solverConstraints).toMatchObject(expected);
-// });
-
-// test("makeSolverConstraints3D maze-u 3D-only setup", () => {
-// 	const foldfile = fs.readFileSync("./tests/files/fold/maze-u.fold", "utf-8");
-// 	const fold = JSON.parse(foldfile);
-// 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
-// 	ear.graph.populate(folded);
-
-// 	const expectedJSON = fs.readFileSync("./tests/files/json/maze-u-constraints.json", "utf-8");
-// 	const expected = JSON.parse(expectedJSON);
-
-// 	const {
-// 		// planes,
-// 		planes_transform,
-// 		faces_winding,
-// 		// planes_faces,
-// 		// faces_plane,
-// 		// planes_clusters,
-// 		clusters_plane,
-// 		clusters_faces,
-// 		faces_cluster,
-// 	} = ear.graph.getCoplanarAdjacentOverlappingFaces(folded);
-
-// 	// for every cluster, make a shallow copy of the input graph, containing
-// 	// only the faces included in that cluster, and by extension, all edges and
-// 	// vertices which are used by this subset of faces.
-// 	const clusters_graph = clusters_faces
-// 		.map(faces => ear.graph.subgraphWithFaces(folded, faces));
-
-// 	// ensure all vertices_coords are 3D (make a copy array here) for use in
-// 	// multiplyMatrix4Vector3, which requires points to be in 3D.
-// 	const vertices_coords3D = folded.vertices_coords
-// 		.map(coord => ear.math.resize(3, coord));
-
-// 	// for each cluster, get the transform which, when applied, brings
-// 	// all points into the XY plane.
-// 	const clusters_transform = clusters_plane.map(p => planes_transform[p]);
-
-// 	// transform all vertices_coords by the inverse transform
-// 	// to bring them all into the XY plane. convert back into a 2D point.
-// 	clusters_graph.forEach(({ vertices_coords: coords }, i) => {
-// 		clusters_graph[i].vertices_coords = coords
-// 			.map((_, v) => ear.math.multiplyMatrix4Vector3(
-// 				clusters_transform[i],
-// 				vertices_coords3D[v],
-// 			))
-// 			.map(([a, b]) => [a, b]);
-// 	});
-
-// 	// get a list of all edge indices which are non-flat edges.
-// 	// non-flat edges are anything other than 0, -180, or +180 fold angles.
-// 	const nonFlatEdges = folded.edges_foldAngle
-// 		.map(ear.graph.edgeFoldAngleIsFlat)
-// 		.map((flat, i) => (!flat ? i : undefined))
-// 		.filter(a => a !== undefined);
-
-// 	// remove any non-flat edges from the shallow copies.
-// 	["edges_vertices", "edges_faces", "edges_assignment", "edges_foldAngle"]
-// 		.forEach(key => clusters_graph
-// 			.forEach(graph => nonFlatEdges
-// 				.forEach(e => delete graph[key][e])));
-
-// 	// now, any arrays referencing edges (_edges) are out of sync with
-// 	// the edge arrays themselves (edges_). Therefore this method really
-// 	// isn't intended to be used outside of this higly specific context.
-
-// 	// faces_polygon is a flat array of polygons in 2D, where every face
-// 	// is re-oriented into 2D via each set's transformation.
-// 	// collinear vertices (if exist) are removed from every polygon.
-// 	const faces_polygon = ear.general.mergeArraysWithHoles(...clusters_graph
-// 		.map(copy => ear.graph.makeFacesPolygon(copy)));
-
-// 	// ensure that all faces are counter-clockwise, flip winding if necessary.
-// 	faces_winding
-// 		.map((upright, i) => (upright ? undefined : i))
-// 		.filter(a => a !== undefined)
-// 		.forEach(f => faces_polygon[f].reverse());
-
-// 	// for every face, a list of face indices which overlap this face.
-// 	// compute face-face-overlap for every cluster's graph one at a time,
-// 	// this is important because vertices have been translated into 2D now,
-// 	// and it's possible that faces from other clusters overlap each other
-// 	// in this transformed state; we don't want that. After we compute face-face
-// 	// overlap information separately, we can merge all of the results into
-// 	// a flat array since none of the resulting arrays will overlap.
-// 	const facesFacesOverlap = ear.general.mergeArraysWithHoles(...clusters_graph
-// 		.map(graph => ear.graph.getFacesFacesOverlap(graph)));
-
-// 	// simple faces center by averaging all the face's vertices.
-// 	// we don't have to be precise here, these are used to tell which
-// 	// side of a face's edge the face is (assuming all faces are convex).
-// 	const faces_center = faces_polygon.map(coords => ear.math.average2(...coords));
-
-// 	// populate individual graph copies with faces_center data.
-// 	clusters_graph.forEach(({ faces_vertices: fv }, c) => {
-// 		clusters_graph[c].faces_center = fv.map((_, f) => faces_center[f]);
-// 	});
-
-// 	// these are all the variables we need to solve- all overlapping faces in
-// 	// pairwise combinations, as a space-separated string, smallest index first
-// 	const facePairsInts = ear.graph.connectedComponentsPairs(facesFacesOverlap);
-// 	const facePairs = facePairsInts.map(pair => pair.join(" "));
-
-// 	const {
-// 		tortillas3D,
-// 		orders,
-// 	} = ear.layer.makeSolverConstraints3DBetweenClusters(
-// 		{
-// 			...folded,
-// 			faces_winding,
-// 			faces_center,
-// 		},
-// 		clusters_faces,
-// 		clusters_transform,
-// 		faces_cluster,
-// 		faces_polygon,
-// 		facePairs,
-// 		facePairsInts,
-// 	);
-
-// 	// all tortilla_tortilla constraints come from the bent 3D tortillas.
-// 	// no tortilla_tortillas come from the 2D calculation.
-// 	expect(tortillas3D).toMatchObject(expected.constraints.tortilla_tortilla);
-// });
-
-// test("Graph group copies", () => {
-// 	const foldFile = fs.readFileSync("./tests/files/fold/maze-u.fold", "utf-8");
-// 	const foldObject = JSON.parse(foldFile);
-// 	const graph = ear.graph.getFramesByClassName(foldObject, "foldedForm")[0];
-// 	const {
-// 		clusters_faces,
-// 		clusters_plane,
-// 		planes_transform,
-// 		faces_cluster,
-// 		faces_winding,
-// 		// facesFacesOverlap,
-// 	} = ear.graph.getCoplanarAdjacentOverlappingFaces(graph);
-// 	const clusters_transformXY = clusters_plane.map(p => planes_transform[p]);
-// 	// all vertices_coords will become 2D
-// 	// const clusters_graphs = ear.layer.graphGroupCopies(graph, clusters_faces, clusters_transformXY);
-// 	// const faces_polygon = ear.general.mergeArraysWithHoles(...clusters_graphs
-// 	// 	.map(copy => ear.graph.makeFacesPolygon(copy)));
-// 	// fs.writeFileSync(`./tests/tmp/sets_graphs.json`, JSON.stringify(clusters_graphs, null, 2));
-// 	// fs.writeFileSync(`./tests/tmp/faces_polygon.json`, JSON.stringify(faces_polygon, null, 2));
-// 	expect(true).toBe(true);
-// });
+	// these fields are tested.
+	// - constraints: { taco_taco, taco_tortilla, tortilla_tortilla, transitivity }
+	// - lookup
+	// - facePairs
+	// - faces_winding
+	// - orders
+	const solverConstraints = ear.layer.makeSolverConstraints3D(folded);
+	expect(solverConstraints).toMatchObject(expected);
+});

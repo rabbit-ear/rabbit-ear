@@ -27,7 +27,7 @@ import {
 } from "../math/clip.js";
 import {
 	intersectLineLine,
-	intersectConvexPolygonLine,
+	// intersectConvexPolygonLine,
 } from "../math/intersect.js";
 import {
 	boundingBox,
@@ -213,7 +213,7 @@ export const betweenTwoIntersectingSegments = (lines, intersect, foldLine, bound
 
 	// intersect each of the four rays with the polygon, returning a list
 	// of four points, and we know the order of these points now.
-	const rayEndpoints = [a1, a2, b1, b2].map(ray => intersectConvexPolygonLine(
+	const rayEndpoints = [a1, a2, b1, b2].map(ray => clipLineConvexPolygon(
 		boundary,
 		ray,
 		includeS,

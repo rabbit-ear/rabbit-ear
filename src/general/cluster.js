@@ -59,9 +59,21 @@ export const clusterSortedGeneric = (elements, comparison) => {
 };
 
 /**
- *
+ * @description Given a list of unsorted elements, create clusters
+ * where similarity is determined by a custom comparison function.
+ * Because the elements are not sorted, comparisons need to happen to
+ * all members of a group before an element is added, hence it's much
+ * preferred to use clusterSortedGeneric if possible.
+ * The type of elements in the list doesn't matter, so long as the
+ * comparison function can compare them.
+ * @param {any[]} elements a list of elements of any type
+ * @param {function} comparison a function which takes two "any" types
+ * (from elements) and returns true if they are similar, false otherwise.
+ * @returns {number[][]} a list of lists of indices referencing the input list,
+ * where each inner list is a cluster of similar element indices.
+ * @linkcode
  */
-export const clusterGeneric = (indices, comparison) => {
+export const clusterUnsortedIndices = (indices, comparison) => {
 	if (!indices.length) { return []; }
 
 	const indicesCopy = indices.slice();
@@ -123,6 +135,10 @@ export const clusterScalars = (numbers, epsilon = EPSILON) => {
 };
 
 /**
+ * @description Given a list of unsorted ranges, each range being a pair
+ * of numbers, this method will create clusters where every range in
+ * the cluster is overlapped by at least one other range.
+ * Range pairs do not necessarily need to be in increasing order.
  * @param {[number, number][]} ranges a list of ranges,
  * each range a pair of numbers
  * @param {number} [epsilon=1e-6] an optional epsilon
@@ -165,7 +181,6 @@ export const clusterRanges = (ranges, epsilon = EPSILON) => {
 	return clusterSortedGeneric(sortedRanges, comparison)
 		.map(arr => arr.map(i => indices[i]));
 };
-
 
 /**
  * @description Given an array of vectors, group the vectors into clusters

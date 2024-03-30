@@ -146,7 +146,7 @@ export const clipLineConvexPolygon = (
 };
 
 /**
- * @description Clip two 2D polygons and return their union. This works
+ * @description Clip two 2D polygons and return their intersection. This works
  * for non-convex poylgons, but both polygons must have counter-clockwise
  * winding; will not work even if both are similarly-clockwise.
  * Sutherland-Hodgman algorithm.

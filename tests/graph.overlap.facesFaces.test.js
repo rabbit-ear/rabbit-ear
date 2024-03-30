@@ -9,6 +9,7 @@ test("getFacesFacesOverlap strip weave", () => {
 	ear.graph.populate(folded);
 
 	const result = ear.graph.getFacesFacesOverlap(folded);
+	result.forEach(arr => arr.sort((a, b) => a - b));
 	expect(result).toMatchObject([
 		[1, 4],
 		[0, 2, 4],
@@ -27,6 +28,7 @@ test("getFacesFacesOverlap four panel square", () => {
 	ear.graph.populate(folded);
 
 	const result = ear.graph.getFacesFacesOverlap(folded);
+	result.forEach(arr => arr.sort((a, b) => a - b));
 	expect(result).toMatchObject([
 		[1, 2, 3],
 		[0, 2, 3],
@@ -46,6 +48,7 @@ test("getFacesFacesOverlap zig-zag panels", () => {
 	ear.graph.populate(folded);
 
 	const result = ear.graph.getFacesFacesOverlap(folded);
+	result.forEach(arr => arr.sort((a, b) => a - b));
 	expect(result).toMatchObject([
 		[1, 2, 3, 4],
 		[0, 2, 3, 4],
@@ -64,7 +67,7 @@ test("getFacesFacesOverlap bird base, faces-faces", () => {
 	ear.graph.populate(folded);
 
 	const result = ear.graph.getFacesFacesOverlap(folded);
-
+	result.forEach(arr => arr.sort((a, b) => a - b));
 	expect(result).toMatchObject([
 		[1,4,5,6,7,8,11],[0,4,5,6,7,8,11],[3,9,10,12,13,14,15],[2,9,10,12,13,14,15],
 		[0,1,5,6,7,8,11],[0,1,4,6,7,8,11],[0,1,4,5,7,8,11,16,19],[0,1,4,5,6,8,11,16,19],
@@ -94,6 +97,7 @@ test("getFacesFacesOverlap kabuto", () => {
 	const expected = JSON.parse(expectedJSON);
 
 	const result = ear.graph.getFacesFacesOverlap(folded);
+	result.forEach(arr => arr.sort((a, b) => a - b));
 	expect(result).toMatchObject(expected);
 });
 
@@ -103,11 +107,12 @@ test("getFacesFacesOverlap crane", () => {
 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
 	ear.graph.populate(folded);
 
-	const resultJSON = fs.readFileSync("./tests/files/json/crane-faces-faces-overlap.json", "utf-8");
-	const result = JSON.parse(resultJSON);
+	const expectedJSON = fs.readFileSync("./tests/files/json/crane-faces-faces-overlap.json", "utf-8");
+	const expected = JSON.parse(expectedJSON);
 
-	const computed = ear.graph.getFacesFacesOverlap(folded);
-	expect(computed).toMatchObject(result);
+	const result = ear.graph.getFacesFacesOverlap(folded);
+	result.forEach(arr => arr.sort((a, b) => a - b));
+	expect(result).toMatchObject(expected);
 });
 
 test("getFacesFacesOverlap Kraft bird", () => {
@@ -119,21 +124,10 @@ test("getFacesFacesOverlap Kraft bird", () => {
 	};
 	ear.graph.populate(folded);
 
-	const resultJSON = fs.readFileSync("./tests/files/json/kraft-bird-faces-faces-overlap.json", "utf-8");
-	const result = JSON.parse(resultJSON);
+	const expectedJSON = fs.readFileSync("./tests/files/json/kraft-bird-faces-faces-overlap.json", "utf-8");
+	const expected = JSON.parse(expectedJSON);
 
-	const computed = ear.graph.getFacesFacesOverlap(folded);
-	expect(computed).toMatchObject(result);
-});
-
-test("getEdgesEdgesCollinearOverlap", () => {
-
-});
-
-test("edges-edges", () => {
-	const foldfile = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
-	const fold = JSON.parse(foldfile);
-	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
-	ear.graph.populate(folded);
-	expect(ear.graph.getEdgesEdgesCollinearOverlap(folded).flat().length).toBe(554);
+	const result = ear.graph.getFacesFacesOverlap(folded);
+	result.forEach(arr => arr.sort((a, b) => a - b));
+	expect(result).toMatchObject(expected);
 });

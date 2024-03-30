@@ -59,6 +59,7 @@ import {
 } from "./initialSolution.js";
 
 /**
+ * @description
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  */
@@ -158,28 +159,6 @@ export const makeSolverConstraints3D = ({
 	const facePairsInts = connectedComponentsPairs(facesFacesOverlap);
 	const facePairs = facePairsInts.map(pair => pair.join(" "));
 
-	// the additional 3d tacos/tortillas data
-	// const {
-	// 	tortillas3D,
-	// 	orders,
-	// } = makeSolverConstraints3DBetweenClusters(
-	// 	{
-	// 		vertices_coords,
-	// 		edges_vertices,
-	// 		edges_faces,
-	// 		edges_foldAngle,
-	// 		faces_winding,
-	// 		faces_center,
-	// 	},
-	// 	clusters_faces,
-	// 	clusters_transform,
-	// 	faces_cluster,
-	// 	faces_polygon,
-	// 	facePairs,
-	// 	facePairsInts,
-	// 	epsilon,
-	// );
-
 	// for every facePair, which cluster is the face pair a member of.
 	// we only need to check one face, because they should be in the same cluster.
 	const facePairs_cluster = facePairsInts
@@ -214,16 +193,6 @@ export const makeSolverConstraints3D = ({
 		.map(([a, b], e) => (a === b ? e : undefined))
 		.filter(a => a !== undefined)
 		.forEach(e => delete edges_clusters[e]);
-
-	// const {
-	// 	tortillaTortillaEdges,
-	// 	solvable1,
-	// 	solvable2,
-	// 	solvable3,
-	// } = getOverlappingParallelEdgePairs({
-	// 	vertices_coords, edges_vertices, edges_faces, edges_foldAngle, faces_center,
-	// }, edges_clusters, faces_cluster, clusters_transform, epsilon);
-	// console.timeEnd("setup.js setup3d() getOverlappingParallelEdgePairs()");
 
 	const edgesFlat = edges_foldAngle.map(edgeFoldAngleIsFlat);
 
@@ -392,7 +361,6 @@ export const makeSolverConstraints3D = ({
 	// 	solvable2,
 	// 	solvable3: [],
 	// };
-
 
 	// tacos tortillas
 	const tortillas3D = makeBentTortillas(
