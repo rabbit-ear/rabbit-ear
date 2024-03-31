@@ -17,9 +17,6 @@ import {
 	mergeArraysWithHoles,
 } from "../general/array.js";
 import {
-	invertFlatToArrayMap,
-} from "../graph/maps.js";
-import {
 	edgeFoldAngleIsFlat,
 } from "../fold/spec.js";
 import {
@@ -59,11 +56,26 @@ import {
 } from "./initialSolution.js";
 
 /**
- * @description
+ * @description The first subroutine to initialize solver constraints for a
+ * 3D model. This method locates all coplanar-overlapping clusters of faces
+ * "clusters", clone one subgraph per cluster which contain only components
+ * from this cluster's faces, rotate these graphs's vertices to place them
+ * into the XY plane, and compute the overlap state between every pair of faces.
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {{
+ *   faces_cluster: number[],
+ *   faces_winding: boolean[],
+ *   faces_polygon: [number, number][][],
+ *   faces_center: [number, number][],
+ *   clusters_faces: number[][],
+ *   clusters_graph: FOLD[],
+ *   clusters_transform: number[][],
+ *   facesFacesOverlap: number[][],
+ *   facePairs: string[],
+ * }}
  */
-export const makeSolverConstraints3D = ({
+export const constraints3DFaceClusters = ({
 	vertices_coords, edges_vertices, edges_faces, edges_assignment, edges_foldAngle,
 	faces_vertices, faces_edges, faces_faces,
 }, epsilon = EPSILON) => {
@@ -85,6 +97,10 @@ export const makeSolverConstraints3D = ({
 		vertices_coords, faces_vertices, faces_faces,
 	}, epsilon);
 
+	// for each cluster, get the transform which, when applied, brings
+	// all points into the XY plane.
+	const clusters_transform = clusters_plane.map(p => planes_transform[p]);
+
 	// for every cluster, make a shallow copy of the input graph, containing
 	// only the faces included in that cluster, and by extension, all edges and
 	// vertices which are used by this subset of faces.
@@ -103,16 +119,12 @@ export const makeSolverConstraints3D = ({
 	// multiplyMatrix4Vector3, which requires points to be in 3D.
 	const vertices_coords3D = vertices_coords.map(coord => resize(3, coord));
 
-	// for each cluster, get the transform which, when applied, brings
-	// all points into the XY plane.
-	const clusters_transform = clusters_plane.map(p => planes_transform[p]);
-
 	// transform all vertices_coords by the inverse transform
 	// to bring them all into the XY plane. convert back into a 2D point.
-	clusters_graph.forEach(({ vertices_coords: coords }, i) => {
-		clusters_graph[i].vertices_coords = coords
+	clusters_graph.forEach(({ vertices_coords: coords }, c) => {
+		clusters_graph[c].vertices_coords = coords
 			.map((_, v) => multiplyMatrix4Vector3(
-				clusters_transform[i],
+				clusters_transform[c],
 				vertices_coords3D[v],
 			))
 			.map(([a, b]) => [a, b]);
@@ -125,8 +137,19 @@ export const makeSolverConstraints3D = ({
 	// faces_polygon is a flat array of polygons in 2D, where every face
 	// is re-oriented into 2D via each set's transformation.
 	// collinear vertices (if exist) are removed from every polygon.
+	/** @type {[number, number][][]} */
 	const faces_polygon = mergeArraysWithHoles(...clusters_graph
 		.map(copy => makeFacesPolygon(copy, epsilon)));
+
+	// simple faces center by averaging all the face's vertices.
+	// we don't have to be precise here, these are used to tell which
+	// side of a face's edge the face is (assuming all faces are convex).
+	const faces_center = faces_polygon.map(coords => average2(...coords));
+
+	// populate individual graph copies with faces_center data.
+	clusters_graph.forEach(({ faces_vertices: fv }, c) => {
+		clusters_graph[c].faces_center = fv.map((_, f) => faces_center[f]);
+	});
 
 	// ensure that all faces are counter-clockwise, flip winding if necessary.
 	faces_winding
@@ -141,42 +164,42 @@ export const makeSolverConstraints3D = ({
 	// in this transformed state; we don't want that. After we compute face-face
 	// overlap information separately, we can merge all of the results into
 	// a flat array since none of the resulting arrays will overlap.
+	/** @type {number[][]} */
 	const facesFacesOverlap = mergeArraysWithHoles(...clusters_graph
 		.map(graph => getFacesFacesOverlap(graph, epsilon)));
 
-	// simple faces center by averaging all the face's vertices.
-	// we don't have to be precise here, these are used to tell which
-	// side of a face's edge the face is (assuming all faces are convex).
-	const faces_center = faces_polygon.map(coords => average2(...coords));
-
-	// populate individual graph copies with faces_center data.
-	clusters_graph.forEach(({ faces_vertices: fv }, c) => {
-		clusters_graph[c].faces_center = fv.map((_, f) => faces_center[f]);
-	});
-
 	// these are all the variables we need to solve- all overlapping faces in
 	// pairwise combinations, as a space-separated string, smallest index first
-	const facePairsInts = connectedComponentsPairs(facesFacesOverlap);
-	const facePairs = facePairsInts.map(pair => pair.join(" "));
+	const facePairs = connectedComponentsPairs(facesFacesOverlap)
+		.map(pair => pair.join(" "));
 
-	// for every facePair, which cluster is the face pair a member of.
-	// we only need to check one face, because they should be in the same cluster.
-	const facePairs_cluster = facePairsInts
-		.map(pair => faces_cluster[pair[0]]);
+	return {
+		faces_cluster,
+		faces_winding,
+		faces_polygon,
+		faces_center,
+		clusters_faces,
+		clusters_graph,
+		clusters_transform,
+		facesFacesOverlap,
+		facePairs,
+	};
+};
 
-	// for every cluster, a list of indices of facePairs which inhabit the
-	// cluster. these indices point to the "facePairsInts" array.
-	const clusters_facePairsInt = invertFlatToArrayMap(facePairs_cluster);
-
-	// const sets_facePairsWithHoles = clusters_facePairsInt
-	// 	.map(indices => indices.map(i => facePairs[i]));
-	// const sets_facePairs = sets_constraints
-	// 	.map((_, i) => (sets_facePairsWithHoles[i] ? sets_facePairsWithHoles[i] : []));
-
-	// for every cluster, a list of facePairs which inabit the cluster.
-	const clusters_facePairs = clusters_facePairsInt
-		.map(indices => indices.map(i => facePairs[i]));
-
+/**
+ * @description
+ * @param {FOLD} graph a FOLD object
+ * @param {{
+ *   faces_center: [number, number][],
+ *   faces_cluster: number[],
+ *   clusters_transform: number[][],
+ * }}
+ */
+export const constraints3DEdgeClusters = (
+	{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
+	{ faces_center, faces_cluster, clusters_transform },
+	epsilon = EPSILON,
+) => {
 	// for every edge, which cluster(s) is it a member of.
 	// ultimately, we are only interested in edges which join two clusters.
 	const edges_clusters = edges_faces
@@ -220,11 +243,9 @@ export const makeSolverConstraints3D = ({
 	const pairs_edges_clusters = pairs_edges
 		.map(pair => pair.map(e => edges_clusters[e]));
 
-	// console.log("pairs_edges_clusters", pairs_edges_clusters);
 	const pairs_sets = pairs_edges_clusters
 		.map(sets => Array.from(new Set(sets.flat())));
 
-	// console.log("pairs_sets", pairs_sets);
 	// for each edge-pair, create an object with keys as set-indices, and
 	// values as arrays where each edge is inside
 	const pairs_sets_edges = pairs_edges_clusters.map((pair, i) => {
@@ -234,10 +255,10 @@ export const makeSolverConstraints3D = ({
 			.forEach(s => hash[s].push(pairs_edges[i][j])));
 		return hash;
 	});
-	// console.log("pairs_sets_edges", pairs_sets_edges);
+
 	const pairs_edges_faces = pairs_edges
 		.map(pair => pair.map(e => edges_faces[e]));
-	// console.log("pairs_edges_faces", pairs_edges_faces);
+
 	// for every pair, make an object with planar-set index (key) and
 	// an array of the edge's adjacent faces that lie in that plane (value)
 	const pairs_sets_faces = pairs_edges_faces
@@ -247,7 +268,7 @@ export const makeSolverConstraints3D = ({
 			faces.flat().forEach(f => hash[faces_cluster[f]].push(f));
 			return hash;
 		});
-	// console.log("pairs_sets_faces", pairs_sets_faces);
+
 	const edges_coords = makeEdgesCoords({ vertices_coords, edges_vertices });
 	const pairs_sets_2dEdges = pairs_sets.map((sets, i) => {
 		const segment3D = edges_coords[pairs_edges[i][0]];
@@ -259,7 +280,7 @@ export const makeSolverConstraints3D = ({
 		});
 		return hash;
 	});
-	// console.log("pairs_sets_2dEdges", pairs_sets_2dEdges);
+
 	const pairs_sets_facesSides = pairs_sets_faces.map((pair, i) => {
 		const hash = {};
 		pairs_sets[i].forEach(set => {
@@ -271,7 +292,7 @@ export const makeSolverConstraints3D = ({
 		});
 		return hash;
 	});
-	// console.log("pairs_sets_facesSides", pairs_sets_facesSides);
+
 	const pairs_sets_facesSidesSameSide = pairs_sets_facesSides
 		.map((pair, i) => {
 			const hash = {};
@@ -280,7 +301,7 @@ export const makeSolverConstraints3D = ({
 			});
 			return hash;
 		});
-	// console.log("pairs_sets_facesSidesSameSide", pairs_sets_facesSidesSameSide);
+
 	const pairs_data = pairs_edges.map((edges, i) => {
 		const sets = {};
 		Object.keys(pairs_sets_edges[i]).forEach(set => {
@@ -293,8 +314,19 @@ export const makeSolverConstraints3D = ({
 		});
 		return { edges, sets };
 	});
-	// console.log("pairs_data", pairs_data);
-	const tortillaTortillaEdges = pairs_data.filter(data => {
+
+	return {
+		pairs_data,
+		edges_clusters,
+	};
+};
+
+/**
+ *
+ */
+export const constraints3DSolverCases = ({ edges_faces, pairs_data }) => {
+	// a list of all bent-tortilla-tortilla edges
+	const bentTortillaTortillaEdges = pairs_data.filter(data => {
 		const testA = Object.values(data.sets)
 			.map(el => el.faces.length === 2)
 			.reduce((a, b) => a && b, true);
@@ -303,16 +335,18 @@ export const makeSolverConstraints3D = ({
 			.reduce((a, b) => a && b, true);
 		return testA && testB;
 	});
-	// console.log("tortillaTortillaEdges", tortillaTortillaEdges);
-	const solvable1 = pairs_data.filter(data => {
+
+	// Y-junction
+	const YJunctions = pairs_data.filter(data => {
 		const testA = Object.values(data.sets).length === 3;
 		const testB = Object.values(data.sets)
 			.map(el => el.facesSameSide)
 			.reduce((a, b) => a && b, true);
 		return testA && testB;
 	});
-	// console.log("solvable1", solvable1);
-	const solvable2 = pairs_data.filter(data => {
+
+	// T-junction
+	const TJunctions = pairs_data.filter(data => {
 		const testA = Object.values(data.sets)
 			.map(el => el.faces.length === 2)
 			.reduce((a, b) => a && b, true);
@@ -321,9 +355,10 @@ export const makeSolverConstraints3D = ({
 		const testB = sameSide[0] !== sameSide[1];
 		return testA && testB;
 	});
-	// console.log("solvable2", solvable2);
-	// todo: need a good example where we can test this special case.
-	const solvable3 = pairs_data.filter(data => {
+
+	// bent-flat-tortillas
+	// one bent tortilla-tortilla on top of one flat tortilla-tortilla
+	const bentFlatTortillas = pairs_data.filter(data => {
 		const threeInPlane = Object.values(data.sets)
 			.filter(el => el.faces.length === 3)
 			.shift();
@@ -352,26 +387,86 @@ export const makeSolverConstraints3D = ({
 		const testC = !isAdjacent;
 		return testA && testB && testC;
 	});
-	if (solvable3.length) {
-		console.log("This model contains the third case", solvable3);
-	}
-	// return {
-	// 	tortillaTortillaEdges,
-	// 	solvable1,
-	// 	solvable2,
-	// 	solvable3: [],
-	// };
+	// if (bentFlatTortillas.length) {
+	// 	console.log("This model contains the third case", bentFlatTortillas);
+	// }
 
-	// tacos tortillas
-	const tortillas3D = makeBentTortillas(
-		{ edges_faces },
-		tortillaTortillaEdges,
+	return {
+		YJunctions,
+		TJunctions,
+		bentFlatTortillas,
+		bentTortillaTortillaEdges,
+	};
+};
+
+export const constraints3DSetup = ({
+	vertices_coords, edges_vertices, edges_faces, edges_assignment, edges_foldAngle,
+	faces_vertices, faces_edges, faces_faces,
+}, epsilon = EPSILON) => {
+	// find all coplanar-overlapping clusters, create subgraphs for each one,
+	// move all vertices into the XY plane for each planar cluster, compute
+	// face-face overlaps, and find all overlapping face-pairs for the solver.
+	const {
 		faces_cluster,
 		faces_winding,
+		faces_polygon,
+		faces_center,
+		clusters_faces,
+		clusters_graph,
+		clusters_transform,
+		facesFacesOverlap,
+		facePairs,
+	} = constraints3DFaceClusters({
+		vertices_coords,
+		edges_vertices,
+		edges_faces,
+		edges_assignment,
+		edges_foldAngle,
+		faces_vertices,
+		faces_edges,
+		faces_faces,
+	}, epsilon);
+
+	//
+	const {
+		pairs_data,
+		edges_clusters,
+	} = constraints3DEdgeClusters({
+		vertices_coords,
+		edges_vertices,
+		edges_faces,
+		edges_foldAngle,
+	}, {
+		faces_center,
+		faces_cluster,
+		clusters_transform,
+	}, epsilon);
+
+	// conditions where two collinear edges overlap each other and the
+	// four faces involved align in planes in ways which can be classified
+	// into four categories, three of which result in face-order solutions
+	// and one (bentTortillaTortillaEdges) result in more conditions for
+	// the solver to solve.
+	const {
+		YJunctions,
+		TJunctions,
+		bentFlatTortillas,
+		bentTortillaTortillaEdges,
+	} = constraints3DSolverCases({ edges_faces, pairs_data });
+
+	// convert bentTortillaTortillaEdges into well-formatted tortilla-tortilla
+	// conditions ready to pass off to the solver.
+	const bentTortillaTortillas = makeBentTortillas(
+		{ edges_faces },
+		{ faces_cluster, faces_winding, bentTortillaTortillaEdges },
 	);
+
+	// solutions where an edge with a 3D fold angle is crossing somewhere
+	// in the interior of another face, where one of the edge's face's is
+	// co-planar with the face, this results in a known layer ordering
+	// between two faces.
 	const ordersEdgeFace = solveEdgeFaceOverlapOrders(
 		{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
-		clusters_facePairs,
 		clusters_transform,
 		clusters_faces,
 		faces_cluster,
@@ -380,28 +475,60 @@ export const makeSolverConstraints3D = ({
 		edges_clusters,
 		epsilon,
 	);
-	const ordersEdgeEdge = solveEdgeEdgeOverlapOrders({
-		edges_foldAngle, faces_winding,
-	}, solvable1, solvable2, solvable3);
+
+	// solutions where two collinear edges overlap each other, and the
+	// four faces involved
+	const ordersEdgeEdge = solveEdgeEdgeOverlapOrders(
+		{ edges_foldAngle, faces_winding },
+		YJunctions,
+		TJunctions,
+		bentFlatTortillas,
+	);
+
 	const orders = {
 		...ordersEdgeFace,
 		...ordersEdgeEdge,
 	};
-	// console.log("facePairs_cluster", facePairsIndex_set);
-	// console.log("clusters_facePairsInt", clusters_facePairsInt);
-	// console.log("clusters_facePairs", clusters_facePairs);
-	// console.log("edges_clusters", edges_clusters);
-	// console.log("facePairsIndex_set", facePairsIndex_set);
-	// console.log("sets_facePairsIndex", sets_facePairsIndex);
-	// console.log("sets_facePairs", sets_facePairsWithHoles);
-	// console.log("edges_sets", edges_sets);
-	// console.log("tortillaTortillaEdges", tortillaTortillaEdges);
-	// console.log("tortillas3D", tortillas3D);
-	// console.log("orders 3D", orders);
-	// return {
-	// 	tortillas3D,
-	// 	orders,
-	// };
+
+	return {
+		clusters_graph,
+		faces_winding,
+		faces_polygon,
+		facesFacesOverlap,
+		bentTortillaTortillas,
+		facePairs,
+		orders,
+	};
+};
+
+/**
+ * @description
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ */
+export const makeSolverConstraints3D = ({
+	vertices_coords, edges_vertices, edges_faces, edges_assignment, edges_foldAngle,
+	faces_vertices, faces_edges, faces_faces,
+}, epsilon = EPSILON) => {
+	//
+	const {
+		clusters_graph,
+		faces_winding,
+		faces_polygon,
+		facesFacesOverlap,
+		bentTortillaTortillas,
+		facePairs,
+		orders,
+	} = constraints3DSetup({
+		vertices_coords,
+		edges_vertices,
+		edges_faces,
+		edges_assignment,
+		edges_foldAngle,
+		faces_vertices,
+		faces_edges,
+		faces_faces,
+	}, epsilon);
 
 	// get a list of all edge indices which are non-flat edges.
 	// non-flat edges are anything other than 0, -180, or +180 fold angles.
@@ -413,8 +540,8 @@ export const makeSolverConstraints3D = ({
 	// remove any non-flat edges from the shallow copies.
 	["edges_vertices", "edges_faces", "edges_assignment", "edges_foldAngle"]
 		.forEach(key => clusters_graph
-			.forEach(graph => nonFlatEdges
-				.forEach(e => delete graph[key][e])));
+			.forEach((_, c) => nonFlatEdges
+				.forEach(e => delete clusters_graph[c][key][e])));
 
 	// now that we have all faces separated into coplanar-overlapping sets,
 	// run the 2D taco/tortilla algorithms on each set individually
@@ -422,8 +549,8 @@ export const makeSolverConstraints3D = ({
 		.map(el => makeTacosAndTortillas(el, epsilon));
 
 	// now that we have computed these separately, we can flatten them into the
-	// same array, since indices are maintained to their original index from the
-	// input graph, the flat data will contain no overlaps between clusters.
+	// same array. The fact that these face pairs are from different 2D planes
+	// does not matter, the solver simply solves them all at once.
 	const taco_taco = clusters_TacosAndTortillas
 		.flatMap(el => el.taco_taco);
 	const taco_tortilla = clusters_TacosAndTortillas
@@ -440,7 +567,7 @@ export const makeSolverConstraints3D = ({
 
 	// 3D-tortillas are a constraint that follow the exact same rules as the
 	// 2D tortilla-tortillas. we can simply add them to the this array.
-	tortilla_tortilla.push(...tortillas3D);
+	tortilla_tortilla.push(...bentTortillaTortillas);
 
 	// this is building a massive lookup table, it takes quite a bit of time.
 	// any way we can speed this up?
@@ -459,30 +586,6 @@ export const makeSolverConstraints3D = ({
 		.reduce((a, b) => Object.assign(a, b), ({}));
 
 	Object.assign(orders, adjacentOrders);
-
-	// console.log("clusters_graph", clusters_graph);
-	// console.log("faces_polygon", faces_polygon);
-	// console.log("faces_center", faces_center);
-	// console.log("facesFacesOverlap", facesFacesOverlap);
-	// console.log("setsTacosAndTortillas", setsTacosAndTortillas);
-	// console.log("taco_taco", taco_taco);
-	// console.log("taco_tortilla", taco_tortilla);
-	// console.log("tortilla_tortilla", tortilla_tortilla);
-	// console.log("taco_taco", taco_taco);
-	// console.log("taco_tortilla", taco_tortilla);
-	// console.log("tortilla_tortilla", tortilla_tortilla);
-	// console.log("transitivity", transitivity);
-	// console.log("facePairs", facePairs);
-	// console.log("clusters_transform", clusters_transform);
-	// console.log("faces_cluster", faces_cluster);
-	// console.log("clusters_faces", clusters_faces);
-	// console.log("faces_winding", faces_winding);
-	// console.log("facesFacesOverlap", facesFacesOverlap);
-	// console.log("faces_polygon", faces_polygon);
-	// console.log("faces_center", faces_center);
-	// console.log("facePairsInts", facePairsInts);
-	// console.log("facePairs", facePairs);
-	// console.log("orders", orders);
 
 	return {
 		constraints: {

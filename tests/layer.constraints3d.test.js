@@ -80,7 +80,7 @@ test("makeSolverConstraints3D layer 3D test cases", () => {
 		taco_taco: [], taco_tortilla: [], tortilla_tortilla: [], transitivity: [],
 	});
 	expect(results[0].facePairs).toMatchObject(["0 4"]);
-	// expect(results[0].orders).toMatchObject({ "0 4": 1 }); // todo
+	expect(results[0].orders).toMatchObject({ "0 4": 1 });
 
 	expect(results[1].constraints).toMatchObject({
 		taco_taco: [],
@@ -120,7 +120,7 @@ test("makeSolverConstraints3D layer 3D test cases", () => {
 	expect(results[4].facePairs).toMatchObject(["1 9", "2 8", "3 7"]);
 	// 1-9 via the 3d overlapping edges algorithm
 	// 3-7 via the 3d overlapping edges algorithm
-	expect(results[4].orders).toMatchObject({ "1 9": 1 }); // , "3 7": 1 });
+	expect(results[4].orders).toMatchObject({ "1 9": 1, "3 7": 1 });
 
 	// 3 pairs of faces overlap each other: 1-10, 2-9, 3-8
 	// then another group of 4 faces all overlap each other: 4, 5, 6, 7
@@ -135,12 +135,12 @@ test("makeSolverConstraints3D layer 3D test cases", () => {
 		transitivity: [],
 	});
 	expect(results[5].facePairs).toMatchObject([
-		"1 10", "2 9", "3 8", "4 5", "4 6", "4 7", "5 6", "5 7", "6 7"
+		"1 10", "2 9", "3 8", "4 5", "4 6", "4 7", "5 6", "5 7", "6 7",
 	]);
 	// 1-10 is known via the 3d overlapping edges algorithm
 	// 4-5, 5-6, 6-7 are simply flat adjacent faces
 	expect(results[5].orders).toMatchObject({
-		"1 10": 1, "4 5": 2, "5 6": 1, "6 7": 1
+		"1 10": 1, "4 5": 2, "5 6": 1, "6 7": 1,
 	});
 });
 

@@ -87,6 +87,7 @@ export const makeConstraintsLookup = (constraints) => {
  *   },
  *   facePairs: string[],
  *   faces_winding: boolean[],
+ *   orders: { [key: string]: number },
  * }} all data required for the solver, including:
  * - constraints
  * - lookup: which tells us location of faces inside of constraints

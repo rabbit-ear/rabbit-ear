@@ -109,7 +109,6 @@ const polygonSegmentOverlap = (polygon, segment, epsilon = EPSILON) => {
  */
 export const solveEdgeFaceOverlapOrders = (
 	{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
-	sets_facePairs,
 	sets_transformXY,
 	sets_faces,
 	faces_set,
@@ -311,7 +310,13 @@ const solveFacePair3D = ({
 	return result;
 };
 
-const solveType1 = ({ edges_foldAngle, faces_winding }, edgePairData) => {
+/**
+ * @description Given a list of Y-junctions, solve the relationship between the
+ * two faces which overlap each other, resulting in a layer-solution mapping
+ * space-separated face-pair strings to a value of 1 or 2.
+ * @returns {{ [key: string]: number }} a subset of layer order solutions
+ */
+const solveYJunctions = ({ edges_foldAngle, faces_winding }, edgePairData) => {
 	const tortilla = edgePairData
 		.map(el => Object.values(el.sets)
 			.sort((a, b) => b.faces.length - a.faces.length)
@@ -321,7 +326,13 @@ const solveType1 = ({ edges_foldAngle, faces_winding }, edgePairData) => {
 	return solveFacePair3D({ edges_foldAngle, faces_winding }, tortillaEdges, tortillaFaces);
 };
 
-const solveType2 = ({ edges_foldAngle, faces_winding }, edgePairData) => {
+/**
+ * @description Given a list of T-junctions, solve the relationship between the
+ * two faces which overlap each other, resulting in a layer-solution mapping
+ * space-separated face-pair strings to a value of 1 or 2.
+ * @returns {{ [key: string]: number }} a subset of layer order solutions
+ */
+const solveTJunctions = ({ edges_foldAngle, faces_winding }, edgePairData) => {
 	const tortilla = edgePairData
 		.map(el => Object.values(el.sets)
 			.filter(row => row.facesSameSide)
@@ -331,27 +342,28 @@ const solveType2 = ({ edges_foldAngle, faces_winding }, edgePairData) => {
 	return solveFacePair3D({ edges_foldAngle, faces_winding }, tortillaEdges, tortillaFaces);
 };
 
-const solveType3 = () => ({});
-
-// const solveType3 = ({ edges_foldAngle, faces_winding }, edgePairData) => {
-// 	const tortilla = edgePairData
-// 		.map(el => Object.values(el.sets)
-// 			.filter(row => row.facesSameSide)
-// 			.shift());
-// 	console.log("solvable3", edgePairData);
-// 	console.log("tortilla", tortilla);
-// 	return {};
-// };
+/**
+ * @description Given a list of bent-flat-tortillas, solve the relationship
+ * between the two faces which overlap each other, resulting in a layer-
+ * solution mapping space-separated face-pair strings to a value of 1 or 2.
+ * @returns {{ [key: string]: number }} a subset of layer order solutions
+ */
+const solveBentFlatTortillas = ({ edges_foldAngle, faces_winding }, edgePairData) => {
+	// const tortilla = edgePairData
+	// 	.map(el => Object.values(el.sets)
+	// 		.filter(row => row.facesSameSide)
+	// 		.shift());
+	// console.log("bentFlatTortillas", edgePairData);
+	// console.log("tortilla", tortilla);
+	return {};
+};
 
 export const solveEdgeEdgeOverlapOrders = ({
 	edges_foldAngle, faces_winding,
-}, solvable1, solvable2, solvable3) => {
-	// console.log("solvable1", solvable1);
-	// console.log("solvable2", solvable2);
-	// console.log("solvable3", solvable3);
-	const result1 = solveType1({ edges_foldAngle, faces_winding }, solvable1);
-	const result2 = solveType2({ edges_foldAngle, faces_winding }, solvable2);
-	const result3 = solveType3({ edges_foldAngle, faces_winding }, solvable3);
+}, YJunctions, TJunctions, bentFlatTortillas) => {
+	const result1 = solveYJunctions({ edges_foldAngle, faces_winding }, YJunctions);
+	const result2 = solveTJunctions({ edges_foldAngle, faces_winding }, TJunctions);
+	const result3 = solveBentFlatTortillas({ edges_foldAngle, faces_winding }, bentFlatTortillas);
 	// console.log("result1", result1);
 	// console.log("result2", result2);
 	// console.log("result3", result3);
