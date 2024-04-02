@@ -17,7 +17,7 @@ test("overlappingParallelEdgePairs panel 4x2", () => {
 		[6, 14], [7, 15],
 		[8, 9], [8, 10],
 		[8, 11], [9, 10],
-		[9, 11], [10, 11]
+		[9, 11], [10, 11],
 	]);
 });
 
@@ -67,11 +67,11 @@ test("overlappingParallelEdgePairs triangle strip-2", () => {
 		[20, 32], [30, 39],
 		[31, 36], [34, 43],
 		[35, 37], [38, 42],
-		[40, 47], [41, 46]
+		[40, 47], [41, 46],
 	]);
 });
 
-test("edgesFacesSide", () => {
+test("edgesFacesSide 2D and 3D", () => {
 	const {
 		vertices_coords,
 		edges_vertices,
@@ -95,6 +95,16 @@ test("edgesFacesSide", () => {
 
 	expect(ear.layer.makeEdgesFacesSide(graph2))
 		.toMatchObject([[1], [1], [1], [1], [-1, 1]]);
+
+	expect(ear.layer.makeEdgesFacesSide3D(graph1, {
+		...ear.graph.getEdgesLine(graph1),
+		...ear.graph.getCoplanarAdjacentOverlappingFaces(graph1),
+	})).toMatchObject([[-1], [-1], [-1], [-1], [1, -1]]);
+
+	expect(ear.layer.makeEdgesFacesSide3D(graph2, {
+		...ear.graph.getEdgesLine(graph2),
+		...ear.graph.getCoplanarAdjacentOverlappingFaces(graph2),
+	})).toMatchObject([[1], [1], [1], [1], [-1, 1]]);
 });
 
 test("edgesFacesSide strip weave", () => {
@@ -105,8 +115,8 @@ test("edgesFacesSide strip weave", () => {
 	folded.faces_center = ear.graph.makeFacesConvexCenter(folded);
 	// all non boundary are taco-taco (same side)
 	expect(ear.layer.makeEdgesFacesSide(folded)).toMatchObject([
-		[1],[-1],[1],[-1],[-1],[1],[-1],[1],[-1,-1],[1,1],[1],[-1],[1],
-		[-1],[1],[-1],[1,1],[-1,-1],[1],[1,1],[-1,-1],[-1],[-1],
+		[1], [-1], [1], [-1], [-1], [1], [-1], [1], [-1, -1], [1, 1], [1], [-1],
+		[1], [-1], [1], [-1], [1, 1], [-1, -1], [1], [1, 1], [-1, -1], [-1], [-1],
 	]);
 });
 
@@ -129,13 +139,13 @@ test("facesSide panels zig zag", () => {
 		ear.graph.getEdgesEdgesCollinearOverlap(folded),
 	).filter(pair => pair.every(edge => folded.edges_faces[edge].length === 2));
 	expect(edgePairs).toMatchObject([
-		[11, 13], [12, 14]
+		[11, 13], [12, 14],
 	]);
 
 	// const tacos_faces = edgePairs.map(pair => pair.map(edge => folded.edges_faces[edge]));
 	const tacosFacesSide = ear.layer.makeEdgePairsFacesSide(folded, edgePairs);
 	expect(tacosFacesSide).toMatchObject([
-		[[1, 1], [1, 1]], [[-1, -1], [-1, -1]]
+		[[1, 1], [1, 1]], [[-1, -1], [-1, -1]],
 	]);
 });
 
@@ -146,14 +156,19 @@ test("facesSide panel 4x2", () => {
 	ear.graph.populate(folded);
 	folded.faces_center = ear.graph.makeFacesConvexCenter(folded);
 
-	const edgesFacesSide = ear.layer.makeEdgesFacesSide(folded);
+	const edgesFacesSide2D = ear.layer.makeEdgesFacesSide(folded);
+	const edgesFacesSide3D = ear.layer.makeEdgesFacesSide3D(folded, {
+		...ear.graph.getEdgesLine(folded),
+		...ear.graph.getCoplanarAdjacentOverlappingFaces(folded),
+	});
+
 	expect(folded.edges_assignment)
 		.toMatchObject([
-			'B', 'B', 'B', 'B', 'B', 'B', 'V', 'V',
-			'F', 'F', 'F', 'F', 'V', 'V', 'M', 'M',
-			'B', 'B', 'B', 'B', 'B', 'B'
+			"B", "B", "B", "B", "B", "B", "V", "V",
+			"F", "F", "F", "F", "V", "V", "M", "M",
+			"B", "B", "B", "B", "B", "B",
 		]);
-	expect(edgesFacesSide).toMatchObject([
+	expect(edgesFacesSide2D).toMatchObject([
 		// 6 boundary
 		[-1], [1], [-1], [1], [-1], [-1],
 		// 2 valley
@@ -163,7 +178,20 @@ test("facesSide panel 4x2", () => {
 		// 2 valley 2 mountain
 		[1, 1], [1, 1], [-1, -1], [-1, -1],
 		// 5 boundary
-		[1], [1], [1], [-1], [1], [-1]
+		[1], [1], [1], [-1], [1], [-1],
+	]);
+
+	expect(edgesFacesSide3D).toMatchObject([
+		// 6 boundary
+		[-1], [-1], [-1], [-1], [-1], [-1],
+		// 2 valley
+		[-1, -1], [-1, -1],
+		// 4 flat
+		[1, -1], [1, -1], [1, -1], [1, -1],
+		// 2 valley 2 mountain
+		[-1, -1], [-1, -1], [-1, -1], [-1, -1],
+		// 5 boundary
+		[1], [1], [1], [1], [1], [1],
 	]);
 
 	const edgePairs = ear.graph.connectedComponentsPairs(
@@ -182,5 +210,33 @@ test("facesSide panel 4x2", () => {
 		[[-1, 1], [-1, 1]],
 		[[1, -1], [1, -1]],
 	]);
+});
 
+test("makeEdgesFacesSide3D, layer 3D cases", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/layer3d-cases.fold", "utf-8");
+	const fold = JSON.parse(foldfile);
+	const frames = ear.graph.getFileFramesAsArray(fold);
+	const foldedForms = frames.map(frame => ({
+		...frame,
+		vertices_coords: ear.graph.makeVerticesCoordsFolded(frame),
+	}));
+	foldedForms.forEach(folded => ear.graph.populate(folded));
+
+	const folded = foldedForms[1];
+
+	// const ignore = ear.layer.constraints3DFaceClusters(folded);
+	const edges_facesSides = ear.layer.makeEdgesFacesSide3D(folded, {
+		...ear.graph.getEdgesLine(folded),
+		...ear.graph.getCoplanarAdjacentOverlappingFaces(folded),
+	});
+
+	expect(edges_facesSides).toMatchObject([
+		[-1], [-1], [-1], [-1], [-1], [-1], [-1], [-1], [1], [1], [1], [1], [-1],
+		[1, -1],
+		[1, -1],
+		[1, 1],
+		[-1, 1],
+		[-1, -1],
+		[-1],
+	]);
 });

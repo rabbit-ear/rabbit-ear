@@ -149,9 +149,9 @@ export const makeTortillaTortillaFacesCrossing = (
  *   faces_winding: boolean[],
  *   bentTortillaTortillaEdges: any,
  * }}
- * @returns {TortillaTortillaConstraint} an array of tortilla-tortilla constraints
- * where indices [A, B, X, Y], A-B are adjacent faces and X-Y are adjacent,
- * and A is above/below X and B is above/below Y.
+ * @returns {TortillaTortillaConstraint[]} an array of tortilla-tortilla
+ * constraints where indices [A, B, X, Y], A-B are adjacent faces and
+ * X-Y are adjacent, and A is above/below X and B is above/below Y.
  */
 export const makeBentTortillas = (
 	{ edges_faces },

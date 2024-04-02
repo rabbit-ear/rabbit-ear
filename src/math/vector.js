@@ -264,13 +264,24 @@ export const average = function () {
  * @returns {[number, number]} one 2D vector
  * @linkcode Math ./src/algebra/vectors.js 220
  */
-export const average2 = (...vectors) => {
-	if (!vectors || !vectors.length) { return undefined; }
-	const inverseLength = 1 / vectors.length;
-	return vectors
+export const average2 = (...vectors) => (!vectors || !vectors.length
+	? undefined
+	: vectors
 		.reduce((a, b) => add2(a, b), [0, 0])
-		.map(c => c * inverseLength);
-};
+		.map(c => c / vectors.length));
+
+/**
+ * @description the average of any number of 3D vectors (not numbers),
+ * similar to midpoint but this can accept more than two inputs.
+ * @param {[number, number, number]} ...args any number of input vectors
+ * @returns {[number, number, number]} one 3D vector
+ * @linkcode
+ */
+export const average3 = (...vectors) => (!vectors || !vectors.length
+	? undefined
+	: vectors
+		.reduce((a, b) => add3(a, b), [0, 0, 0])
+		.map(c => c / vectors.length));
 
 /**
  * @description linear interpolate between two vectors

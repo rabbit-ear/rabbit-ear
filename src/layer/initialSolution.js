@@ -106,6 +106,7 @@ const polygonSegmentOverlap = (polygon, segment, epsilon = EPSILON) => {
  * @param {number[][]} edges_sets remember this only contains definitions
  * for edges which are members of 2 sets. anything made from this will
  * automatically have a non-flat edges_foldAngle.
+ * @returns {{ [key: string]: number }} solutions to face-pair layer orders
  */
 export const solveEdgeFaceOverlapOrders = (
 	{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
@@ -265,6 +266,10 @@ export const solveEdgeFaceOverlapOrders = (
  * position of the two other faces, this will determine the layer order
  * between the two faces. (given that the special case where both edges
  * are flat 0 angles which would be the tortilla-tortilla 2D case).
+ *
+ * @todo as we build the dictionary we need to make sure we aren't
+ * overwriting the same key with different values, we need to throw
+ * an error.
  */
 const solveFacePair3D = ({
 	edges_foldAngle, faces_winding,
@@ -349,6 +354,7 @@ const solveTJunctions = ({ edges_foldAngle, faces_winding }, edgePairData) => {
  * @returns {{ [key: string]: number }} a subset of layer order solutions
  */
 const solveBentFlatTortillas = ({ edges_foldAngle, faces_winding }, edgePairData) => {
+	// console.log("solveBentFlatTortillas", edgePairData);
 	// const tortilla = edgePairData
 	// 	.map(el => Object.values(el.sets)
 	// 		.filter(row => row.facesSameSide)
@@ -358,6 +364,10 @@ const solveBentFlatTortillas = ({ edges_foldAngle, faces_winding }, edgePairData
 	return {};
 };
 
+/**
+ * @description
+ * @returns {{ [key: string]: number }} a subset of layer order solutions
+ */
 export const solveEdgeEdgeOverlapOrders = ({
 	edges_foldAngle, faces_winding,
 }, YJunctions, TJunctions, bentFlatTortillas) => {
@@ -367,6 +377,9 @@ export const solveEdgeEdgeOverlapOrders = ({
 	// console.log("result1", result1);
 	// console.log("result2", result2);
 	// console.log("result3", result3);
+
+	// todo: if results have a different solution to the same face-pair we need
+	// to throw an error and state that there is no valid layer solution.
 	return {
 		...result1,
 		...result2,
