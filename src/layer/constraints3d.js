@@ -55,7 +55,9 @@ import {
 	solveEdgeFaceOverlapOrders,
 	solveEdgeEdgeOverlapOrders,
 } from "./initialSolution.js";
-import { invertArrayToFlatMap, invertFlatToArrayMap } from "../graph/maps.js";
+import {
+	invertFlatToArrayMap,
+} from "../graph/maps.js";
 
 /**
  * @description The first subroutine to initialize solver constraints for a
@@ -270,8 +272,8 @@ export const constraints3DEdgeClustersNew = (
 		edgePairs_facePlanes,
 		edges_facesSide,
 	};
-
 };
+
 /**
  * @description
  * @param {FOLD} graph a FOLD object

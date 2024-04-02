@@ -5,7 +5,7 @@ import {
 	EPSILON,
 } from "../math/constant.js";
 import {
-	makeFacesConvexCenter,
+	makeFacesCenterQuick,
 } from "../graph/make/faces.js";
 import {
 	getEdgesEdgesCollinearOverlap,
@@ -235,7 +235,7 @@ export const makeTacosAndTortillas = ({
 	faces_center,
 }, epsilon = EPSILON) => {
 	if (!faces_center) {
-		faces_center = makeFacesConvexCenter({ vertices_coords, faces_vertices });
+		faces_center = makeFacesCenterQuick({ vertices_coords, faces_vertices });
 	}
 
 	const edgesFacesOverlap = getEdgesFacesOverlap({

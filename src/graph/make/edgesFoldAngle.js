@@ -17,7 +17,7 @@ import {
 	makeEdgesFacesUnsorted,
 } from "./edgesFaces.js";
 import {
-	makeFacesConvexCenter,
+	makeFacesCenterQuick,
 } from "./faces.js";
 
 const assignment_angles = { M: -180, m: -180, V: 180, v: 180 };
@@ -66,7 +66,7 @@ export const makeEdgesFoldAngleFromFaces = ({
 		faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
 	}
 	if (!faces_center) {
-		faces_center = makeFacesConvexCenter({ vertices_coords, faces_vertices });
+		faces_center = makeFacesCenterQuick({ vertices_coords, faces_vertices });
 	}
 	// get the angle between two adjacent face normals, where parallel normals have 0 angle.
 	// additionally, create a vector from one face's center to the other and check the sign of

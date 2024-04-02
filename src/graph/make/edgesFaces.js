@@ -16,7 +16,7 @@ import {
 	makeEdgesVector,
 } from "./edges.js";
 import {
-	makeFacesConvexCenter,
+	makeFacesCenterQuick,
 } from "./faces.js";
 
 /**
@@ -74,7 +74,7 @@ export const makeEdgesFaces = ({
 	}
 	const edges_origin = edges_vertices.map(pair => vertices_coords[pair[0]]);
 	if (!faces_center) {
-		faces_center = makeFacesConvexCenter({ vertices_coords, faces_vertices });
+		faces_center = makeFacesCenterQuick({ vertices_coords, faces_vertices });
 	}
 	const edges_faces = edges_vertices.map(() => []);
 	faces_edges.forEach((face, f) => {

@@ -21,7 +21,7 @@ import {
 	makeFacesEdgesFromVertices,
 } from "../../graph/make/facesEdges.js";
 import {
-	makeFacesConvexCenter,
+	makeFacesCenterQuick,
 } from "../../graph/make/faces.js";
 import {
 	makeFacesNormal,
@@ -102,7 +102,7 @@ const objToFold = (file) => {
 		}
 	}
 	graph.faces_normal = makeFacesNormal(graph);
-	graph.faces_center = makeFacesConvexCenter(graph);
+	graph.faces_center = makeFacesCenterQuick(graph);
 	graph.edges_vertices = makeEdgesVertices(graph);
 	graph.faces_edges = makeFacesEdgesFromVertices(graph);
 	graph.edges_faces = makeEdgesFacesUnsorted(graph);

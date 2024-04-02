@@ -39,7 +39,7 @@ Methods renamed:
 - `getBoundary` -> `boundary`
 - `getPlanarBoundary` -> `planarBoundary`
 - `makeFacesFacesOverlap` -> `getFacesFaces2DOverlap`
-- `makeFacesCenter` -> `makeFacesCenter2D`
+- `makeFacesCenter` -> `makeFacesCentroid2D`
 - `makeFacesCenterQuick` -> `makeFacesConvexCenter`
 - `getDuplicateEdges` -> `duplicateEdges`
 - `getCircularEdges` -> `circularEdges`

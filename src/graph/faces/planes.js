@@ -9,6 +9,7 @@ import {
 	dot3,
 	scale3,
 	resize,
+	flip,
 	parallelNormalized,
 } from "../../math/vector.js";
 import {
@@ -53,11 +54,14 @@ import {
  * @returns {{
  *   planes: { normal: number[], origin: number[] }[],
  *   planes_faces: number[][],
+ *   planes_transform: number[][],
  *   faces_plane: number[],
  *   faces_winding: boolean[],
  * }} an object with:
  * - planes: a list of planes
  * - planes_faces: for every plane, a list of faces within this plane
+ * - planes_transform: for every plane, a matrix which transforms the
+ *   plane into the 2D XY plane
  * - faces_plane: for every face, which plane is it in
  * - faces_winding: for every face within its plane, is the face's normal
  * aligned with the plane's normal (true) or flipped 180 degrees (false).
@@ -144,7 +148,42 @@ export const getFacesPlane = (
 
 	const faces_plane = invertArrayToFlatMap(planes_faces);
 
-	return { planes, planes_faces, faces_plane, faces_winding };
+	// all polygon sets will be planar to each other, however the polygon-polygon
+	// intersection algorithm is 2D only, so we just need to create a transform
+	// for each cluster which rotates this cluster's plane into the XY plane.
+	const targetVector = [0, 0, 1];
+
+	const planes_transform = planes.map(({ normal }) => {
+		// if dot is -1, this plane is already in the XY plane, but the plane's
+		// normal and target are exactly 180deg flipped, meaning that the result of
+		// the quaternion constructor will be undefined, in which case we manually
+		// build a rotation matrix that rotates 180 degrees around the X axis.
+		const d = dot(normal, targetVector);
+		// 180 degree rotate around the X axis, or general rotation matrix
+		return (Math.abs(d + 1) < epsilon)
+			? [1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1]
+			: matrix4FromQuaternion(quaternionFromTwoVectors(normal, targetVector));
+	});
+
+	// computing the translation vector as a single matrix * vector operation,
+	// then overwriting it into the column vector of the rotation matrix
+	// (which currently has a 0, 0, 0, translation), is the same as building an
+	// entire translation matrix then computing the matrix product with: Mr * Mt.
+	// this approach just cuts down on the number of operations.
+	planes.forEach(({ origin }, p) => {
+		const translation = multiplyMatrix4Vector3(planes_transform[p], flip(origin));
+		planes_transform[p][12] = translation[0];
+		planes_transform[p][13] = translation[1];
+		planes_transform[p][14] = translation[2];
+	});
+
+	return {
+		planes,
+		planes_faces,
+		planes_transform,
+		faces_plane,
+		faces_winding,
+	};
 };
 
 /**
@@ -156,13 +195,13 @@ export const getFacesPlane = (
  * @returns {{
  *   planes: { normal: number[], origin: number[] }[],
  *   planes_faces: number[][],
- *   faces_plane: number[],
- *   faces_winding: boolean[],
- *   planes_transform: number[][]
+ *   planes_transform: number[][],
  *   planes_clusters: number[][],
+ *   faces_winding: boolean[],
+ *   faces_plane: number[],
+ *   faces_cluster: number[],
  *   clusters_plane: number[],
  *   clusters_faces: number[][],
- *   faces_cluster: number[],
  * }} an object with:
  * - planes: a list of planes
  * - planes_faces: for every plane, a list of faces within this plane
@@ -191,28 +230,13 @@ export const getCoplanarAdjacentOverlappingFaces = (
 	const {
 		planes,
 		planes_faces,
+		planes_transform,
 		faces_plane,
 		faces_winding,
 	} = getFacesPlane(
 		{ vertices_coords, faces_vertices },
 		epsilon,
 	);
-
-	// all polygon sets will be planar to each other, however the polygon-polygon
-	// intersection algorithm is 2D only, so we just need to create a transform
-	// for each cluster which rotates this cluster's plane into the XY plane.
-	const targetVector = [0, 0, 1];
-	const planes_transform = planes.map(({ normal }) => {
-		// if dot is -1, this plane is already in the XY plane, but the plane's
-		// normal and target are exactly 180deg flipped, meaning that the result of
-		// the quaternion constructor will be undefined, in which case we manually
-		// build a rotation matrix that rotates 180 degrees around the X axis.
-		const d = dot(normal, targetVector);
-		// 180 degree rotate around the X axis, or general rotation matrix
-		return (Math.abs(d + 1) < 1e-2)
-			? [1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1]
-			: matrix4FromQuaternion(quaternionFromTwoVectors(normal, targetVector));
-	});
 
 	// make sure we are using 3D points for this next part
 	const vertices_coords3D = vertices_coords.map(coord => resize(3, coord));
@@ -342,13 +366,13 @@ export const getCoplanarAdjacentOverlappingFaces = (
 
 	return {
 		planes,
-		planes_transform,
-		faces_winding,
 		planes_faces,
-		faces_plane,
+		planes_transform,
 		planes_clusters,
+		faces_winding,
+		faces_plane,
+		faces_cluster,
 		clusters_plane,
 		clusters_faces,
-		faces_cluster,
 	};
 };

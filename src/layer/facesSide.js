@@ -4,7 +4,6 @@
 import {
 	cross2,
 	subtract2,
-	average3,
 	resize,
 } from "../math/vector.js";
 import {
@@ -18,7 +17,7 @@ import {
 	edgeToLine,
 } from "../graph/edges/lines.js";
 import {
-	makeFacesPolygonQuick,
+	makeFacesCenter3DQuick,
 } from "../graph/make/faces.js";
 import {
 	uniqueElements,
@@ -107,12 +106,9 @@ export const makeEdgesFacesSide3D = (
 	{ lines, edges_line, planes_transform, faces_plane, faces_center },
 ) => {
 	if (!faces_center) {
-		const vertices_coords3D = vertices_coords.map(coord => resize(3, coord));
-		const graph3D = { vertices_coords: vertices_coords3D, faces_vertices };
-		// assume vertices_coords is 3D, if not, center point[2] will be NaN, fix it
-		faces_center = makeFacesPolygonQuick(graph3D)
-			.map(coords => average3(...coords))
-			.map(point => (Number.isNaN(point[2]) ? [point[0], point[1], 0] : point))
+		// this method will always return 3D points, necessary for the
+		// multiply matrix and vector method
+		faces_center = makeFacesCenter3DQuick({ vertices_coords, faces_vertices })
 			.map((center, f) => multiplyMatrix4Vector3(
 				planes_transform[faces_plane[f]],
 				center,

@@ -87,8 +87,8 @@ test("edgesFacesSide 2D and 3D", () => {
 		edges_vertices: [[1, 0], [2, 1], [3, 2], [0, 3], [2, 0]],
 		faces_vertices: [[0, 1, 2], [2, 3, 0]],
 	});
-	graph1.faces_center = ear.graph.makeFacesConvexCenter(graph1);
-	graph2.faces_center = ear.graph.makeFacesConvexCenter(graph2);
+	graph1.faces_center = ear.graph.makeFacesCenterQuick(graph1);
+	graph2.faces_center = ear.graph.makeFacesCenterQuick(graph2);
 
 	expect(ear.layer.makeEdgesFacesSide(graph1))
 		.toMatchObject([[-1], [-1], [-1], [-1], [1, -1]]);
@@ -112,7 +112,7 @@ test("edgesFacesSide strip weave", () => {
 	const fold = JSON.parse(foldfile);
 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
 	ear.graph.populate(folded);
-	folded.faces_center = ear.graph.makeFacesConvexCenter(folded);
+	folded.faces_center = ear.graph.makeFacesCenterQuick(folded);
 	// all non boundary are taco-taco (same side)
 	expect(ear.layer.makeEdgesFacesSide(folded)).toMatchObject([
 		[1], [-1], [1], [-1], [-1], [1], [-1], [1], [-1, -1], [1, 1], [1], [-1],
@@ -125,7 +125,7 @@ test("facesSide panels zig zag", () => {
 	const fold = JSON.parse(foldfile);
 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
 	ear.graph.populate(folded);
-	folded.faces_center = ear.graph.makeFacesConvexCenter(folded);
+	folded.faces_center = ear.graph.makeFacesCenterQuick(folded);
 
 	// only valley/mountains are 11, 12, 13, 14, all are tacos (same sign)
 	const edgesFacesSide = ear.layer.makeEdgesFacesSide(folded);
@@ -154,7 +154,7 @@ test("facesSide panel 4x2", () => {
 	const fold = JSON.parse(foldfile);
 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
 	ear.graph.populate(folded);
-	folded.faces_center = ear.graph.makeFacesConvexCenter(folded);
+	folded.faces_center = ear.graph.makeFacesCenterQuick(folded);
 
 	const edgesFacesSide2D = ear.layer.makeEdgesFacesSide(folded);
 	const edgesFacesSide3D = ear.layer.makeEdgesFacesSide3D(folded, {

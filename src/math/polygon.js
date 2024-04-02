@@ -116,8 +116,7 @@ export const makePolygonNonCollinear = (polygon, epsilon = EPSILON) => {
 	const vertex_collinear = edges_vector
 		.map((vector, i, arr) => [vector, arr[(i + arr.length - 1) % arr.length]])
 		.map(pair => !parallel(pair[1], pair[0], epsilon));
-	return polygon
-		.filter((vertex, v) => vertex_collinear[v]);
+	return polygon.filter((_, v) => vertex_collinear[v]);
 };
 
 /**

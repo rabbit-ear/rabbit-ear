@@ -19,7 +19,7 @@ import {
 	getDimensionQuick,
 } from "../fold/spec.js";
 import {
-	makeFacesConvexCenter,
+	makeFacesCenterQuick,
 } from "./make/faces.js";
 import {
 	faceContainingPoint,
@@ -87,7 +87,7 @@ export const nearestFace = (graph, point) => {
 		const faces = graph.edges_faces[edge];
 		if (faces.length === 1) { return faces[0]; }
 		if (faces.length > 1) {
-			const faces_center = makeFacesConvexCenter({
+			const faces_center = makeFacesCenterQuick({
 				vertices_coords: graph.vertices_coords,
 				faces_vertices: faces.map(f => graph.faces_vertices[f]),
 			});
