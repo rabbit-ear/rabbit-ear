@@ -1,6 +1,6 @@
 import fs from "fs";
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 test("verticesFoldability", () => {
 	const foldFile = fs.readFileSync("./tests/files/fold/invalid-single-vertex-2d.fold", "utf-8");

@@ -1,6 +1,6 @@
 import fs from "fs";
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 test("disjointGraphsIndices", () => {
 	const foldFile = fs.readFileSync("./tests/files/fold/disjoint-triangles-3d.fold", "utf-8");

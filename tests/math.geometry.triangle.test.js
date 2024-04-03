@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 test("circumcircle", () => {
 	const circle = ear.math.circumcircle([1, 0], [0, 1], [-1, 0]);

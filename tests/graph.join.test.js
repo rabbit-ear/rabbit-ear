@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 const graph = ear.graph({
 	vertices_coords: [[0, 0], [0.5, 0], [1, 0], [1, 1], [0.5, 1], [0, 1]],

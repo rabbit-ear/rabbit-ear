@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 const t = 0.38268343236509;
 const n = 0.92387953251129;

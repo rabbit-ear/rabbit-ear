@@ -1,6 +1,6 @@
 import fs from "fs";
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 test("constraints3DSetup, all 3D special cases", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/layer3d-cases.fold", "utf-8");

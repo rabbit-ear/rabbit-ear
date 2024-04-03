@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 const testEqualVectorVectors = function (a, b) {
 	expect(a.length).toBe(b.length);

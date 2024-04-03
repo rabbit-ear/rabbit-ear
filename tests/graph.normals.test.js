@@ -1,6 +1,6 @@
 import fs from "fs";
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 test("makeFacesNormal crease pattern", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/crane-cp.fold", "utf-8");

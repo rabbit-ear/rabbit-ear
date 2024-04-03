@@ -1,6 +1,6 @@
 import fs from "fs";
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 test("Mooser's train layer solution", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/moosers-train.fold", "utf-8");

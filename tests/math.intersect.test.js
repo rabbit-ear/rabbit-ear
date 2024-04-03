@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 test("intersectLineLine include exclude", () => {
 	const res0 = ear.math.intersectLineLine(

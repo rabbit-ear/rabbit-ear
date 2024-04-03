@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 test("clamp functions", () => {
 	expect(ear.math.clampLine(0)).toBe(0);

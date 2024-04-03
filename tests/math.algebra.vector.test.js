@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 const testEqual = function (...args) {
 	expect(ear.math.epsilonEqualVectors(...args)).toBe(true);

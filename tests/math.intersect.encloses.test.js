@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 test("enclosingBoundingBoxes fully enclosed", () => {
 	const box1 = { min: [0, 0], max: [1, 1] };

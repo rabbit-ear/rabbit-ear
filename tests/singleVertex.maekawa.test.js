@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 test("maekawaSolver, no U", () => {
 	const result = ear.singleVertex.maekawaSolver(Array.from("MMVM"));

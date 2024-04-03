@@ -17,11 +17,13 @@ import {
 	edgeToLine,
 } from "../graph/edges/lines.js";
 import {
+	makeFacesCenter2DQuick,
 	makeFacesCenter3DQuick,
 } from "../graph/make/faces.js";
 import {
 	uniqueElements,
 } from "../general/array.js";
+import { invertFlatToArrayMap } from "../graph/maps.js";
 
 /**
  * @description An edge is adjacent to one or two faces,
@@ -94,16 +96,46 @@ export const makeEdgePairsFacesSide = (
 };
 
 /**
+ *
+ */
+export const makeEdgesFacesSide2D = (
+	{ vertices_coords, edges_faces, faces_vertices, faces_center },
+	{ lines, edges_line },
+) => {
+	if (!faces_center) {
+		faces_center = makeFacesCenter2DQuick({ vertices_coords, faces_vertices });
+	}
+
+	// for every edge, for all of its (0, 1, 2) adjacent faces, compute the
+	// cross product of the vector to the faces' center with the vector of
+	// the shared line that this edge runs along.
+	// the result is +1 or -1, the sign of the result of the cross product.
+	return edges_faces
+		.map((faces, e) => faces
+			.map(face => {
+				const { vector, origin } = lines[edges_line[e]];
+				return cross2(subtract2(faces_center[face], origin), vector);
+			})
+			.map(Math.sign));
+};
+
+/**
  * @description
- * @param {FOLD} graph
- * @param {{ faces_plane: number[] }} a combination of the results from
- *   getEdgesLine() and getCoplanarAdjacentOverlappingFaces()
+ * @param {FOLD} graph a FOLD graph where, if faces_center exists then
+ * only edges_faces is needed, otherwise vertices and face data is needed.
+ * @param {{
+ *   lines: VecLine[],
+ *   edges_line: number[],
+ *   faces_plane: number[],
+ *   planes_transform: number[][],
+ * }} edgesLine-facesPlane-data the joined-results from
+ *   getEdgesLine() and getFacesPlane()
  * @returns {number[][]} for every edge, for each of its 1 or 2 adjacent faces,
  * a +1 or -1 for each face indicating which side of the edge the face lies on.
  */
 export const makeEdgesFacesSide3D = (
-	{ vertices_coords, edges_faces, faces_vertices },
-	{ lines, edges_line, planes_transform, faces_plane, faces_center },
+	{ vertices_coords, edges_faces, faces_vertices, faces_center },
+	{ lines, edges_line, planes_transform, faces_plane },
 ) => {
 	if (!faces_center) {
 		// this method will always return 3D points, necessary for the
@@ -115,9 +147,9 @@ export const makeEdgesFacesSide3D = (
 			));
 	}
 
-	// for every edge, which plane(s) is it a member of.
-	const edges_planes = edges_faces
-		.map(faces => faces.flatMap(face => faces_plane[face]))
+	// for every line, a list of all planes that this line is a member of
+	const lines_planes = invertFlatToArrayMap(edges_line)
+		.map(edges => edges.flatMap(e => edges_faces[e].map(f => faces_plane[f])))
 		.map(planes => uniqueElements(planes));
 
 	// ensure lines's vectors and origins are in 3D.
@@ -127,23 +159,17 @@ export const makeEdgesFacesSide3D = (
 	}));
 
 	// fill lines planes
-	const linesPlanesXY = lines.map(() => []);
-	edges_line
-		.forEach((l, e) => edges_planes[e]
-			.forEach(p => {
-				if (linesPlanesXY[l][p] !== undefined) { return; }
-				const { vector, origin } = lines3D[l];
-				const transformedLine = multiplyMatrix4Line3(planes_transform[p], vector, origin);
-				linesPlanesXY[l][p] = transformedLine;
-			}));
+	/** @type {VecLine[][]} */
+	const lines2DInPlane = lines.map(() => []);
+	lines_planes.forEach((planes, l) => planes.forEach(p => {
+		const { vector, origin } = lines3D[l];
+		lines2DInPlane[l][p] = multiplyMatrix4Line3(planes_transform[p], vector, origin);
+	}));
 
-	//
 	return edges_faces
 		.map((faces, e) => faces
 			.map(face => {
-				const plane = faces_plane[face];
-				const l = edges_line[e];
-				const { vector, origin } = linesPlanesXY[l][plane];
+				const { vector, origin } = lines2DInPlane[edges_line[e]][faces_plane[face]];
 				return cross2(subtract2(faces_center[face], origin), vector);
 			})
 			.map(Math.sign));

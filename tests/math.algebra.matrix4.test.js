@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 test("isIdentity", () => {
 	expect(ear.math.isIdentity4x4([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]))

@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import fs from "fs";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 test("overlappingParallelEdgePairs panel 4x2", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/panels-4x2.fold", "utf-8");
@@ -98,12 +98,12 @@ test("edgesFacesSide 2D and 3D", () => {
 
 	expect(ear.layer.makeEdgesFacesSide3D(graph1, {
 		...ear.graph.getEdgesLine(graph1),
-		...ear.graph.getCoplanarAdjacentOverlappingFaces(graph1),
+		...ear.graph.getFacesPlane(graph1),
 	})).toMatchObject([[-1], [-1], [-1], [-1], [1, -1]]);
 
 	expect(ear.layer.makeEdgesFacesSide3D(graph2, {
 		...ear.graph.getEdgesLine(graph2),
-		...ear.graph.getCoplanarAdjacentOverlappingFaces(graph2),
+		...ear.graph.getFacesPlane(graph2),
 	})).toMatchObject([[1], [1], [1], [1], [-1, 1]]);
 });
 
@@ -159,7 +159,7 @@ test("facesSide panel 4x2", () => {
 	const edgesFacesSide2D = ear.layer.makeEdgesFacesSide(folded);
 	const edgesFacesSide3D = ear.layer.makeEdgesFacesSide3D(folded, {
 		...ear.graph.getEdgesLine(folded),
-		...ear.graph.getCoplanarAdjacentOverlappingFaces(folded),
+		...ear.graph.getFacesPlane(folded),
 	});
 
 	expect(folded.edges_assignment)
@@ -227,7 +227,7 @@ test("makeEdgesFacesSide3D, layer 3D cases", () => {
 	// const ignore = ear.layer.constraints3DFaceClusters(folded);
 	const edges_facesSides = ear.layer.makeEdgesFacesSide3D(folded, {
 		...ear.graph.getEdgesLine(folded),
-		...ear.graph.getCoplanarAdjacentOverlappingFaces(folded),
+		...ear.graph.getFacesPlane(folded),
 	});
 
 	expect(edges_facesSides).toMatchObject([

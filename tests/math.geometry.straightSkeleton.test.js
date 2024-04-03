@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 test("straight skeleton triangle", () => {
 	const f1f = Math.sqrt(2) - 1;

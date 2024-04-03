@@ -1,6 +1,6 @@
 import fs from "fs";
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 const constraints3DSetupInterior = ({
 	vertices_coords, edges_vertices, edges_faces, edges_assignment, edges_foldAngle,
@@ -125,38 +125,26 @@ test("constraints3DSetup, all 3D special cases", () => {
 	}));
 	foldedForms.forEach(folded => ear.graph.populate(folded));
 
-	const folded = foldedForms[1];
-
-	const {
-		planes_transform,
-		faces_plane,
-		faces_cluster,
-		faces_winding,
-		faces_polygon,
-		faces_center,
-		clusters_faces,
-		clusters_graph,
-		clusters_transform,
-		facesFacesOverlap,
-		facePairs,
-		//
-		pairs_data,
-		edges_clusters,
-		//
-		YJunctions,
-		TJunctions,
-		bentFlatTortillas,
-		bentTortillaTortillaEdges,
-		//
-		bentTortillaTortillas,
-		ordersEdgeFace,
-		ordersEdgeEdge,
-	} = constraints3DSetupInterior(folded);
+	const folded = foldedForms[3];
 
 	const {
 		lines,
 		edges_line,
 	} = ear.graph.getEdgesLine(folded);
+
+	const {
+		planes_transform,
+		faces_plane,
+		// faces_cluster,
+		faces_winding,
+		// faces_polygon,
+		// faces_center,
+		// clusters_faces,
+		// clusters_graph,
+		// clusters_transform,
+		facesFacesOverlap,
+		// facePairs,
+	} = ear.layer.constraints3DFaceClusters(folded);
 
 	// lines_planes,
 	// edges_planes,
@@ -168,10 +156,9 @@ test("constraints3DSetup, all 3D special cases", () => {
 		lines,
 		edges_line,
 		planes_transform,
-		faces_center,
 		faces_plane,
-		faces_cluster,
-		clusters_transform,
+		faces_winding,
+		facesFacesOverlap,
 	});
 
 	console.log(result);

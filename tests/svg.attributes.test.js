@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import xmldom from "@xmldom/xmldom";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 ear.svg.window = xmldom;
 

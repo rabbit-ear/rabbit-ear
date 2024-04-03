@@ -1,7 +1,7 @@
 import fs from "fs";
 import xmldom from "@xmldom/xmldom";
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 ear.window = xmldom;
 

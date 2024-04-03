@@ -153,17 +153,15 @@ export const getFacesPlane = (
 	// for each cluster which rotates this cluster's plane into the XY plane.
 	const targetVector = [0, 0, 1];
 
-	const planes_transform = planes.map(({ normal }) => {
-		// if dot is -1, this plane is already in the XY plane, but the plane's
-		// normal and target are exactly 180deg flipped, meaning that the result of
-		// the quaternion constructor will be undefined, in which case we manually
-		// build a rotation matrix that rotates 180 degrees around the X axis.
-		const d = dot(normal, targetVector);
-		// 180 degree rotate around the X axis, or general rotation matrix
-		return (Math.abs(d + 1) < epsilon)
+	// if dot is -1, this plane is already in the XY plane, but the plane's
+	// normal and target are exactly 180deg flipped, meaning that the result of
+	// the quaternion constructor will be undefined, in which case we manually
+	// build a rotation matrix that rotates 180 degrees around the X axis.
+	// 180 degree rotate around the X axis, or general rotation matrix
+	const planes_transform = planes
+		.map(({ normal }) => (Math.abs(dot(normal, targetVector) + 1) < epsilon
 			? [1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1]
-			: matrix4FromQuaternion(quaternionFromTwoVectors(normal, targetVector));
-	});
+			: matrix4FromQuaternion(quaternionFromTwoVectors(normal, targetVector))));
 
 	// computing the translation vector as a single matrix * vector operation,
 	// then overwriting it into the column vector of the rotation matrix

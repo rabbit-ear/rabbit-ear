@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 test("quaternionFromTwoVectors", () => {
 	const res1 = ear.math.quaternionFromTwoVectors([1, 0, 0], [0, 1, 0]);

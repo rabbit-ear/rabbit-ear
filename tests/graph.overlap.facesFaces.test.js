@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import fs from "fs";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 test("getFacesFacesOverlap strip weave", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/strip-weave.fold", "utf-8");

@@ -1,6 +1,6 @@
 import fs from "fs";
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 test("makeFacesMatrix 3d sphere", () => {
 	const sphere = fs.readFileSync("./tests/files/obj/sphere-with-holes.obj", "utf-8");

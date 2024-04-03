@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 // ear.graph.intersectConvexFaceLine(graph, face, vector, point);
 

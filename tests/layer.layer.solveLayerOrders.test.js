@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import fs from "fs";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 // test("write folded vertices", () => {
 // 	const foldfile = fs.readFileSync("./tests/files/fold/panels-6x2-90deg.fold", "utf-8");

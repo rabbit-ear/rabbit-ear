@@ -1,6 +1,6 @@
 import fs from "fs";
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 const arraysTest = (a, b) => a
 	.forEach((_, i) => expect(a[i]).toBeCloseTo(b[i]));

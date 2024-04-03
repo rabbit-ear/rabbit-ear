@@ -1,6 +1,6 @@
 import fs from "fs";
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 // we do want this method. bring this back (idk when it was even here)
 test("faces_vertices", () => {

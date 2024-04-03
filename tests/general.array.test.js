@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 const arraysMatch = (a, b) => a.forEach((_, i) => expect(a[i]).toBe(b[i]));
 

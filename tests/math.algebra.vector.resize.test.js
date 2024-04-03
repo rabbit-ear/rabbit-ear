@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 const equalTest = (a, b) => expect(JSON.stringify(a))
 	.toBe(JSON.stringify(b));

@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import fs from "fs";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 test("make faces_faces, square", () => {
 	const result = ear.graph.makeFacesFaces({

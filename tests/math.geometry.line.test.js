@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 test("collinearBetween", () => {
 	const [p0, p2] = [[0, 0], [1, 0]];

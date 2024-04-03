@@ -151,9 +151,11 @@ export const setDifferenceSortedNumbers = (a, b) => {
 	let ai = 0;
 	let bi = 0;
 	while (ai < a.length && bi < b.length) {
-		if (a[ai] === b[bi]) { ai += 1; }
-		else if (a[ai] > b[bi]) { bi += 1; }
-		else if (b[bi] > a[ai]) {
+		if (a[ai] === b[bi]) {
+			ai += 1;
+		} else if (a[ai] > b[bi]) {
+			bi += 1;
+		} else if (b[bi] > a[ai]) {
 			result.push(a[ai]);
 			ai += 1;
 		}
@@ -176,9 +178,11 @@ export const setDifferenceSortedEpsilonNumbers = (a, b, epsilon = EPSILON) => {
 	let ai = 0;
 	let bi = 0;
 	while (ai < a.length && bi < b.length) {
-		if (epsilonEqual(a[ai], b[bi], epsilon)) { ai += 1; }
-		else if (a[ai] > b[bi]) { bi += 1; }
-		else if (b[bi] > a[ai]) {
+		if (epsilonEqual(a[ai], b[bi], epsilon)) {
+			ai += 1;
+		} else if (a[ai] > b[bi]) {
+			bi += 1;
+		} else if (b[bi] > a[ai]) {
 			result.push(a[ai]);
 			ai += 1;
 		}

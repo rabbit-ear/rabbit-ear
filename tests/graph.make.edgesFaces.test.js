@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 // because there are no faces to build edges_faces, the question is:
 // should edges_faces be empty, or contain empty arrays one for each edge

@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 test("sortPointsAlongVector empty", () => {
 	expect(ear.general.sortPointsAlongVector([], [1, 0])).toMatchObject([]);

@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 test("rgbToAssignment, all assignments", () => {
 	expect(ear.graph.rgbToAssignment(255, 0, 0)).toBe("M");

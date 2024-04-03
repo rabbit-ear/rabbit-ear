@@ -1,7 +1,7 @@
 import fs from "fs";
 import { expect, test } from "vitest";
 import earcut from "earcut";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 const convexHexagon = {
 	vertices_coords: [[0, 0], [1, 1], [1, 2], [0, 3], [-1, 2], [-1, 1]],

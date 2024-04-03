@@ -1,6 +1,6 @@
 import fs from "fs";
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 // const createRandomTriangleGraph = (NUM_TRIS = 10) => ({
 // 	vertices_coords: Array.from(Array(3 * NUM_TRIS))

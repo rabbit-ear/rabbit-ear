@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 test("edges_edges square", () => {
 	const graph = { edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 0]] };

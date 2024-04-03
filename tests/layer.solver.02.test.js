@@ -1,6 +1,6 @@
 import fs from "fs";
 import { expect, test } from "vitest";
-import ear from "../rabbit-ear.js";
+import ear from "../src/index.js";
 
 test("3D layer solver cube octagon", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/cube-octagon.fold", "utf-8");

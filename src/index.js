@@ -32,11 +32,12 @@ const ear = {
 	webgl,
 };
 
-// svg library needs a pointer to rabbit-ear
+// bind the SVG library to Rabbit Ear, opening up the ability to
+// draw FOLD objects.
 svgLink.ear = ear;
 
-// give the user the ability to set the window
-// this allows DOM operations (svg) inside node or deno
+// give backend Javascript the ability to use window (draw SVG elements).
+// this gives the user the ability to set the window to a 3rd party library.
 Object.defineProperty(ear, "window", {
 	enumerable: false,
 	set: value => { svg.window = setWindow(value); },

@@ -6,7 +6,6 @@ import {
 	centroid,
 } from "../../math/polygon.js";
 import {
-	add,
 	average,
 	average2,
 	average3,
