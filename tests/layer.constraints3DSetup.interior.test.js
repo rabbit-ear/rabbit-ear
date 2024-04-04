@@ -34,7 +34,7 @@ const constraints3DSetupInterior = ({
 	const {
 		pairs_data,
 		edges_clusters,
-	} = ear.layer.constraints3DEdgeClusters({
+	} = ear.layer.constraints3DEdgeClustersOld({
 		vertices_coords,
 		edges_vertices,
 		edges_faces,
@@ -125,7 +125,7 @@ test("constraints3DSetup, all 3D special cases", () => {
 	}));
 	foldedForms.forEach(folded => ear.graph.populate(folded));
 
-	const folded = foldedForms[3];
+	const folded = foldedForms[4];
 
 	const {
 		lines,
@@ -152,7 +152,7 @@ test("constraints3DSetup, all 3D special cases", () => {
 	// edgePairs,
 	// edgePairs_facePlanes,
 	// edges_facesSide,
-	const result = ear.layer.constraints3DEdgeClustersNew(folded, {
+	const result = ear.layer.constraints3DEdgeClusters(folded, {
 		lines,
 		edges_line,
 		planes_transform,
