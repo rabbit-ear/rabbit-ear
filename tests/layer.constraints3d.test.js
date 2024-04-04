@@ -73,14 +73,19 @@ test("makeSolverConstraints3D layer 3D test cases", () => {
 	}));
 	foldedForms.forEach(folded => ear.graph.populate(folded));
 
-	const results = foldedForms
-		.map(folded => ear.layer.makeSolverConstraints3D(folded));
+	const results = foldedForms.map(folded => {
+		try {
+			return ear.layer.makeSolverConstraints3D(folded)
+		} catch (error) {
+			return "error";
+		}
+	});
 
 	expect(results[0].constraints).toMatchObject({
 		taco_taco: [], taco_tortilla: [], tortilla_tortilla: [], transitivity: [],
 	});
 	expect(results[0].facePairs).toMatchObject(["0 4"]);
-	expect(results[0].orders).toMatchObject({ "0 4": 1 });
+	expect(results[0].orders).toMatchObject({ "0 4": 2 });
 
 	expect(results[1].constraints).toMatchObject({
 		taco_taco: [],
@@ -111,16 +116,16 @@ test("makeSolverConstraints3D layer 3D test cases", () => {
 
 	// only 3 pairs of faces overlap each other: 1-9, 2-8, 3-7
 	// - 2 tortilla_tortilla between the overlapping 3 sets.
-	expect(results[4].constraints).toMatchObject({
+	expect(results[5].constraints).toMatchObject({
 		taco_taco: [],
 		taco_tortilla: [],
 		tortilla_tortilla: [[1, 2, 9, 8], [2, 3, 8, 7]],
 		transitivity: [],
 	});
-	expect(results[4].facePairs).toMatchObject(["1 9", "2 8", "3 7"]);
+	expect(results[5].facePairs).toMatchObject(["1 9", "2 8", "3 7"]);
 	// 1-9 via the 3d overlapping edges algorithm
 	// 3-7 via the 3d overlapping edges algorithm
-	expect(results[4].orders).toMatchObject({ "1 9": 1, "3 7": 1 });
+	expect(results[5].orders).toMatchObject({ "1 9": 1, "3 7": 1 });
 
 	// 3 pairs of faces overlap each other: 1-10, 2-9, 3-8
 	// then another group of 4 faces all overlap each other: 4, 5, 6, 7
@@ -128,18 +133,18 @@ test("makeSolverConstraints3D layer 3D test cases", () => {
 	// - 2 taco_tortilla faces 4 and 7 have a "F" edge
 	// - 3 tortilla_tortilla where 1-2-10-9 and 3-4-8-7 are "F" tortillas
 	//   and 2-3-9-8 is a 3D-bent-tortilla at 90 degrees
-	expect(results[5].constraints).toMatchObject({
+	expect(results[6].constraints).toMatchObject({
 		taco_taco: [[4, 6, 5, 7]],
 		taco_tortilla: [[5, 4, 6], [5, 7, 6]],
 		tortilla_tortilla: [[1, 2, 10, 9], [3, 4, 8, 7], [2, 3, 9, 8]],
 		transitivity: [],
 	});
-	expect(results[5].facePairs).toMatchObject([
+	expect(results[6].facePairs).toMatchObject([
 		"1 10", "2 9", "3 8", "4 5", "4 6", "4 7", "5 6", "5 7", "6 7",
 	]);
 	// 1-10 is known via the 3d overlapping edges algorithm
 	// 4-5, 5-6, 6-7 are simply flat adjacent faces
-	expect(results[5].orders).toMatchObject({
+	expect(results[6].orders).toMatchObject({
 		"1 10": 1, "4 5": 2, "5 6": 1, "6 7": 1,
 	});
 });

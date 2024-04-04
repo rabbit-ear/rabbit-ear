@@ -117,3 +117,19 @@ export const solverSolutionToFaceOrders = (facePairOrders, faces_winding) => {
 	});
 	return faceOrders;
 };
+
+/**
+ * @param {{ [key: string]: number }[]} orders an array of face-pair orders
+ * where
+ */
+export const joinOrderObjects = (orders) => {
+	const result = {};
+	// iterate through the objects
+	orders.forEach(order => Object.keys(order).forEach(key => {
+		if (result[key] !== undefined && result[key] !== order[key]) {
+			throw new Error(`two competing results: ${result[key]}, ${order[key]}, for "${key}"`);
+		}
+		result[key] = order[key];
+	}));
+	return result;
+};

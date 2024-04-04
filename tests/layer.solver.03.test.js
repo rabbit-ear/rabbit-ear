@@ -10,18 +10,18 @@ test("Mooser's train layer solution", () => {
 		branches,
 	} = ear.layer.layer3D(graph);
 
-	// expect(Object.keys(orders).length).toBe(1713);
-	expect(Object.keys(orders).length).toBe(1649);
-	// expect(branches).toMatchObject([
-	// 	[
-	// 		{ orders: [[52, 115, 1], [52, 131, 1], [52, 128, -1], [52, 113, -1]] },
-	// 		{ orders: [[52, 115, -1], [52, 131, -1], [52, 128, 1], [52, 113, 1]] },
-	// 	],
-	// 	[
-	// 		{ orders: [[108, 116, 1], [108, 137, 1], [108, 136, -1], [108, 114, -1]] },
-	// 		{ orders: [[108, 116, -1], [108, 137, -1], [108, 136, 1], [108, 114, 1]] },
-	// 	]
-	// ]);
+	expect(Object.keys(orders).length).toBe(1713);
+	// expect(Object.keys(orders).length).toBe(1649);
+	// expect(Object.keys(orders).length).toBe(1581);
+	expect(branches).toMatchObject([
+		[
+			{ orders: [[52, 115, 1], [52, 131, 1], [52, 128, -1], [52, 113, -1]]},
+			{ orders: [[52, 115, -1], [52, 131, -1], [52, 128, 1], [52, 113, 1]]},
+		], [
+			{ orders: [[108, 114, -1], [108, 136, -1], [108, 137, 1], [108, 116, 1]]},
+			{ orders: [[108, 114, 1], [108, 136, 1], [108, 137, -1], [108, 116, -1]]},
+		]
+	]);
 	// graph.faceOrders = solution.faceOrders();
 	// fs.writeFileSync(`./tests/tmp/moosers-train-layer-solved.fold`, JSON.stringify(graph));
 });

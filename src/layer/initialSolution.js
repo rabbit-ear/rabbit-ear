@@ -271,49 +271,49 @@ export const solveEdgeFaceOverlapOrders = (
  * overwriting the same key with different values, we need to throw
  * an error.
  */
-const solveFacePair3D = ({
-	edges_foldAngle, faces_winding,
-}, tortillaEdges, tortillaFaces) => {
-	// so the idea is, if we align the faces within the plane, meaning that if
-	// a face is flipped, we "flip" it by negating the foldAngle, then we can
-	// say that the face (edge) with the larger fold angle should be on top.
-	// then we have to work backwards-if we flipped a face, we need to flip
-	// the order, or if the faces are not ordered where A < B, also flip the order.
-	const tortillaEdgesFoldAngle = tortillaEdges
-		.map(edges => edges
-			.map(edge => edges_foldAngle[edge]));
-	const tortillaFacesAligned = tortillaFaces
-		.map(faces => faces
-			.map(f => faces_winding[f]));
-	const tortillaEdgesFoldAngleAligned = tortillaEdgesFoldAngle
-		.map((angles, i) => angles
-			.map((angle, j) => (tortillaFacesAligned[i][j] ? angle : -angle)));
-	const indicesInOrder = tortillaEdgesFoldAngleAligned
-		.map(angles => angles[0] > angles[1]);
-	const facesInOrder = tortillaFaces.map(faces => faces[0] < faces[1]);
-	const switchNeeded = tortillaFaces
-		.map((_, i) => indicesInOrder[i] ^ facesInOrder[i]);
-	const result = {};
-	const faceKeys = tortillaFaces
-		.map((pair, i) => (facesInOrder[i] ? pair : pair.slice().reverse()))
-		.map(pair => pair.join(" "));
-	switchNeeded
-		.map(n => n + 1) // 0 becomes 1, 1 becomes 2.
-		.forEach((order, i) => { result[faceKeys[i]] = order; });
-	// console.log("tortilla", tortilla);
-	// console.log("tortillaEdges", tortillaEdges);
-	// console.log("tortillaEdgesFoldAngle", tortillaEdgesFoldAngle);
-	// console.log("tortillaFaces", tortillaFaces);
-	// console.log("tortillaOtherFaces", tortillaOtherFaces);
-	// console.log("tortillaFacesAligned", tortillaFacesAligned);
-	// console.log("tortillaEdgesFoldAngleAligned", tortillaEdgesFoldAngleAligned);
-	// console.log("indicesOrder", indicesOrder);
-	// console.log("indicesInOrder", indicesInOrder);
-	// console.log("facesInOrder", facesInOrder);
-	// console.log("switchNeeded", switchNeeded);
-	// console.log("result", result);
-	return result;
-};
+// const solveFacePair3D = ({
+// 	edges_foldAngle, faces_winding,
+// }, tortillaEdges, tortillaFaces) => {
+// 	// so the idea is, if we align the faces within the plane, meaning that if
+// 	// a face is flipped, we "flip" it by negating the foldAngle, then we can
+// 	// say that the face (edge) with the larger fold angle should be on top.
+// 	// then we have to work backwards-if we flipped a face, we need to flip
+// 	// the order, or if the faces are not ordered where A < B, also flip the order.
+// 	const tortillaEdgesFoldAngle = tortillaEdges
+// 		.map(edges => edges
+// 			.map(edge => edges_foldAngle[edge]));
+// 	const tortillaFacesAligned = tortillaFaces
+// 		.map(faces => faces
+// 			.map(f => faces_winding[f]));
+// 	const tortillaEdgesFoldAngleAligned = tortillaEdgesFoldAngle
+// 		.map((angles, i) => angles
+// 			.map((angle, j) => (tortillaFacesAligned[i][j] ? angle : -angle)));
+// 	const indicesInOrder = tortillaEdgesFoldAngleAligned
+// 		.map(angles => angles[0] > angles[1]);
+// 	const facesInOrder = tortillaFaces.map(faces => faces[0] < faces[1]);
+// 	const switchNeeded = tortillaFaces
+// 		.map((_, i) => indicesInOrder[i] ^ facesInOrder[i]);
+// 	const result = {};
+// 	const faceKeys = tortillaFaces
+// 		.map((pair, i) => (facesInOrder[i] ? pair : pair.slice().reverse()))
+// 		.map(pair => pair.join(" "));
+// 	switchNeeded
+// 		.map(n => n + 1) // 0 becomes 1, 1 becomes 2.
+// 		.forEach((order, i) => { result[faceKeys[i]] = order; });
+// 	// console.log("tortilla", tortilla);
+// 	// console.log("tortillaEdges", tortillaEdges);
+// 	// console.log("tortillaEdgesFoldAngle", tortillaEdgesFoldAngle);
+// 	// console.log("tortillaFaces", tortillaFaces);
+// 	// console.log("tortillaOtherFaces", tortillaOtherFaces);
+// 	// console.log("tortillaFacesAligned", tortillaFacesAligned);
+// 	// console.log("tortillaEdgesFoldAngleAligned", tortillaEdgesFoldAngleAligned);
+// 	// console.log("indicesOrder", indicesOrder);
+// 	// console.log("indicesInOrder", indicesInOrder);
+// 	// console.log("facesInOrder", facesInOrder);
+// 	// console.log("switchNeeded", switchNeeded);
+// 	// console.log("result", result);
+// 	return result;
+// };
 
 /**
  * @description Given a list of Y-junctions, solve the relationship between the
@@ -321,15 +321,15 @@ const solveFacePair3D = ({
  * space-separated face-pair strings to a value of 1 or 2.
  * @returns {{ [key: string]: number }} a subset of layer order solutions
  */
-const solveYJunctions = ({ edges_foldAngle, faces_winding }, edgePairData) => {
-	const tortilla = edgePairData
-		.map(el => Object.values(el.sets)
-			.sort((a, b) => b.faces.length - a.faces.length)
-			.shift());
-	const tortillaEdges = tortilla.map(el => el.edges);
-	const tortillaFaces = tortilla.map(el => el.faces);
-	return solveFacePair3D({ edges_foldAngle, faces_winding }, tortillaEdges, tortillaFaces);
-};
+// const solveYJunctions = ({ edges_foldAngle, faces_winding }, edgePairData) => {
+// 	const tortilla = edgePairData
+// 		.map(el => Object.values(el.sets)
+// 			.sort((a, b) => b.faces.length - a.faces.length)
+// 			.shift());
+// 	const tortillaEdges = tortilla.map(el => el.edges);
+// 	const tortillaFaces = tortilla.map(el => el.faces);
+// 	return solveFacePair3D({ edges_foldAngle, faces_winding }, tortillaEdges, tortillaFaces);
+// };
 
 /**
  * @description Given a list of T-junctions, solve the relationship between the
@@ -337,15 +337,15 @@ const solveYJunctions = ({ edges_foldAngle, faces_winding }, edgePairData) => {
  * space-separated face-pair strings to a value of 1 or 2.
  * @returns {{ [key: string]: number }} a subset of layer order solutions
  */
-const solveTJunctions = ({ edges_foldAngle, faces_winding }, edgePairData) => {
-	const tortilla = edgePairData
-		.map(el => Object.values(el.sets)
-			.filter(row => row.facesSameSide)
-			.shift());
-	const tortillaEdges = tortilla.map(el => el.edges);
-	const tortillaFaces = tortilla.map(el => el.faces);
-	return solveFacePair3D({ edges_foldAngle, faces_winding }, tortillaEdges, tortillaFaces);
-};
+// const solveTJunctions = ({ edges_foldAngle, faces_winding }, edgePairData) => {
+// 	const tortilla = edgePairData
+// 		.map(el => Object.values(el.sets)
+// 			.filter(row => row.facesSameSide)
+// 			.shift());
+// 	const tortillaEdges = tortilla.map(el => el.edges);
+// 	const tortillaFaces = tortilla.map(el => el.faces);
+// 	return solveFacePair3D({ edges_foldAngle, faces_winding }, tortillaEdges, tortillaFaces);
+// };
 
 /**
  * @description Given a list of bent-flat-tortillas, solve the relationship
@@ -353,36 +353,36 @@ const solveTJunctions = ({ edges_foldAngle, faces_winding }, edgePairData) => {
  * solution mapping space-separated face-pair strings to a value of 1 or 2.
  * @returns {{ [key: string]: number }} a subset of layer order solutions
  */
-const solveBentFlatTortillas = ({ edges_foldAngle, faces_winding }, edgePairData) => {
-	// console.log("solveBentFlatTortillas", edgePairData);
-	// const tortilla = edgePairData
-	// 	.map(el => Object.values(el.sets)
-	// 		.filter(row => row.facesSameSide)
-	// 		.shift());
-	// console.log("bentFlatTortillas", edgePairData);
-	// console.log("tortilla", tortilla);
-	return {};
-};
+// const solveBentFlatTortillas = ({ edges_foldAngle, faces_winding }, edgePairData) => {
+// 	// console.log("solveBentFlatTortillas", edgePairData);
+// 	// const tortilla = edgePairData
+// 	// 	.map(el => Object.values(el.sets)
+// 	// 		.filter(row => row.facesSameSide)
+// 	// 		.shift());
+// 	// console.log("bentFlatTortillas", edgePairData);
+// 	// console.log("tortilla", tortilla);
+// 	return {};
+// };
 
 /**
  * @description
  * @returns {{ [key: string]: number }} a subset of layer order solutions
  */
-export const solveEdgeEdgeOverlapOrders = ({
-	edges_foldAngle, faces_winding,
-}, YJunctions, TJunctions, bentFlatTortillas) => {
-	const result1 = solveYJunctions({ edges_foldAngle, faces_winding }, YJunctions);
-	const result2 = solveTJunctions({ edges_foldAngle, faces_winding }, TJunctions);
-	const result3 = solveBentFlatTortillas({ edges_foldAngle, faces_winding }, bentFlatTortillas);
-	// console.log("result1", result1);
-	// console.log("result2", result2);
-	// console.log("result3", result3);
+// export const solveEdgeEdgeOverlapOrders = ({
+// 	edges_foldAngle, faces_winding,
+// }, YJunctions, TJunctions, bentFlatTortillas) => {
+// 	const result1 = solveYJunctions({ edges_foldAngle, faces_winding }, YJunctions);
+// 	const result2 = solveTJunctions({ edges_foldAngle, faces_winding }, TJunctions);
+// 	const result3 = solveBentFlatTortillas({ edges_foldAngle, faces_winding }, bentFlatTortillas);
+// 	// console.log("result1", result1);
+// 	// console.log("result2", result2);
+// 	// console.log("result3", result3);
 
-	// todo: if results have a different solution to the same face-pair we need
-	// to throw an error and state that there is no valid layer solution.
-	return {
-		...result1,
-		...result2,
-		...result3,
-	};
-};
+// 	// todo: if results have a different solution to the same face-pair we need
+// 	// to throw an error and state that there is no valid layer solution.
+// 	return {
+// 		...result1,
+// 		...result2,
+// 		...result3,
+// 	};
+// };

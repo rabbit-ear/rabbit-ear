@@ -1,23 +1,19 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+import Messages from "../environment/messages.js";
 import {
 	EPSILON,
 } from "../math/constant.js";
 import {
 	average2,
 	resize,
-	cross2,
-	subtract2,
 } from "../math/vector.js";
 import {
 	multiplyMatrix4Vector3,
-	multiplyMatrix4Line3,
 } from "../math/matrix4.js";
 import {
 	mergeArraysWithHoles,
-	uniqueElements,
-	arrayArrayToLookupArray,
 } from "../general/array.js";
 import {
 	edgeFoldAngleIsFlat,
@@ -26,24 +22,26 @@ import {
 	makeFacesPolygon,
 } from "../graph/make/faces.js";
 import {
-	makeEdgesCoords,
-} from "../graph/make/edges.js";
-import {
 	connectedComponentsPairs,
 } from "../graph/connectedComponents.js";
 import {
 	getCoplanarAdjacentOverlappingFaces,
 } from "../graph/faces/planes.js";
 import {
+	getEdgesLine,
+} from "../graph/edges/lines.js";
+import {
 	subgraphWithFaces,
 } from "../graph/subgraph.js";
 import {
-	getFacesFacesOverlap,
 	getEdgesEdgesCollinearOverlap,
+	getFacesFacesOverlap,
 } from "../graph/overlap.js";
 import {
+	constraints3DEdges,
+} from "./constraints3dEdges.js";
+import {
 	makeTacosAndTortillas,
-	makeBentTortillas,
 } from "./tacosTortillas.js";
 import {
 	makeTransitivity,
@@ -55,14 +53,13 @@ import {
 import {
 	solveFlatAdjacentEdges,
 	solveEdgeFaceOverlapOrders,
-	solveEdgeEdgeOverlapOrders,
 } from "./initialSolution.js";
+import {
+	joinOrderObjects,
+} from "./general.js";
 import {
 	makeEdgesFacesSide3D,
 } from "./facesSide.js";
-import {
-	invertFlatToArrayMap,
-} from "../graph/maps.js";
 
 /**
  * @description The first subroutine to initialize solver constraints for a
@@ -200,259 +197,14 @@ export const constraints3DFaceClusters = ({
 /**
  * @description
  * @param {FOLD} graph a FOLD object
- * @param {{
- *   faces_center: [number, number][],
- *   faces_cluster: number[],
- *   clusters_transform: number[][],
- * }}
- */
-export const constraints3DEdgeClustersOld = (
-	{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
-	{ faces_center, faces_cluster, clusters_transform },
-	epsilon = EPSILON,
-) => {
-	// for every edge, which cluster(s) is it a member of.
-	// ultimately, we are only interested in edges which join two clusters.
-	// in the upcoming steps we are going to delete values from edges which:
-	// - are a memeber of only one cluster (boundary edges)
-	// - oh no. here it is. we can't do this yet.
-	const edges_clusters = edges_faces
-		.map(faces => faces.map(face => faces_cluster[face]));
-
-	// remove edges which are members of only one cluster (boundary edges),
-	edges_clusters
-		.map((_, e) => e)
-		.filter(e => edges_clusters[e].length !== 2)
-		.forEach(e => delete edges_clusters[e]);
-
-	// and remove edges whose two faces are from the same cluster.
-	// todo: remove this. this is keeping us from finding bent-flat-tortillas
-	edges_clusters
-		.map(([a, b], e) => (a === b ? e : undefined))
-		.filter(a => a !== undefined)
-		.forEach(e => delete edges_clusters[e]);
-
-	// console.log("edges_clusters", edges_clusters);
-
-	const edgesFlat = edges_foldAngle.map(edgeFoldAngleIsFlat);
-
-	const edgesEdgesOverlap = getEdgesEdgesCollinearOverlap(
-		{ vertices_coords, edges_vertices },
-		epsilon,
-	);
-
-	const overlappingEdgePairs = connectedComponentsPairs(edgesEdgesOverlap);
-
-	// console.log("overlappingEdgePairs", overlappingEdgePairs);
-
-	// from our original set of all pairs of edges,
-	// - filter out edge pairs where both edges are flat
-	// - filter out edge pairs where edges have fewer than 2 adjacent faces
-	// - filter out edges where the 4 adjacent faces involved are all from
-	//   four different planes. no information can be gained from these.
-	/** @type {[number, number][]} */
-	const pairs_edges = overlappingEdgePairs
-		.map(pair => (pair[0] < pair[1] ? pair : pair.slice().reverse()))
-		.filter(p => !(edgesFlat[p[0]] && edgesFlat[p[1]]))
-		.filter(pair => pair.every(edge => edges_faces[edge].length === 2))
-		.filter(pair => pair.every(edge => edges_clusters[edge] !== undefined))
-		.filter(pair => Array
-			.from(new Set(pair.flatMap(e => edges_clusters[e]))).length !== 4);
-
-	// console.log("pairs_edges", pairs_edges);
-
-	// for each pair of edges, which sets is each edge a member of?
-	const pairs_edges_clusters = pairs_edges
-		.map(pair => pair.map(e => edges_clusters[e]));
-
-	const pairs_sets = pairs_edges_clusters
-		.map(sets => Array.from(new Set(sets.flat())));
-
-	// for each edge-pair, create an object with keys as set-indices, and
-	// values as arrays where each edge is inside
-	const pairs_sets_edges = pairs_edges_clusters.map((pair, i) => {
-		const hash = {};
-		pair.flat().forEach(s => { hash[s] = []; });
-		pair.forEach((sets, j) => sets
-			.forEach(s => hash[s].push(pairs_edges[i][j])));
-		return hash;
-	});
-
-	const pairs_edges_faces = pairs_edges
-		.map(pair => pair.map(e => edges_faces[e]));
-
-	// for every pair, make an object with planar-set index (key) and
-	// an array of the edge's adjacent faces that lie in that plane (value)
-	const pairs_sets_faces = pairs_edges_faces
-		.map((faces, i) => {
-			const hash = {};
-			pairs_sets[i].forEach(s => { hash[s] = []; });
-			faces.flat().forEach(f => hash[faces_cluster[f]].push(f));
-			return hash;
-		});
-
-	const edges_coords = makeEdgesCoords({ vertices_coords, edges_vertices });
-	const pairs_sets_2dEdges = pairs_sets.map((sets, i) => {
-		const segment3D = edges_coords[pairs_edges[i][0]];
-		const hash = {};
-		sets.forEach(set => {
-			hash[set] = segment3D
-				.map(p => multiplyMatrix4Vector3(clusters_transform[set], p))
-				.map(p => [p[0], p[1]]);
-		});
-		return hash;
-	});
-
-	const pairs_sets_facesSides = pairs_sets_faces.map((pair, i) => {
-		const hash = {};
-		pairs_sets[i].forEach(set => {
-			const origin = pairs_sets_2dEdges[i][set][0];
-			hash[set] = pair[set].map(f => cross2(
-				subtract2(faces_center[f], origin),
-				subtract2(pairs_sets_2dEdges[i][set][1], origin),
-			)).map(cross => Math.sign(cross));
-		});
-		return hash;
-	});
-
-	const pairs_sets_facesSidesSameSide = pairs_sets_facesSides
-		.map((pair, i) => {
-			const hash = {};
-			pairs_sets[i].forEach(set => {
-				hash[set] = pair[set].reduce((a, b) => a && (b === pair[set][0]), true);
-			});
-			return hash;
-		});
-
-	const pairs_data = pairs_edges.map((edges, i) => {
-		const sets = {};
-		Object.keys(pairs_sets_edges[i]).forEach(set => {
-			sets[set] = {
-				edges: pairs_sets_edges[i][set],
-				faces: pairs_sets_faces[i][set],
-				facesSides: pairs_sets_facesSides[i][set],
-				facesSameSide: pairs_sets_facesSidesSameSide[i][set],
-			};
-		});
-		return { edges, sets };
-	});
-
-	return {
-		pairs_data,
-		edges_clusters,
-	};
-};
-
-/**
- *
- */
-export const constraints3DSolverCases = ({ edges_faces, pairs_data }) => {
-	// a list of all bent-tortilla-tortilla edges
-	const bentTortillaTortillaEdges = pairs_data.filter(data => {
-		const testA = Object.values(data.sets)
-			.map(el => el.faces.length === 2)
-			.reduce((a, b) => a && b, true);
-		const testB = Object.values(data.sets)
-			.map(el => el.facesSameSide)
-			.reduce((a, b) => a && b, true);
-		return testA && testB;
-	});
-
-	// Y-junction
-	const YJunctions = pairs_data.filter(data => {
-		const testA = Object.values(data.sets).length === 3;
-		const testB = Object.values(data.sets)
-			.map(el => el.facesSameSide)
-			.reduce((a, b) => a && b, true);
-		return testA && testB;
-	});
-
-	// T-junction
-	const TJunctions = pairs_data.filter(data => {
-		const testA = Object.values(data.sets)
-			.map(el => el.faces.length === 2)
-			.reduce((a, b) => a && b, true);
-		const sameSide = Object.values(data.sets)
-			.map(el => el.facesSameSide);
-		const testB = sameSide[0] !== sameSide[1];
-		return testA && testB;
-	});
-
-	// bent-flat-tortillas
-	// one bent tortilla-tortilla on top of one flat tortilla-tortilla
-	const bentFlatTortillas = pairs_data.filter(data => {
-		const threeInPlane = Object.values(data.sets)
-			.filter(el => el.faces.length === 3)
-			.shift();
-		// console.log("threeInPlane", threeInPlane);
-		const testA = threeInPlane !== undefined;
-		if (!testA) { return false; }
-		// valid facesSides will be either [1, 1, -1] or [-1, -1, 1] (in any order)
-		// removing the cases [1, 1, 1] or [-1, -1, -1]
-		// valid cases sums will be +1 or -1.
-		const sum = threeInPlane.facesSides.reduce((a, b) => a + b, 0);
-		// console.log("sum", sum);
-		const testB = Math.abs(sum) === 1;
-		if (!testB) { return false; }
-		const sameSideFaces = threeInPlane.faces
-			.filter((_, i) => threeInPlane.facesSides[i] === sum);
-		// console.log("sameSideFaces", sameSideFaces);
-
-		// are same side faces adjacent or not? (we don't have faces_faces)
-		// non-adjacent faces are the valid case we are looking for.
-		// for each of the two edges, check its edges_faces, if each face is
-		// included inside of our sameSideFaces, and if all are (AND), this edge
-		// registers as a joining edge between the two adjacent faces. if either
-		// of the edges satisfy this, the pair of faces are adjacent.
-		const isAdjacent = threeInPlane.edges
-			.map(e => edges_faces[e]
-				.map(f => sameSideFaces.includes(f))
-				.reduce((a, b) => a && b, true))
-			.reduce((a, b) => a || b, false);
-		// console.log("isAdjacent", isAdjacent);
-		// we want the case where the faces are non-adjacent.
-		const testC = !isAdjacent;
-		return testA && testB && testC;
-	});
-	// if (bentFlatTortillas.length) {
-	// 	console.log("This model contains the third case", bentFlatTortillas);
-	// }
-
-	return {
-		YJunctions,
-		TJunctions,
-		bentFlatTortillas,
-		bentTortillaTortillaEdges,
-	};
-};
-
-/**
- * @description This all-encompassing method is a coroutine of
- * makeSolverConstraints3D, this method calls all of the 3D related
- * constraint construction methods, resulting in a list of coplanar subgraphs,
- * the face-pairs to be solved, an additional list of 3D-bent-tortilla-tortillas
- * solver conditions, and solutions to specific arrangements of edges and faces
- * in 3D in which we are able to determine layer orderings between face pairs.
- * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {{
- *   clusters_graph: FOLD[],
- *   faces_winding: boolean[],
- *   faces_polygon: [number, number][][],
- *   facesFacesOverlap: number[][],
- *   bentTortillaTortillas: TortillaTortillaConstraint[],
- *   facePairs: string[],
- *   orders: { [key: string]: number },
- * }}
  */
-export const constraints3DSetup = ({
+export const makeSolverConstraints3D = ({
 	vertices_coords, edges_vertices, edges_faces, edges_assignment, edges_foldAngle,
 	faces_vertices, faces_edges, faces_faces,
 }, epsilon = EPSILON) => {
-	// find all coplanar-overlapping clusters, create subgraphs for each one,
-	// move all vertices into the XY plane for each planar cluster, compute
-	// face-face overlaps, and find all overlapping face-pairs for the solver.
 	const {
+		planes_transform,
 		faces_plane,
 		faces_cluster,
 		faces_winding,
@@ -474,110 +226,41 @@ export const constraints3DSetup = ({
 		faces_faces,
 	}, epsilon);
 
-	//
-	const {
-		pairs_data,
-		edges_clusters,
-	} = constraints3DEdgeClustersOld({
-		vertices_coords,
-		edges_vertices,
-		edges_faces,
-		edges_foldAngle,
-	}, {
-		faces_center,
-		faces_plane,
-		faces_cluster,
-		clusters_transform,
+	// const {
+	// 	lines,
+	// 	edges_line,
+	// } = getEdgesLine({ vertices_coords, edges_vertices }, epsilon);
+
+	// create a copy of edges_vertices, remove all boundary edges.
+	const e_vDegree2 = edges_vertices.slice();
+	edges_faces
+		.map((_, e) => e)
+		.filter(e => edges_faces[e].length !== 2)
+		.forEach(e => delete e_vDegree2[e]);
+	const edgesEdgesOverlap = getEdgesEdgesCollinearOverlap({
+		vertices_coords, edges_vertices: e_vDegree2,
 	}, epsilon);
 
-	// conditions where two collinear edges overlap each other and the
-	// four faces involved align in planes in ways which can be classified
-	// into four categories, three of which result in face-order solutions
-	// and one (bentTortillaTortillaEdges) result in more conditions for
-	// the solver to solve.
+	let edgeResults;
+	try {
+		edgeResults = constraints3DEdges({
+			edges_faces,
+			edges_foldAngle,
+		}, {
+			faces_plane,
+			faces_winding,
+			facesFacesOverlap,
+			edgesEdgesOverlap,
+		});
+	} catch (error) {
+		throw new Error(Messages.noLayerSolution, { cause: error });
+	}
+
 	const {
-		YJunctions,
-		TJunctions,
-		bentFlatTortillas,
-		bentTortillaTortillaEdges,
-	} = constraints3DSolverCases({ edges_faces, pairs_data });
-
-	// convert bentTortillaTortillaEdges into well-formatted tortilla-tortilla
-	// conditions ready to pass off to the solver.
-	const bentTortillaTortillas = makeBentTortillas(
-		{ edges_faces },
-		{ faces_cluster, faces_winding, bentTortillaTortillaEdges },
-	);
-
-	// solutions where an edge with a 3D fold angle is crossing somewhere
-	// in the interior of another face, where one of the edge's face's is
-	// co-planar with the face, this results in a known layer ordering
-	// between two faces.
-	const ordersEdgeFace = solveEdgeFaceOverlapOrders(
-		{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
-		clusters_transform,
-		clusters_faces,
-		faces_cluster,
-		faces_polygon,
-		faces_winding,
-		edges_clusters,
-		epsilon,
-	);
-
-	// solutions where two collinear edges overlap each other, and the
-	// four faces involved
-	const ordersEdgeEdge = solveEdgeEdgeOverlapOrders(
-		{ edges_foldAngle, faces_winding },
-		YJunctions,
-		TJunctions,
-		bentFlatTortillas,
-	);
-
-	/** @type {{ [key: string]: number }} */
-	const orders = {
-		...ordersEdgeFace,
-		...ordersEdgeEdge,
-	};
-
-	return {
-		clusters_graph,
-		faces_winding,
-		faces_polygon,
-		facesFacesOverlap,
-		bentTortillaTortillas,
-		facePairs,
-		orders,
-	};
-};
-
-/**
- * @description
- * @param {FOLD} graph a FOLD object
- * @param {number} [epsilon=1e-6] an optional epsilon
- */
-export const makeSolverConstraints3D = ({
-	vertices_coords, edges_vertices, edges_faces, edges_assignment, edges_foldAngle,
-	faces_vertices, faces_edges, faces_faces,
-}, epsilon = EPSILON) => {
-	//
-	const {
-		clusters_graph,
-		faces_winding,
-		faces_polygon,
-		facesFacesOverlap,
-		bentTortillaTortillas,
-		facePairs,
-		orders,
-	} = constraints3DSetup({
-		vertices_coords,
-		edges_vertices,
-		edges_faces,
-		edges_assignment,
-		edges_foldAngle,
-		faces_vertices,
-		faces_edges,
-		faces_faces,
-	}, epsilon);
+		orders: orders3D,
+		tortilla_tortilla: tortilla_tortilla3D,
+		taco_tortilla: taco_tortilla3D,
+	} = edgeResults;
 
 	// get a list of all edge indices which are non-flat edges.
 	// non-flat edges are anything other than 0, -180, or +180 fold angles.
@@ -616,7 +299,8 @@ export const makeSolverConstraints3D = ({
 
 	// 3D-tortillas are a constraint that follow the exact same rules as the
 	// 2D tortilla-tortillas. we can simply add them to the this array.
-	tortilla_tortilla.push(...bentTortillaTortillas);
+	taco_tortilla.push(...taco_tortilla3D);
+	tortilla_tortilla.push(...tortilla_tortilla3D);
 
 	// this is building a massive lookup table, it takes quite a bit of time.
 	// any way we can speed this up?
@@ -634,7 +318,31 @@ export const makeSolverConstraints3D = ({
 		.map(el => solveFlatAdjacentEdges(el, faces_winding))
 		.reduce((a, b) => Object.assign(a, b), ({}));
 
-	Object.assign(orders, adjacentOrders);
+	// solutions where an edge with a 3D fold angle is crossing somewhere
+	// in the interior of another face, where one of the edge's face's is
+	// co-planar with the face, this results in a known layer ordering
+	// between two faces.
+	const edges_clusters = edges_faces
+		.map(faces => faces
+			.map(face => faces_cluster[face]));
+	edges_clusters
+		.map((_, i) => i)
+		.filter(e => edges_clusters[e].length !== 2
+			|| (edges_clusters[e][0] === edges_clusters[e][1]))
+		.forEach(e => delete edges_clusters[e]);
+
+	const ordersEdgeFace = solveEdgeFaceOverlapOrders(
+		{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
+		clusters_transform,
+		clusters_faces,
+		faces_cluster,
+		faces_polygon,
+		faces_winding,
+		edges_clusters,
+		epsilon,
+	);
+
+	const orders = joinOrderObjects([orders3D, adjacentOrders, ordersEdgeFace]);
 
 	return {
 		constraints: {
