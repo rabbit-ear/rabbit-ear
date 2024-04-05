@@ -119,10 +119,13 @@ export const solverSolutionToFaceOrders = (facePairOrders, faces_winding) => {
 };
 
 /**
+ * @description
+ * @throws an error is thrown if two objects contain the same key with
+ * different values.
  * @param {{ [key: string]: number }[]} orders an array of face-pair orders
  * where
  */
-export const joinOrderObjects = (orders) => {
+export const joinObjectsWithoutOverlap = (orders) => {
 	const result = {};
 	// iterate through the objects
 	orders.forEach(order => Object.keys(order).forEach(key => {

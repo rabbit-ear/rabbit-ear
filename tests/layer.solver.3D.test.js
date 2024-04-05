@@ -2,6 +2,53 @@ import fs from "fs";
 import { expect, test } from "vitest";
 import ear from "../src/index.js";
 
+test("3D layer solver, all 3D special cases", () => {
+	const foldfile = fs.readFileSync("./tests/files/fold/layer3d-cases.fold", "utf-8");
+	const fold = JSON.parse(foldfile);
+	const frames = ear.graph.getFileFramesAsArray(fold);
+	const foldedForms = frames.map(frame => ({
+		...frame,
+		vertices_coords: ear.graph.makeVerticesCoordsFolded(frame),
+	}));
+	foldedForms.forEach(folded => ear.graph.populate(folded));
+
+	// the final
+	const results = foldedForms.map(graph => {
+		try {
+			return ear.layer.layer3D(graph);
+		} catch (error) {
+			return "error";
+		}
+	});
+
+	expect(results).toMatchObject([
+		// 0 and 4 face each other's normals
+		{ orders: [[0, 4, 1]] },
+		// both pairs of faces face each other's normals
+		{ orders: [[1, 4, 1], [2, 3, 1]] },
+		// same as above
+		{ orders: [[1, 4, 1], [2, 3, 1]] },
+		// all 3 pairs face into each other's normals
+		{ orders: [[2, 3, 1], [1, 4, 1], [0, 5, 1]] },
+		// 0-1 normals point away from each other
+		// 2-3 normals point towards each other
+		// 1-4 normals point towards each other
+		// 0-4 0 is above 4's normal
+		{ orders: [[0, 1, -1], [2, 3, 1], [1, 4, 1], [0, 4, 1]] },
+		// todo
+		{ orders: [[1, 9, -1], [3, 7, -1], [2, 8, -1]] },
+		// todo
+		{ orders: [
+			[1, 10, -1], [4, 5, 1], [5, 6, -1], [6, 7, -1], [4, 6, -1],
+			[5, 7, -1], [2, 9, -1], [4, 7, -1], [3, 8, -1]
+		] },
+		"error",
+		{ orders: [] }, // this is a layer-crossing error. undetected for now
+		"error",
+		"error",
+	]);
+});
+
 test("3D layer solver cube octagon", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/cube-octagon.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
@@ -91,3 +138,74 @@ test("animal base layers 3D faces sets", () => {
 	[10, 11].forEach((f, i) => expect(nudge[f].layer).toBe(i));
 	[12, 15].forEach((f, i) => expect(nudge[f].layer).toBe(i));
 });
+
+test("Mooser's train layer solution", () => {
+	const FOLD = fs.readFileSync("./tests/files/fold/moosers-train.fold", "utf-8");
+	const graph = JSON.parse(FOLD);
+	const {
+		orders,
+		branches,
+	} = ear.layer.layer3D(graph);
+
+	expect(Object.keys(orders).length).toBe(1713);
+	expect(branches).toMatchObject([
+		[
+			{ orders: [[52, 115, 1], [52, 131, 1], [52, 128, -1], [52, 113, -1]]},
+			{ orders: [[52, 115, -1], [52, 131, -1], [52, 128, 1], [52, 113, 1]]},
+		], [
+			{ orders: [[108, 114, -1], [108, 136, -1], [108, 137, 1], [108, 116, 1]]},
+			{ orders: [[108, 114, 1], [108, 136, 1], [108, 137, -1], [108, 116, -1]]},
+		]
+	]);
+	// graph.faceOrders = solution.faceOrders();
+	// fs.writeFileSync(`./tests/tmp/moosers-train-layer-solved.fold`, JSON.stringify(graph));
+});
+
+test("Maze-folding layer solution", () => {
+	const FOLD = fs.readFileSync("./tests/files/fold/maze-u.fold", "utf-8");
+	const graph = JSON.parse(FOLD);
+	const foldedFrame = ear.graph.getFramesByClassName(graph, "foldedForm")[0];
+	foldedFrame.faceOrders = ear.layer.layer3D(foldedFrame).faceOrders();
+	fs.writeFileSync(`./tests/tmp/maze-u-layer-solved.fold`, JSON.stringify(foldedFrame));
+
+	// every face has some order associated with it
+	const facesFound = [];
+	foldedFrame.faceOrders.forEach(order => {
+		facesFound[order[0]] = true;
+		facesFound[order[1]] = true;
+	});
+	expect(facesFound.filter(a => a !== undefined).length)
+		.toBe(foldedFrame.faces_vertices.length);
+});
+
+test("Maze-folding layer solution", () => {
+	const FOLD = fs.readFileSync("./tests/files/fold/maze-s.fold", "utf-8");
+	const graph = JSON.parse(FOLD);
+	const foldedFrame = ear.graph.getFramesByClassName(graph, "foldedForm")[0];
+	const solution = ear.layer.layer3D(foldedFrame);
+	const solutionCounts = solution.count();
+	foldedFrame.faceOrders = solution.faceOrders();
+	foldedFrame.file_frames = solutionCounts
+		.flatMap((count, i) => Array.from(Array(count))
+			.map((_, j) => {
+				const solutionIndices = solutionCounts.map(() => 0);
+				solutionIndices[i] = j;
+				return solutionIndices;
+			})
+			.map(solutionIndices => ({
+				frame_parent: 0,
+				frame_inherit: true,
+				faceOrders: solution.faceOrders(...solutionIndices),
+			})));
+	fs.writeFileSync(`./tests/tmp/maze-s-layer-solved.fold`, JSON.stringify(foldedFrame));
+	expect(true).toBe(true);
+});
+
+// test("Maze-folding 8x8 maze", () => {
+// 	const FOLD = fs.readFileSync("./tests/files/fold/maze-8x8.fold", "utf-8");
+// 	const graph = JSON.parse(FOLD);
+// 	const foldedFrame = ear.graph.getFramesByClassName(graph, "foldedForm")[0];
+// 	foldedFrame.faceOrders = ear.layer.layer3D(foldedFrame).faceOrders();
+// 	fs.writeFileSync(`./tests/tmp/maze-8x8-layer-solved.fold`, JSON.stringify(foldedFrame));
+// 	expect(true).toBe(true);
+// });

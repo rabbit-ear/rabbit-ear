@@ -103,25 +103,34 @@ const polygonSegmentOverlap = (polygon, segment, epsilon = EPSILON) => {
  * @description There are two kinds of arrangements of edges/faces that
  * don't generate solver conditions, instead, they solve relationships
  * between pairs of faces.
- * @param {number[][]} edges_sets remember this only contains definitions
+ * @param {number[][]} edges_clusters remember this only contains definitions
  * for edges which are members of 2 sets. anything made from this will
  * automatically have a non-flat edges_foldAngle.
  * @returns {{ [key: string]: number }} solutions to face-pair layer orders
  */
-export const solveEdgeFaceOverlapOrders = (
+export const solveOrders3DEdgeFaceOverlap = (
 	{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
-	sets_transformXY,
-	sets_faces,
-	faces_set,
+	clusters_transform,
+	clusters_faces,
+	faces_cluster,
 	faces_polygon,
 	faces_winding,
-	edges_sets,
 	epsilon = EPSILON,
 ) => {
-	// sets_facesBunch are sets with more than 1 face in the set.
-	const sets_facesBunch = sets_faces.slice();
-	sets_facesBunch.forEach((arr, i) => {
-		if (arr.length < 2) { delete sets_facesBunch[i]; }
+	// make edges_clusters
+	const edges_clusters = edges_faces
+		.map(faces => faces
+			.map(face => faces_cluster[face]));
+	edges_clusters
+		.map((_, i) => i)
+		.filter(e => edges_clusters[e].length !== 2
+			|| (edges_clusters[e][0] === edges_clusters[e][1]))
+		.forEach(e => delete edges_clusters[e]);
+
+	// clusters_facesBunch are sets with more than 1 face in the set.
+	const clusters_facesBunch = clusters_faces.slice();
+	clusters_facesBunch.forEach((arr, i) => {
+		if (arr.length < 2) { delete clusters_facesBunch[i]; }
 	});
 	// convert edges_faces into a quick hash lookup where the face is the index
 	const edges_facesLookup = edges_faces.map(faces => {
@@ -130,23 +139,23 @@ export const solveEdgeFaceOverlapOrders = (
 		return lookup;
 	});
 	// for each edge (which is a member of 1 or 2 sets, but in this case only
-	// edges in 2 sets are inside edges_sets), get all faces in the same sets.
-	const edgesSetsFaces = edges_sets
+	// edges in 2 sets are inside edges_clusters), get all faces in the same sets.
+	const edgesSetsFaces = edges_clusters
 		.map(sets => sets
-			.filter(set => sets_facesBunch[set] !== undefined)
-			.map(set => sets_facesBunch[set]));
-	// because sets_facesBunch may have been empty (if it contains only 1 face),
+			.filter(set => clusters_facesBunch[set] !== undefined)
+			.map(set => clusters_facesBunch[set]));
+	// because clusters_facesBunch may have been empty (if it contains only 1 face),
 	// remove all edgesSetsFaces which only have one set, meaning, only one
 	// group of planar faces are available so there is nothing to compare
 	// these against and uncover face-pair order solutions.
-	edges_sets
+	edges_clusters
 		.map((_, i) => i)
 		.filter(e => edgesSetsFaces[e].length < 2)
 		.forEach(e => delete edgesSetsFaces[e]);
 	// from the set of all edgesSetsFaces, filter them into 2 categories:
 	// 1: those which are adjacent to the edge (and cannot overlap this edge),
 	// 2: those which are non-adjacent, and are candidates for overlap.
-	// these arrays are built from edges_sets and edges_sets only contains
+	// these arrays are built from edges_clusters and edges_clusters only contains
 	// definitions for edges in 2 sets, so all edges have non-flat fold angles.
 	const edgesSetsFacesAdjacent = edgesSetsFaces
 		.map((sets, edge) => sets
@@ -157,7 +166,7 @@ export const solveEdgeFaceOverlapOrders = (
 			.map(faces => faces
 				.filter(face => !edges_facesLookup[edge][face])));
 	// convert all edges into 3D segments, pairs of 3D vertices.
-	// use "edgesSetsFaces" instead of "edges_sets" because we filtered out
+	// use "edgesSetsFaces" instead of "edges_clusters" because we filtered out
 	// edges that only contain only one group of planar faces.
 	const edgesSegment3D = edgesSetsFaces
 		.map((_, e) => edges_vertices[e]
@@ -181,7 +190,7 @@ export const solveEdgeFaceOverlapOrders = (
 				.map(face => {
 					const segmentTransform = edgesSegment3D[edge]
 						.map(point => multiplyMatrix4Vector3(
-							sets_transformXY[faces_set[face]],
+							clusters_transform[faces_cluster[face]],
 							point,
 						));
 					const segment2D = segmentTransform.map(p => [p[0], p[1]]);
@@ -205,7 +214,7 @@ export const solveEdgeFaceOverlapOrders = (
 					edge,
 					faces: [adjacent[setIndex][0], adjacent[otherSetIndex][0]],
 					overlap: face,
-					set: faces_set[face],
+					set: faces_cluster[face],
 				}));
 			}));
 	// get the two faces whose order will be solved.
@@ -241,7 +250,7 @@ export const solveEdgeFaceOverlapOrders = (
 	tacoTortillas3DFacePairs.forEach((pair, i) => {
 		orders[pair.join(" ")] = tacoTortillas3DSolution[i];
 	});
-	// console.log("sets_facesBunch", sets_facesBunch);
+	// console.log("clusters_facesBunch", clusters_facesBunch);
 	// console.log("edges_facesLookup", edges_facesLookup);
 	// console.log("edgesSetsFaces", edgesSetsFaces);
 	// console.log("edgesSetsFacesAdjacent", edgesSetsFacesAdjacent);
@@ -258,131 +267,3 @@ export const solveEdgeFaceOverlapOrders = (
 	// console.log("orders", orders);
 	return orders;
 };
-
-/**
- * @description Given a situation where two non-boundary edges are
- * parallel overlapping, and two of the faces lie in the same plane,
- * and need to be layer-solved. Consult the fold-angles, which imply the
- * position of the two other faces, this will determine the layer order
- * between the two faces. (given that the special case where both edges
- * are flat 0 angles which would be the tortilla-tortilla 2D case).
- *
- * @todo as we build the dictionary we need to make sure we aren't
- * overwriting the same key with different values, we need to throw
- * an error.
- */
-// const solveFacePair3D = ({
-// 	edges_foldAngle, faces_winding,
-// }, tortillaEdges, tortillaFaces) => {
-// 	// so the idea is, if we align the faces within the plane, meaning that if
-// 	// a face is flipped, we "flip" it by negating the foldAngle, then we can
-// 	// say that the face (edge) with the larger fold angle should be on top.
-// 	// then we have to work backwards-if we flipped a face, we need to flip
-// 	// the order, or if the faces are not ordered where A < B, also flip the order.
-// 	const tortillaEdgesFoldAngle = tortillaEdges
-// 		.map(edges => edges
-// 			.map(edge => edges_foldAngle[edge]));
-// 	const tortillaFacesAligned = tortillaFaces
-// 		.map(faces => faces
-// 			.map(f => faces_winding[f]));
-// 	const tortillaEdgesFoldAngleAligned = tortillaEdgesFoldAngle
-// 		.map((angles, i) => angles
-// 			.map((angle, j) => (tortillaFacesAligned[i][j] ? angle : -angle)));
-// 	const indicesInOrder = tortillaEdgesFoldAngleAligned
-// 		.map(angles => angles[0] > angles[1]);
-// 	const facesInOrder = tortillaFaces.map(faces => faces[0] < faces[1]);
-// 	const switchNeeded = tortillaFaces
-// 		.map((_, i) => indicesInOrder[i] ^ facesInOrder[i]);
-// 	const result = {};
-// 	const faceKeys = tortillaFaces
-// 		.map((pair, i) => (facesInOrder[i] ? pair : pair.slice().reverse()))
-// 		.map(pair => pair.join(" "));
-// 	switchNeeded
-// 		.map(n => n + 1) // 0 becomes 1, 1 becomes 2.
-// 		.forEach((order, i) => { result[faceKeys[i]] = order; });
-// 	// console.log("tortilla", tortilla);
-// 	// console.log("tortillaEdges", tortillaEdges);
-// 	// console.log("tortillaEdgesFoldAngle", tortillaEdgesFoldAngle);
-// 	// console.log("tortillaFaces", tortillaFaces);
-// 	// console.log("tortillaOtherFaces", tortillaOtherFaces);
-// 	// console.log("tortillaFacesAligned", tortillaFacesAligned);
-// 	// console.log("tortillaEdgesFoldAngleAligned", tortillaEdgesFoldAngleAligned);
-// 	// console.log("indicesOrder", indicesOrder);
-// 	// console.log("indicesInOrder", indicesInOrder);
-// 	// console.log("facesInOrder", facesInOrder);
-// 	// console.log("switchNeeded", switchNeeded);
-// 	// console.log("result", result);
-// 	return result;
-// };
-
-/**
- * @description Given a list of Y-junctions, solve the relationship between the
- * two faces which overlap each other, resulting in a layer-solution mapping
- * space-separated face-pair strings to a value of 1 or 2.
- * @returns {{ [key: string]: number }} a subset of layer order solutions
- */
-// const solveYJunctions = ({ edges_foldAngle, faces_winding }, edgePairData) => {
-// 	const tortilla = edgePairData
-// 		.map(el => Object.values(el.sets)
-// 			.sort((a, b) => b.faces.length - a.faces.length)
-// 			.shift());
-// 	const tortillaEdges = tortilla.map(el => el.edges);
-// 	const tortillaFaces = tortilla.map(el => el.faces);
-// 	return solveFacePair3D({ edges_foldAngle, faces_winding }, tortillaEdges, tortillaFaces);
-// };
-
-/**
- * @description Given a list of T-junctions, solve the relationship between the
- * two faces which overlap each other, resulting in a layer-solution mapping
- * space-separated face-pair strings to a value of 1 or 2.
- * @returns {{ [key: string]: number }} a subset of layer order solutions
- */
-// const solveTJunctions = ({ edges_foldAngle, faces_winding }, edgePairData) => {
-// 	const tortilla = edgePairData
-// 		.map(el => Object.values(el.sets)
-// 			.filter(row => row.facesSameSide)
-// 			.shift());
-// 	const tortillaEdges = tortilla.map(el => el.edges);
-// 	const tortillaFaces = tortilla.map(el => el.faces);
-// 	return solveFacePair3D({ edges_foldAngle, faces_winding }, tortillaEdges, tortillaFaces);
-// };
-
-/**
- * @description Given a list of bent-flat-tortillas, solve the relationship
- * between the two faces which overlap each other, resulting in a layer-
- * solution mapping space-separated face-pair strings to a value of 1 or 2.
- * @returns {{ [key: string]: number }} a subset of layer order solutions
- */
-// const solveBentFlatTortillas = ({ edges_foldAngle, faces_winding }, edgePairData) => {
-// 	// console.log("solveBentFlatTortillas", edgePairData);
-// 	// const tortilla = edgePairData
-// 	// 	.map(el => Object.values(el.sets)
-// 	// 		.filter(row => row.facesSameSide)
-// 	// 		.shift());
-// 	// console.log("bentFlatTortillas", edgePairData);
-// 	// console.log("tortilla", tortilla);
-// 	return {};
-// };
-
-/**
- * @description
- * @returns {{ [key: string]: number }} a subset of layer order solutions
- */
-// export const solveEdgeEdgeOverlapOrders = ({
-// 	edges_foldAngle, faces_winding,
-// }, YJunctions, TJunctions, bentFlatTortillas) => {
-// 	const result1 = solveYJunctions({ edges_foldAngle, faces_winding }, YJunctions);
-// 	const result2 = solveTJunctions({ edges_foldAngle, faces_winding }, TJunctions);
-// 	const result3 = solveBentFlatTortillas({ edges_foldAngle, faces_winding }, bentFlatTortillas);
-// 	// console.log("result1", result1);
-// 	// console.log("result2", result2);
-// 	// console.log("result3", result3);
-
-// 	// todo: if results have a different solution to the same face-pair we need
-// 	// to throw an error and state that there is no valid layer solution.
-// 	return {
-// 		...result1,
-// 		...result2,
-// 		...result3,
-// 	};
-// };

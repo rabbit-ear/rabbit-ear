@@ -2,6 +2,9 @@ import fs from "fs";
 import { expect, test } from "vitest";
 import ear from "../src/index.js";
 
+// mostly 2D.
+// there is some overlap between 2D and 3D, for comparison sake.
+
 test("layer solver Randlett flapping bird", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/randlett-flapping-bird.fold", "utf-8");
 	const fold = JSON.parse(foldfile);

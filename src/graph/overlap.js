@@ -123,7 +123,7 @@ export const getFacesFacesOverlap = ({
  * are collinear and overlap this edge.
  */
 export const getEdgesEdgesCollinearOverlap = ({
-	vertices_coords, edges_vertices
+	vertices_coords, edges_vertices,
 }, epsilon = EPSILON) => {
 	//
 	const {
@@ -174,7 +174,7 @@ export const getOverlappingComponents = ({
 
 	const similarVertices = getVerticesClusters({ vertices_coords }, epsilon);
 	const verticesVertices = arrayArrayToLookupArray(
-		clustersToReflexiveArrays(similarVertices)
+		clustersToReflexiveArrays(similarVertices),
 	);
 	vertices_coords.forEach((_, v) => { verticesVertices[v][v] = true; });
 
@@ -239,7 +239,7 @@ export const getFacesEdgesOverlap = ({
 		facesVertices,
 	} = getOverlappingComponents({
 		vertices_coords, edges_vertices, faces_vertices,
-	}, epsilon)
+	}, epsilon);
 
 	/**
 	 * @description Given a face's vertices, and a list of vertex indices

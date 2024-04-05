@@ -75,7 +75,7 @@ test("makeSolverConstraints3D layer 3D test cases", () => {
 
 	const results = foldedForms.map(folded => {
 		try {
-			return ear.layer.makeSolverConstraints3D(folded)
+			return ear.layer.makeSolverConstraints3D(folded);
 		} catch (error) {
 			return "error";
 		}
@@ -140,12 +140,12 @@ test("makeSolverConstraints3D layer 3D test cases", () => {
 		transitivity: [],
 	});
 	expect(results[6].facePairs).toMatchObject([
-		"1 10", "2 9", "3 8", "4 5", "4 6", "4 7", "5 6", "5 7", "6 7",
+		"1 10", "2 9", "3 8", "4 7", "4 5", "4 6", "5 7", "5 6", "6 7",
 	]);
 	// 1-10 is known via the 3d overlapping edges algorithm
 	// 4-5, 5-6, 6-7 are simply flat adjacent faces
 	expect(results[6].orders).toMatchObject({
-		"1 10": 1, "4 5": 2, "5 6": 1, "6 7": 1,
+		"1 10": 1, "4 5": 2, "5 6": 2, "6 7": 1,
 	});
 });
 
@@ -213,13 +213,13 @@ test("makeSolverConstraints3D panels 6x2", () => {
 		// every permutation of pairs of these:
 		// 6, 7, 8, 9, 10, 11
 		"6 7", "6 8", "6 9", "6 10", "6 11", "7 8", "7 9", "7 10", "7 11",
-		"8 9", "8 10", "8 11", "9 10", "9 11", "10 11"
+		"8 9", "8 10", "8 11", "9 10", "9 11", "10 11",
 	].forEach(key => expect(facePairs).toContain(key));
 	expect(faces_winding).toMatchObject([
-		true, false, true, false, true, false, true, false, true, false, true, false
+		true, false, true, false, true, false, true, false, true, false, true, false,
 	]);
 	expect(orders).toMatchObject({
-		"0 1": 2, "1 2": 2, "2 3": 2, "3 4": 1, "4 5": 1, "6 7": 2, "7 8": 2, "8 9": 2, "9 10": 1, "10 11": 1
+		"0 1": 2, "1 2": 2, "2 3": 2, "3 4": 1, "4 5": 1, "6 7": 2, "7 8": 2, "8 9": 2, "9 10": 1, "10 11": 1,
 	});
 
 	expect(taco_taco).toMatchObject([

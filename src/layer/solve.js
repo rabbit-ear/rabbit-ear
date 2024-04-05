@@ -24,7 +24,7 @@ import {
 } from "./constraintsFlat.js";
 import {
 	makeSolverConstraints3D,
-} from "./constraints3d.js";
+} from "./constraints3DMain.js";
 import {
 	solver,
 } from "./solver.js";

@@ -2,13 +2,22 @@ import fs from "fs";
 import { expect, test } from "vitest";
 import ear from "../src/index.js";
 
+// call ear.layer.getSolvable3DEdgePairs. prepare all necessary data to do so
 const getSolvable3DEdgePairs = (graph) => {
 	const {
 		faces_plane,
 		facesFacesOverlap,
 	} = ear.layer.constraints3DFaceClusters(graph);
 
-	const edgesEdgesOverlap = ear.graph.getEdgesEdgesCollinearOverlap(graph);
+	const edges_vertices2 = graph.edges_vertices.slice();
+	graph.edges_faces
+		.map((_, e) => e)
+		.filter(e => graph.edges_faces[e].length !== 2)
+		.forEach(e => delete edges_vertices2[e]);
+
+	const edgesEdgesOverlap = ear.graph.getEdgesEdgesCollinearOverlap({
+		vertices_coords: graph.vertices_coords, edges_vertices: edges_vertices2,
+	});
 	const edgePairs = ear.graph.connectedComponentsPairs(edgesEdgesOverlap);
 	const facesFacesLookup = ear.general.arrayArrayToLookupArray(facesFacesOverlap);
 
@@ -34,7 +43,8 @@ const getSolvable3DEdgePairs = (graph) => {
 	};
 };
 
-const constraints3DEdgeTest = (graph) => {
+// call ear.layer.constraints3DEdges. prepare all necessary data to do so
+const constraints3DEdges = (graph) => {
 	try {
 		const faceClusters = ear.layer.constraints3DFaceClusters(graph);
 		return {
@@ -49,7 +59,7 @@ const constraints3DEdgeTest = (graph) => {
 	}
 };
 
-test("constraints3DSetup, all 3D special cases", () => {
+test("getSolvable3DEdgePairs, layer 3D special cases", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/layer3d-cases.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const frames = ear.graph.getFileFramesAsArray(fold);
@@ -58,8 +68,6 @@ test("constraints3DSetup, all 3D special cases", () => {
 		vertices_coords: ear.graph.makeVerticesCoordsFolded(frame),
 	}));
 	foldedForms.forEach(folded => ear.graph.populate(folded));
-	// const results = foldedForms.map(graph => constraints3DSetupInterior(graph));
-	// const results = foldedForms.map(constraints3DEdgeTest);
 	const results = foldedForms.map(getSolvable3DEdgePairs);
 
 	expect(results[0]).toMatchObject({
@@ -97,7 +105,7 @@ test("constraints3DSetup, all 3D special cases", () => {
 	expect(results[4]).toMatchObject({
 		tJunctions: [],
 		yJunctions: [],
-		bentFlatTortillas: [[6, 16]],
+		bentFlatTortillas: [],
 		bentTortillas: [],
 		bentTortillasFlatTaco: [[13, 17]],
 	});
@@ -151,7 +159,7 @@ test("constraints3DSetup, all 3D special cases", () => {
 	});
 });
 
-test("constraints3DSetup, all 3D special cases", () => {
+test("constraints3DEdges, layer 3D special cases", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/layer3d-cases.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const frames = ear.graph.getFileFramesAsArray(fold);
@@ -161,7 +169,7 @@ test("constraints3DSetup, all 3D special cases", () => {
 	}));
 	foldedForms.forEach(folded => ear.graph.populate(folded));
 
-	const results = foldedForms.map(constraints3DEdgeTest);
+	const results = foldedForms.map(constraints3DEdges);
 
 	// one flat tortilla-tortilla on top of a bent tortilla-tortilla
 	// this solves faces 0-4
@@ -215,7 +223,7 @@ test("constraints3DSetup, all 3D special cases", () => {
 			[4, 1], [0, 4], [3], [2], [0, 1], [],
 		],
 		facePairs: ["0 4", "0 1", "1 4", "2 3"],
-		orders: { "0 4": 2 },
+		orders: {},
 		tortilla_tortilla: [],
 		taco_tortilla: [[0, 4, 1]],
 	});
@@ -237,12 +245,12 @@ test("constraints3DSetup, all 3D special cases", () => {
 	// contains two: a bent-flat-tortilla and an Y-junction
 	expect(results[6]).toMatchObject({
 		faces_winding: [
-			true, true, true, true, true, false, true, false, false, false, false, true
+			true, true, true, true, true, false, true, false, false, false, false, true,
 		],
 		facesFacesOverlap: [
-			[], [10], [9], [8], [5, 6, 7], [4, 6, 7], [4, 5, 7], [4, 5, 6], [3], [2], [1], []
+			[], [10], [9], [8], [7, 5, 6], [4, 7, 6], [4, 5, 7], [4, 5, 6], [3], [2], [1], [],
 		],
-		facePairs: ["1 10", "2 9", "3 8", "4 5", "4 6", "4 7", "5 6", "5 7", "6 7"],
+		facePairs: ["1 10", "2 9", "3 8", "4 7", "4 5", "4 6", "5 7", "5 6", "6 7"],
 		orders: { "1 10": 1 },
 		tortilla_tortilla: [[2, 3, 9, 8]],
 		taco_tortilla: [],
@@ -293,19 +301,19 @@ test("constraints3DSetup, all 3D special cases", () => {
 	});
 });
 
-test("constraints3DSetup, maze-u", () => {
+test("constraints3DEdges, maze-u", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/maze-u.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
 	ear.graph.populate(folded);
 
 	const {
-		planes_transform,
-		faces_plane,
-		faces_cluster,
-		faces_winding,
-		faces_polygon,
-		faces_center,
+		// planes_transform,
+		// faces_plane,
+		// faces_cluster,
+		// faces_winding,
+		// faces_polygon,
+		// faces_center,
 		clusters_faces,
 		clusters_graph,
 		clusters_transform,
@@ -314,7 +322,7 @@ test("constraints3DSetup, maze-u", () => {
 		orders,
 		tortilla_tortilla,
 		taco_tortilla,
-	} = constraints3DEdgeTest(folded);
+	} = constraints3DEdges(folded);
 
 	const {
 		tJunctions,
@@ -333,7 +341,7 @@ test("constraints3DSetup, maze-u", () => {
 	expect(tJunctions).toHaveLength(82);
 	expect(bentFlatTortillas).toHaveLength(0);
 	expect(bentTortillas).toHaveLength(70);
-	expect(bentTortillasFlatTaco).toHaveLength(48);
+	expect(bentTortillasFlatTaco).toHaveLength(16);
 
 	expect(yJunctions).toMatchObject([]);
 
@@ -345,12 +353,21 @@ test("constraints3DSetup, maze-u", () => {
 		[39, 67], [58, 59], [58, 60], [58, 61], [59, 60], [59, 61], [60, 61], [62, 72], [63, 73], [68, 69], [68, 70], [68, 71], [69, 70], [69, 71], [70, 71], [91, 92], [91, 93], [91, 94], [91, 123], [92, 93], [92, 94], [92, 123], [93, 94], [93, 123], [94, 123], [108, 109], [108, 110], [108, 111], [108, 124], [109, 110], [109, 111], [109, 124], [110, 111], [110, 124], [111, 124], [134, 162], [153, 154], [153, 155], [153, 156], [154, 155], [154, 156], [155, 156], [157, 167], [158, 168], [163, 164], [163, 165], [163, 166], [164, 165], [164, 166], [165, 166], [186, 187], [186, 188], [186, 189], [186, 218], [187, 188], [187, 189], [187, 218], [188, 189], [188, 218], [189, 218], [203, 204], [203, 205], [203, 206], [203, 219], [204, 205], [204, 206], [204, 219], [205, 206], [205, 219], [206, 219],
 	]);
 
-	// expect(orders).toMatchObject({
-	// 	"6 17":1,"4 17":1,"5 17":1,"11 17":1,"16 17":1,"17 18":2,"17 22":2,"17 26":2,"17 30":2,"17 35":2,"40 42":1,"40 51":1,"39 42":1,"39 51":1,"42 48":2,"48 51":1,"4 42":1,"4 51":1,"42 57":2,"51 57":2,"42 58":2,"51 58":2,"42 62":2,"51 62":2,"6 42":1,"6 51":1,"42 43":2,"43 51":1,"41 42":1,"41 51":1,"6 74":1,"35 74":1,"63 74":1,"67 74":1,"73 74":1,"72 74":1,"74 79":2,"74 82":2,"74 86":2,"74 90":2,"59 93":1,"59 101":1,"58 93":1,"58 101":1,"62 93":1,"62 101":1,"6 93":1,"6 101":1,"93 105":2,"101 105":2,"93 106":2,"101 106":2,"93 109":2,"101 109":2,"90 93":1,"90 101":1,"93 94":2,"94 101":1,"92 93":1,"92 101":1
-	// });
-
 	expect(orders).toMatchObject({
-		"10 23":1,"10 28":1,"10 29":1,"10 33":1,"15 31":1,"7 31":1,"12 15":2,"7 12":1,"13 15":2,"7 13":1,"14 15":2,"7 14":1,"21 23":1,"21 28":1,"21 29":1,"21 33":1,"47 60":2,"47 61":2,"47 50":2,"7 47":1,"45 47":1,"46 60":2,"46 61":2,"46 50":2,"7 46":1,"45 46":1,"49 60":2,"49 61":2,"49 50":2,"7 49":1,"45 49":1,"31 60":2,"31 61":2,"31 50":2,"31 45":2,"44 60":2,"44 61":2,"44 50":2,"7 44":1,"44 45":2,"64 77":2,"64 85":2,"64 84":2,"64 87":2,"33 68":2,"68 69":1,"10 69":1,"68 70":1,"10 70":1,"68 71":1,"10 71":1,"77 78":1,"78 85":2,"78 84":2,"78 87":2,"98 107":2,"98 108":2,"98 100":2,"87 98":1,"96 98":1,"97 107":2,"97 108":2,"97 100":2,"87 97":1,"96 97":1,"99 107":2,"99 108":2,"99 100":2,"87 99":1,"96 99":1,"64 107":2,"64 108":2,"64 100":2,"64 96":2,"95 107":2,"95 108":2,"95 100":2,"87 95":1,"95 96":2
+		"10 23": 1, "10 28": 1, "10 29": 1, "10 33": 1, "15 31": 1, "7 31": 1,
+		"12 15": 2, "7 12": 1, "13 15": 2, "7 13": 1, "14 15": 2, "7 14": 1,
+		"21 23": 1, "21 28": 1, "21 29": 1, "21 33": 1, "47 60": 2, "47 61": 2,
+		"47 50": 2, "7 47": 1, "45 47": 1, "46 60": 2, "46 61": 2, "46 50": 2,
+		"7 46": 1, "45 46": 1, "49 60": 2, "49 61": 2, "49 50": 2, "7 49": 1,
+		"45 49": 1, "31 60": 2, "31 61": 2, "31 50": 2, "31 45": 2, "44 60": 2,
+		"44 61": 2, "44 50": 2, "7 44": 1, "44 45": 2, "64 77": 2, "64 85": 2,
+		"64 84": 2, "64 87": 2, "33 68": 2, "68 69": 1, "10 69": 1, "68 70": 1,
+		"10 70": 1, "68 71": 1, "10 71": 1, "77 78": 1, "78 85": 2, "78 84": 2,
+		"78 87": 2, "98 107": 2, "98 108": 2, "98 100": 2, "87 98": 1, "96 98": 1,
+		"97 107": 2, "97 108": 2, "97 100": 2, "87 97": 1, "96 97": 1, "99 107": 2,
+		"99 108": 2, "99 100": 2, "87 99": 1, "96 99": 1, "64 107": 2, "64 108": 2,
+		"64 100": 2, "64 96": 2, "95 107": 2, "95 108": 2, "95 100": 2, "87 95": 1,
+		"95 96": 2,
 	});
 
 	expect(tortilla_tortilla).toMatchObject([
@@ -358,11 +375,14 @@ test("constraints3DSetup, maze-u", () => {
 	]);
 
 	expect(taco_tortilla).toMatchObject([
-		[0,24,22],[27,24,22],[26,24,22],[67,76,73],[81,76,73],[1,76,73],[1,80,79],[83,80,79],[82,80,79],[90,102,101],[90,105,103],[109,102,101],[109,105,103],[106,102,101],[106,105,103],[104,102,101],[104,105,103],[2,102,101],[2,105,103],[3,51,36],[3,40,38],[37,51,36],[37,40,38],[39,51,36],[39,40,38],[48,51,36],[48,40,38],[4,51,36],[4,40,38],[11,19,16],[25,19,16],[0,19,16],[12,32,31],[12,9,31],[7,32,8],[7,9,8],[15,32,34],[29,21,33],[15,9,34],[29,10,33],[33,88,69],[33,66,69],[10,88,65],[10,66,65],[68,88,89],[84,78,87],[68,66,89],[84,64,87]
+		[12, 32, 31], [12, 9, 31], [7, 32, 8], [7, 9, 8], [15, 32, 34],
+		[29, 21, 33], [15, 9, 34], [29, 10, 33], [33, 88, 69],
+		[33, 66, 69], [10, 88, 65], [10, 66, 65], [68, 88, 89],
+		[84, 78, 87], [68, 66, 89], [84, 64, 87],
 	]);
 });
 
-test("constraints3DSetup, mooser's train", () => {
+test("constraints3DEdges, mooser's train", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/moosers-train.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
@@ -383,7 +403,7 @@ test("constraints3DSetup, mooser's train", () => {
 		orders,
 		tortilla_tortilla,
 		taco_tortilla,
-	} = constraints3DEdgeTest(folded);
+	} = constraints3DEdges(folded);
 
 	const {
 		tJunctions,
@@ -398,17 +418,17 @@ test("constraints3DSetup, mooser's train", () => {
 	expect(clusters_graph).toHaveLength(87);
 	expect(clusters_transform).toHaveLength(87);
 
-	expect(yJunctions).toHaveLength(128);
+	expect(yJunctions).toHaveLength(52);
 	expect(tJunctions).toHaveLength(100);
 	expect(bentFlatTortillas).toHaveLength(0);
 	expect(bentTortillas).toHaveLength(234);
-	expect(bentTortillasFlatTaco).toHaveLength(326);
+	expect(bentTortillasFlatTaco).toHaveLength(208);
 	expect(tortilla_tortilla).toHaveLength(234);
-	expect(taco_tortilla).toHaveLength(326);
-	expect(Object.keys(orders)).toHaveLength(188);
+	expect(taco_tortilla).toHaveLength(208);
+	expect(Object.keys(orders)).toHaveLength(112);
 });
 
-test("constraints3DSetup, cube octagon", () => {
+test("constraints3DEdges and getSolvable3DEdgePairs, cube octagon", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/cube-octagon.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
@@ -429,7 +449,7 @@ test("constraints3DSetup, cube octagon", () => {
 		orders,
 		tortilla_tortilla,
 		taco_tortilla,
-	} = constraints3DEdgeTest(folded);
+	} = constraints3DEdges(folded);
 
 	const {
 		tJunctions,
@@ -444,17 +464,33 @@ test("constraints3DSetup, cube octagon", () => {
 	expect(clusters_graph).toHaveLength(6);
 	expect(clusters_transform).toHaveLength(6);
 
-	expect(yJunctions).toHaveLength(22);
-	expect(tJunctions).toHaveLength(0);
-	expect(bentFlatTortillas).toHaveLength(33);
-	expect(bentTortillas).toHaveLength(24);
-	expect(bentTortillasFlatTaco).toHaveLength(0);
-	expect(tortilla_tortilla).toHaveLength(24);
-	expect(taco_tortilla).toHaveLength(0);
-	expect(Object.keys(orders)).toHaveLength(55);
+	expect(tJunctions).toMatchObject([]);
+	expect(yJunctions).toMatchObject([]);
+	expect(bentFlatTortillas).toMatchObject([
+		[18, 35], [19, 35], [21, 40], [22, 40], [23, 40], [24, 40], [26, 58],
+		[27, 58], [32, 39], [34, 50], [35, 68], [35, 69], [37, 57], [52, 55],
+		[53, 63], [53, 64], [53, 71], [53, 72], [58, 66], [58, 67],
+	]);
+	expect(bentTortillas).toMatchObject([
+		[18, 19], [18, 68], [18, 69], [19, 68], [19, 69], [21, 22],
+		[21, 23], [21, 24], [22, 23], [22, 24], [23, 24], [26, 27],
+		[26, 66], [26, 67], [27, 66], [27, 67], [63, 64], [63, 71],
+		[63, 72], [64, 71], [64, 72], [66, 67], [68, 69], [71, 72],
+	]);
+	expect(bentTortillasFlatTaco).toMatchObject([]);
+	expect(tortilla_tortilla).toMatchObject([
+		[11, 37, 40, 13], [11, 37, 10, 12], [11, 37, 41, 39], [13, 40, 12, 10],
+		[13, 40, 39, 41], [30, 33, 0, 2], [30, 33, 1, 17], [30, 33, 31, 4],
+		[0, 2, 1, 17], [0, 2, 31, 4], [1, 17, 31, 4], [42, 44, 9, 43],
+		[42, 45, 46, 43], [42, 8, 7, 43], [9, 45, 46, 44], [9, 8, 7, 44],
+		[18, 24, 23, 20], [18, 21, 22, 20], [18, 25, 19, 20], [23, 21, 22, 24],
+		[23, 25, 19, 24], [45, 7, 8, 46], [10, 12, 41, 39], [21, 19, 25, 22],
+	]);
+	expect(taco_tortilla).toMatchObject([]);
+	expect(Object.keys(orders)).toHaveLength(20);
 });
 
-test("makeSolverConstraints 3D", () => {
+test("constraints3DEdges and getSolvable3DEdgePairs, coplanar angles", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/coplanar-angles-3d.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const folded = {
@@ -478,7 +514,7 @@ test("makeSolverConstraints 3D", () => {
 		orders,
 		tortilla_tortilla,
 		taco_tortilla,
-	} = constraints3DEdgeTest(folded);
+	} = constraints3DEdges(folded);
 
 	const {
 		tJunctions,
@@ -501,4 +537,45 @@ test("makeSolverConstraints 3D", () => {
 	expect(tortilla_tortilla).toHaveLength(0);
 	expect(taco_tortilla).toHaveLength(0);
 	expect(Object.keys(orders)).toHaveLength(0);
+});
+
+test("constraints3DEdges and getSolvable3DEdgePairs, square tube", () => {
+	const foldfile = fs.readFileSync(
+		"./tests/files/fold/square-tube-with-overlap.fold",
+		"utf-8",
+	);
+	const fold = JSON.parse(foldfile);
+	const folded = {
+		...fold,
+		vertices_coords: ear.graph.makeVerticesCoordsFolded(fold),
+	};
+	ear.graph.populate(folded);
+
+	expect(getSolvable3DEdgePairs(folded)).toMatchObject({
+		tJunctions: [],
+		yJunctions: [],
+		bentFlatTortillas: [],
+		// four bent-tortillas
+		bentTortillas: [[12, 13], [14, 15], [21, 22], [23, 24]],
+		bentTortillasFlatTaco: [],
+	});
+
+	// console.log(JSON.stringify(constraints3DEdges(folded)));
+
+	const {
+		// planes_transform,
+		// faces_plane,
+		// faces_cluster,
+		// faces_winding,
+		// faces_polygon,
+		// faces_center,
+		// clusters_faces,
+		// clusters_graph,
+		// clusters_transform,
+		facesFacesOverlap,
+		facePairs,
+		orders,
+		tortilla_tortilla,
+		taco_tortilla,
+	} = constraints3DEdges(folded);
 });
