@@ -18,7 +18,7 @@ import {
 } from "../graph/make/faces.js";
 import {
 	solveFlatAdjacentEdges,
-} from "./initialSolution.js";
+} from "./initialSolutionsFlat.js";
 import {
 	constraintToFacePairsStrings,
 } from "./general.js";

@@ -13,7 +13,9 @@ import {
 } from "./constraints3DFaces.js";
 import {
 	constraints3DEdges,
-} from "./constraints3DEdgePairs.js";
+	getOverlapFacesWith3DEdge,
+	solveOverlapFacesWith3DEdge,
+} from "./constraints3DEdges.js";
 import {
 	makeTacosAndTortillas,
 } from "./tacosTortillas.js";
@@ -26,8 +28,7 @@ import {
 } from "./constraintsFlat.js";
 import {
 	solveFlatAdjacentEdges,
-	solveOrders3DEdgeFaceOverlap,
-} from "./initialSolution.js";
+} from "./initialSolutionsFlat.js";
 import {
 	joinObjectsWithoutOverlap,
 } from "./general.js";
@@ -44,13 +45,13 @@ export const makeSolverConstraints3D = ({
 	const {
 		// planes_transform,
 		faces_plane,
-		faces_cluster,
+		// faces_cluster,
 		faces_winding,
 		faces_polygon,
 		// faces_center,
-		clusters_faces,
+		// clusters_faces,
 		clusters_graph,
-		clusters_transform,
+		// clusters_transform,
 		facesFacesOverlap,
 		facePairs,
 	} = constraints3DFaceClusters({
@@ -146,21 +147,33 @@ export const makeSolverConstraints3D = ({
 	// in the interior of another face, where one of the edge's face's is
 	// co-planar with the face, this results in a known layer ordering
 	// between two faces.
-	const orders3DEdgeFace = solveOrders3DEdgeFaceOverlap(
-		{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
-		clusters_transform,
-		clusters_faces,
-		faces_cluster,
-		faces_polygon,
-		faces_winding,
+	const edgeFace3DOverlaps = getOverlapFacesWith3DEdge(
+		{ edges_faces },
+		{ clusters_graph, faces_plane },
 		epsilon,
 	);
 
-	const orders = joinObjectsWithoutOverlap([
-		orders3D,
-		adjacentOrders,
-		orders3DEdgeFace,
-	]);
+	let orders3DEdgeFace;
+	try {
+		orders3DEdgeFace = solveOverlapFacesWith3DEdge(
+			{ edges_foldAngle },
+			edgeFace3DOverlaps,
+			faces_winding,
+		);
+	} catch (error) {
+		throw new Error(Messages.noLayerSolution, { cause: error });
+	}
+
+	let orders;
+	try {
+		orders = joinObjectsWithoutOverlap([
+			orders3D,
+			adjacentOrders,
+			orders3DEdgeFace,
+		]);
+	} catch (error) {
+		throw new Error(Messages.noLayerSolution, { cause: error });
+	}
 
 	return {
 		constraints: {

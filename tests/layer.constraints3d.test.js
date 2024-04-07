@@ -64,7 +64,7 @@ test("makeSolverConstraints3D cube octagon", () => {
 // things which examine the overlapping geometry in 3D and generate
 // either additional solutions (orders) or conditions (tacos/tortillas/transitivity)
 test("makeSolverConstraints3D layer 3D test cases", () => {
-	const foldfile = fs.readFileSync("./tests/files/fold/layer3d-cases.fold", "utf-8");
+	const foldfile = fs.readFileSync("./tests/files/fold/layers-3d-edge-edge.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const frames = ear.graph.getFileFramesAsArray(fold);
 	const foldedForms = frames.map(frame => ({
@@ -86,6 +86,9 @@ test("makeSolverConstraints3D layer 3D test cases", () => {
 	});
 	expect(results[0].facePairs).toMatchObject(["0 4"]);
 	expect(results[0].orders).toMatchObject({ "0 4": 2 });
+	// face 0 is below face 4,
+	expect(results[0].faces_winding[0]).toBe(true);
+	expect(results[0].faces_winding[4]).toBe(false);
 
 	expect(results[1].constraints).toMatchObject({
 		taco_taco: [],
@@ -150,7 +153,7 @@ test("makeSolverConstraints3D layer 3D test cases", () => {
 });
 
 test("makeSolverConstraints3D coplanar angles 3D", () => {
-	const foldfile = fs.readFileSync("./tests/files/fold/coplanar-angles-3d.fold", "utf-8");
+	const foldfile = fs.readFileSync("./tests/files/fold/layers-3d-edge-face.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const frame2 = ear.graph.flattenFrame(fold, 1);
 	const folded1 = {
@@ -274,16 +277,8 @@ test("makeSolverConstraints3D maze-u", () => {
 	const fold = JSON.parse(foldfile);
 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
 	ear.graph.populate(folded);
-
 	const expectedJSON = fs.readFileSync("./tests/files/json/maze-u-constraints.json", "utf-8");
 	const expected = JSON.parse(expectedJSON);
-
-	// these fields are tested.
-	// - constraints: { taco_taco, taco_tortilla, tortilla_tortilla, transitivity }
-	// - lookup
-	// - facePairs
-	// - faces_winding
-	// - orders
 	const solverConstraints = ear.layer.makeSolverConstraints3D(folded);
 	expect(solverConstraints).toMatchObject(expected);
 });

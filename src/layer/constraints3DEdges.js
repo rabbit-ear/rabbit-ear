@@ -18,7 +18,129 @@ import {
 } from "./general.js";
 import {
 	getEdgesEdgesCollinearOverlap,
+	getFacesEdgesOverlap,
 } from "../graph/overlap.js";
+
+/**
+ * @description There are two kinds of arrangements of edges/faces that
+ * don't generate solver conditions, instead, they solve relationships
+ * between pairs of faces.
+ * @param {number[][]} edges_clusters remember this only contains definitions
+ * for edges which are members of 2 sets. anything made from this will
+ * automatically have a non-flat edges_foldAngle.
+ * @returns {{ [key: string]: number }} solutions to face-pair layer orders
+ */
+export const getOverlapFacesWith3DEdge = (
+	{ edges_faces },
+	{ clusters_graph, faces_plane },
+	epsilon = EPSILON,
+) => {
+	// edges that we care about are edges which have two adjacent faces,
+	// and both adjacent faces are not in the same plane (fold angle is 3D).
+	const edgesKeep = edges_faces.map(faces => faces.length === 2
+		&& faces_plane[faces[0]] !== faces_plane[faces[1]]);
+
+	// makes use of vertices_coords, edges_vertices, faces_vertices, faces_edges
+	const clusters_graphNoBoundary = clusters_graph
+		.map(graph => ({
+			vertices_coords: graph.vertices_coords,
+			edges_vertices: graph.edges_vertices,
+			faces_vertices: graph.faces_vertices,
+			faces_edges: graph.faces_edges,
+		}));
+
+	// each clusters_graph's vertices_coords have been transformed into 2D,
+	// compute the faces-edges overlap between only the components within
+	// each subgraph, then, filter out any boundary edges from the result.
+	//
+	// we can't filter out boundary edges before computing faces-edges overlap,
+	// because boundary edges are needed as a part of each face definition.
+	const clustersFacesEdges = clusters_graphNoBoundary
+		.map(graph => getFacesEdgesOverlap(graph, epsilon))
+		.map(facesEdges => facesEdges
+			.map(edges => edges.filter(edge => edgesKeep[edge])));
+
+	const facesEdges3DInfo = clustersFacesEdges
+		.flatMap(facesEdges => facesEdges
+			.flatMap((edges, face) => edges
+				.map(edge => ({
+					edge,
+					faces: edges_faces[edge],
+					facesPlanes: edges_faces[edge].map(f => faces_plane[f]),
+					tortilla: face,
+					tortillaPlane: faces_plane[face],
+				}))));
+
+	return facesEdges3DInfo
+		.map(({ edge, faces, facesPlanes, tortilla, tortillaPlane }) => ({
+			edge,
+			tortilla,
+			coplanar: faces.filter((_, i) => facesPlanes[i] === tortillaPlane).shift(),
+			angled: faces.filter((_, i) => facesPlanes[i] !== tortillaPlane).shift(),
+		}));
+};
+
+/**
+ * @description There are two kinds of arrangements of edges/faces that
+ * don't generate solver conditions, instead, they solve relationships
+ * between pairs of faces.
+ * @param {FOLD} graph a FOLD object
+ * @param {{ edge: number, tortilla: number, coplanar: number, angled: number}[]}
+ * edgeFace3DOverlaps an array of edge-face-3D overlap objects
+ * @param {boolean[]} faces_winding for every face true if counter-clockwise.
+ * @returns {{ [key: string]: number }} solutions to face-pair layer orders
+ */
+export const solveOverlapFacesWith3DEdge = (
+	{ edges_foldAngle },
+	edgeFace3DOverlaps,
+	faces_winding,
+) => {
+	// get the two faces whose order will be solved.
+	const facePairs = edgeFace3DOverlaps
+		.map(({ tortilla, coplanar }) => [tortilla, coplanar]);
+
+	// are the face pairs in the correct order for the solver? where A < B?
+	const facePairsCorrectOrder = facePairs.map(([a, b]) => a < b);
+
+	// order the pair of faces so the smaller index comes first.
+	facePairs
+		.map((_, i) => i)
+		.filter(i => !facePairsCorrectOrder[i])
+		.forEach(i => facePairs[i].reverse());
+
+	const facePairKeys = facePairs.map(pair => pair.join(" "));
+
+	// true is positive/valley, false is negative/mountain
+	// a valley places the coplanar face above the tortilla face
+	// a mountain places the coplanar face below the tortilla face
+	const facePairLocalBendDirection = edgeFace3DOverlaps
+		.map(({ edge }) => edges_foldAngle[edge])
+		.map(Math.sign)
+		.map(n => n === 1);
+
+	// for every face-pair, check the face adjacent to the 3D fold angle,
+	// is it aligned with the normal of the plane?
+	const facePairsAligned = edgeFace3DOverlaps
+		.map(({ coplanar }) => faces_winding[coplanar]);
+
+	// now, if the coplanar face from the coplanar-angled pair is flipped
+	// in relation to the plane's normal (the face is upside-down),
+	// then the bend direction should be inverted. valley = false, M = true.
+	// This amounts to the XNOR between bend-dir and winding
+	const facePairGlobalBendDirection = facePairLocalBendDirection
+		// .map((dir, i) => (facePairsAligned[i] ? dir : !dir));
+		.map((dir, i) => !(dir ^ facePairsAligned[i]));
+
+	// solver notation, where 1 means A is above B. 2 means B is above A.
+	// also, if we flipped the order of the faces for the solution key,
+	const facePairSolution = facePairGlobalBendDirection
+		.map((result, i) => (facePairsCorrectOrder[i] ? result : 1 - result))
+		.map(result => result + 1);
+
+	// a dictionary with keys: face pairs ("5 23"), and values: 1 or 2.
+	return joinObjectsWithoutOverlap(facePairKeys
+		.map((key, i) => ({ [key]: facePairSolution[i] })));
+};
 
 /**
  * @description Given a situation where two non-boundary edges are

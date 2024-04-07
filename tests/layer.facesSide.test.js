@@ -213,7 +213,7 @@ test("facesSide panel 4x2", () => {
 });
 
 test("makeEdgesFacesSide3D, layer 3D cases", () => {
-	const foldfile = fs.readFileSync("./tests/files/fold/layer3d-cases.fold", "utf-8");
+	const foldfile = fs.readFileSync("./tests/files/fold/layers-3d-edge-edge.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const frames = ear.graph.getFileFramesAsArray(fold);
 	const foldedForms = frames.map(frame => ({

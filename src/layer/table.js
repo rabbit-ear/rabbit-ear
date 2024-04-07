@@ -4,9 +4,9 @@
 
 /**
  * @description each state encodes a valid layer combination. each number
- * describes a relationship between pairs of faces, indicating:
- * - 1: the first face is above the second face
- * - 2: the second face is above the first face
+ * describes a relationship between pairs of faces, for pairs "A B":
+ * - 1: face A is above face B
+ * - 2: face A is below face B
  * each taco/tortilla set has its own encoding of face pairs.
  */
 // A-C and B-D are connected

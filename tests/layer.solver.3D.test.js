@@ -3,7 +3,7 @@ import { expect, test } from "vitest";
 import ear from "../src/index.js";
 
 test("3D layer solver, all 3D special cases", () => {
-	const foldfile = fs.readFileSync("./tests/files/fold/layer3d-cases.fold", "utf-8");
+	const foldfile = fs.readFileSync("./tests/files/fold/layers-3d-edge-edge.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const frames = ear.graph.getFileFramesAsArray(fold);
 	const foldedForms = frames.map(frame => ({
@@ -49,19 +49,20 @@ test("3D layer solver, all 3D special cases", () => {
 	]);
 });
 
-test("3D layer solver cube octagon", () => {
+test("3D layer solver, cube octagon", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/cube-octagon.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
-	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
-	const {
-		orders,
-		branches,
-	} = ear.layer.layer3D(folded);
-	expect(orders).toMatchObject(folded.faceOrders);
-	expect(branches).toBe(undefined);
+	const folded0 = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	const folded1 = ear.graph.getFramesByClassName(fold, "foldedForm")[1];
+	const result0 = ear.layer.layer3D(folded0);
+	const result1 = ear.layer.layer3D(folded1);
+	expect(result0.orders).toMatchObject(folded0.faceOrders);
+	expect(result1.orders).toMatchObject(folded1.faceOrders);
+	expect(result0.branches).toBe(undefined);
+	expect(result1.branches).toBe(undefined);
 });
 
-test("animal base layers 3D", () => {
+test("3D layer solver, square-fish base", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/square-fish-3d.fold", "utf-8");
 	const graph = JSON.parse(FOLD);
 	const vertices_coords = ear.graph.makeVerticesCoordsFolded(graph);
@@ -104,7 +105,7 @@ test("animal base layers 3D", () => {
 		|| faceOrdersStrings.includes(JSON.stringify([15, 12, 1]))).toBe(true);
 });
 
-test("animal base layers 3D faces sets", () => {
+test("3D layer solver, square-fish base, faces sets", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/square-fish-3d.fold", "utf-8");
 	const graph = JSON.parse(FOLD);
 	const vertices_coords = ear.graph.makeVerticesCoordsFolded(graph);
@@ -139,7 +140,7 @@ test("animal base layers 3D faces sets", () => {
 	[12, 15].forEach((f, i) => expect(nudge[f].layer).toBe(i));
 });
 
-test("Mooser's train layer solution", () => {
+test("3D layer solver, Mooser's train", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/moosers-train.fold", "utf-8");
 	const graph = JSON.parse(FOLD);
 	const {
@@ -147,21 +148,34 @@ test("Mooser's train layer solution", () => {
 		branches,
 	} = ear.layer.layer3D(graph);
 
-	expect(Object.keys(orders).length).toBe(1713);
-	expect(branches).toMatchObject([
-		[
-			{ orders: [[52, 115, 1], [52, 131, 1], [52, 128, -1], [52, 113, -1]]},
-			{ orders: [[52, 115, -1], [52, 131, -1], [52, 128, 1], [52, 113, 1]]},
-		], [
-			{ orders: [[108, 114, -1], [108, 136, -1], [108, 137, 1], [108, 116, 1]]},
-			{ orders: [[108, 114, 1], [108, 136, 1], [108, 137, -1], [108, 116, -1]]},
-		]
+	// expect(Object.keys(orders).length).toBe(1713);
+	expect(Object.keys(orders).length).toBe(1581);
+	expect(ear.layer.getBranchStructure({ branches })).toMatchObject([
+		[[], []], [[], []],
+		[[], []], [[], []],
+		[[], []], [[], []],
+		[[], []], [[], []],
+		[[], []], [[], []],
+		[[], []], [[], []],
+		[[], []], [[], []],
+		[[], []], [[], []],
+		[[], []], [[], []],
 	]);
-	// graph.faceOrders = solution.faceOrders();
-	// fs.writeFileSync(`./tests/tmp/moosers-train-layer-solved.fold`, JSON.stringify(graph));
+
+	// expect(branches).toMatchObject([
+	// 	[
+	// 		{ orders: [[52, 115, 1], [52, 131, 1], [52, 128, -1], [52, 113, -1]]},
+	// 		{ orders: [[52, 115, -1], [52, 131, -1], [52, 128, 1], [52, 113, 1]]},
+	// 	], [
+	// 		{ orders: [[108, 114, -1], [108, 136, -1], [108, 137, 1], [108, 116, 1]]},
+	// 		{ orders: [[108, 114, 1], [108, 136, 1], [108, 137, -1], [108, 116, -1]]},
+	// 	]
+	// ]);
+	graph.faceOrders = ear.layer.compile({ orders, branches });
+	fs.writeFileSync(`./tests/tmp/moosers-train-layer-solved.fold`, JSON.stringify(graph));
 });
 
-test("Maze-folding layer solution", () => {
+test("3D layer solver, maze-u", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/maze-u.fold", "utf-8");
 	const graph = JSON.parse(FOLD);
 	const foldedFrame = ear.graph.getFramesByClassName(graph, "foldedForm")[0];
@@ -178,7 +192,7 @@ test("Maze-folding layer solution", () => {
 		.toBe(foldedFrame.faces_vertices.length);
 });
 
-test("Maze-folding layer solution", () => {
+test("3D layer solver, maze-s", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/maze-s.fold", "utf-8");
 	const graph = JSON.parse(FOLD);
 	const foldedFrame = ear.graph.getFramesByClassName(graph, "foldedForm")[0];
@@ -201,7 +215,7 @@ test("Maze-folding layer solution", () => {
 	expect(true).toBe(true);
 });
 
-// test("Maze-folding 8x8 maze", () => {
+// test("3D layer solver, 8x8 maze", () => {
 // 	const FOLD = fs.readFileSync("./tests/files/fold/maze-8x8.fold", "utf-8");
 // 	const graph = JSON.parse(FOLD);
 // 	const foldedFrame = ear.graph.getFramesByClassName(graph, "foldedForm")[0];

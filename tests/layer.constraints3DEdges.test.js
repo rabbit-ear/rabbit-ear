@@ -60,7 +60,7 @@ const constraints3DEdges = (graph) => {
 };
 
 test("getSolvable3DEdgePairs, layer 3D special cases", () => {
-	const foldfile = fs.readFileSync("./tests/files/fold/layer3d-cases.fold", "utf-8");
+	const foldfile = fs.readFileSync("./tests/files/fold/layers-3d-edge-edge.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const frames = ear.graph.getFileFramesAsArray(fold);
 	const foldedForms = frames.map(frame => ({
@@ -160,7 +160,7 @@ test("getSolvable3DEdgePairs, layer 3D special cases", () => {
 });
 
 test("constraints3DEdges, layer 3D special cases", () => {
-	const foldfile = fs.readFileSync("./tests/files/fold/layer3d-cases.fold", "utf-8");
+	const foldfile = fs.readFileSync("./tests/files/fold/layers-3d-edge-edge.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const frames = ear.graph.getFileFramesAsArray(fold);
 	const foldedForms = frames.map(frame => ({
@@ -491,7 +491,7 @@ test("constraints3DEdges and getSolvable3DEdgePairs, cube octagon", () => {
 });
 
 test("constraints3DEdges and getSolvable3DEdgePairs, coplanar angles", () => {
-	const foldfile = fs.readFileSync("./tests/files/fold/coplanar-angles-3d.fold", "utf-8");
+	const foldfile = fs.readFileSync("./tests/files/fold/layers-3d-edge-face.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const folded = {
 		...fold,

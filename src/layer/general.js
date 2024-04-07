@@ -44,7 +44,7 @@ export const constraintToFacePairs = ({
  * to be first, and format them into a space-separated string.
  * @linkcode Origami ./src/layer/solver2d/general.js 33
  */
-const pairArrayToSortedPairString = pair => (pair[0] < pair[1]
+const sortedPairString = pair => (pair[0] < pair[1]
 	? `${pair[0]} ${pair[1]}`
 	: `${pair[1]} ${pair[0]}`);
 
@@ -59,44 +59,48 @@ const pairArrayToSortedPairString = pair => (pair[0] < pair[1]
 export const constraintToFacePairsStrings = ({
 	// taco_taco (A,C) (B,D) (B,C) (A,D) (A,B) (C,D)
 	taco_taco: f => [
-		pairArrayToSortedPairString([f[0], f[2]]),
-		pairArrayToSortedPairString([f[1], f[3]]),
-		pairArrayToSortedPairString([f[1], f[2]]),
-		pairArrayToSortedPairString([f[0], f[3]]),
-		pairArrayToSortedPairString([f[0], f[1]]),
-		pairArrayToSortedPairString([f[2], f[3]]),
+		sortedPairString([f[0], f[2]]),
+		sortedPairString([f[1], f[3]]),
+		sortedPairString([f[1], f[2]]),
+		sortedPairString([f[0], f[3]]),
+		sortedPairString([f[0], f[1]]),
+		sortedPairString([f[2], f[3]]),
 	],
 	// taco_tortilla (A,C) (A,B) (B,C)
 	taco_tortilla: f => [
-		pairArrayToSortedPairString([f[0], f[2]]),
-		pairArrayToSortedPairString([f[0], f[1]]),
-		pairArrayToSortedPairString([f[1], f[2]]),
+		sortedPairString([f[0], f[2]]),
+		sortedPairString([f[0], f[1]]),
+		sortedPairString([f[1], f[2]]),
 	],
 	// tortilla_tortilla (A,C) (B,D)
 	tortilla_tortilla: f => [
-		pairArrayToSortedPairString([f[0], f[2]]),
-		pairArrayToSortedPairString([f[1], f[3]]),
+		sortedPairString([f[0], f[2]]),
+		sortedPairString([f[1], f[3]]),
 	],
 	// transitivity (A,B) (B,C) (C,A)
 	transitivity: f => [
-		pairArrayToSortedPairString([f[0], f[1]]),
-		pairArrayToSortedPairString([f[1], f[2]]),
-		pairArrayToSortedPairString([f[2], f[0]]),
+		sortedPairString([f[0], f[1]]),
+		sortedPairString([f[1], f[2]]),
+		sortedPairString([f[2], f[0]]),
 	],
 });
 
 const signedLayerSolverValue = { 0: 0, 1: 1, 2: -1 };
 
 /**
- * @description Convert a solution of facePairOrders with face-pair strings
- * as keys, and +1 or -1 as values, into a list of FOLD spec faceOrders,
- * where the normal of the second face in the pair establishes which
- * side is + or - for face A to exist on.
- * @param {object} facePairOrders an object with face-pair keys and +1/-1 value
+ * @description Convert encodings of layer solutions between pairs of faces.
+ * Convert from the solver's 1, 2 encoding, where for faces "A B", a value of
+ * - 1: face A is above face B
+ * - 2: face A is below face B
+ * into the +1/-1 "faceOrders" encoding, as described in the FOLD spec, where:
+ * - +1: face A lies above face B, on the same side pointed by B's normal.
+ * - −1: face A lies below face B, on the opposite side pointed by B's normal.
+ * hence the additional faces_winding data required for conversion.
+ * @param {object} facePairOrders an object with face-pair keys and 1, 2 values
  * @param {boolean[]} faces_winding for every face, is the face aligned
  * with the stacking-axis which was used in the layer solver.
  * @returns {number[][]} faceOrders array
- * @linkcode Origami ./src/layer/solver2d/general.js 81
+ * @linkcode
  */
 export const solverSolutionToFaceOrders = (facePairOrders, faces_winding) => {
 	// convert the space-separated face pair keys into arrays of two integers

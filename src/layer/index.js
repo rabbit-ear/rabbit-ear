@@ -1,13 +1,13 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as constraints3D from "./constraints3DMain.js";
+import * as constraints3D from "./constraints3D.js";
 import * as constraints3DFaces from "./constraints3DFaces.js";
-import * as constraints3DEdges from "./constraints3DEdgePairs.js";
+import * as constraints3DEdges from "./constraints3DEdges.js";
 import * as constraintsFlat from "./constraintsFlat.js";
 import * as facesSide from "./facesSide.js";
 import * as general from "./general.js";
-import * as initialSolution from "./initialSolution.js";
+import * as initialSolutionsFlat from "./initialSolutionsFlat.js";
 import * as prototype from "./prototype.js";
 import * as solve from "./solve.js";
 import * as solver from "./solver.js";
@@ -23,7 +23,7 @@ export default {
 	...constraintsFlat,
 	...facesSide,
 	...general,
-	...initialSolution,
+	...initialSolutionsFlat,
 	...prototype,
 	...solve,
 	...solver,
