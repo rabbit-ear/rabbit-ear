@@ -12,7 +12,6 @@ import {
  * If indices and values are not bijective, values will be overwritten.
  * @param {number[]} map an array of integers
  * @returns {number[]} the inverted array
- * @linkcode
  */
 export const invertFlatMap = (map) => {
 	const inv = [];
@@ -26,7 +25,6 @@ export const invertFlatMap = (map) => {
  * If indices and values are not bijective, values will be overwritten.
  * @param {number[][]} map an array of arrays of integers
  * @returns {number[]} the inverted flat array
- * @linkcode
  */
 export const invertArrayToFlatMap = (map) => {
 	const inv = [];
@@ -40,7 +38,6 @@ export const invertArrayToFlatMap = (map) => {
  * This ensures that for non-bijective maps, no data is lost.
  * @param {number[]} map an array of integers
  * @returns {number[][]} the inverted array of arrays of integers
- * @linkcode
  */
 export const invertFlatToArrayMap = (map) => {
 	const inv = [];
@@ -57,7 +54,6 @@ export const invertFlatToArrayMap = (map) => {
  * This ensures that for non-bijective maps, no data is lost.
  * @param {number[][]} map an array of arrays of integers
  * @returns {number[][]} the inverted array of arrays of integers
- * @linkcode
  */
 export const invertArrayMap = (map) => {
 	const inv = [];
@@ -74,7 +70,6 @@ export const invertArrayMap = (map) => {
  * reflects all changes to the graph.
  * @param {...number[]} ...maps a sequence of simple nextmaps
  * @returns {number[]} one nextmap reflecting the sum of changes
- * @linkcode Origami ./src/graph/maps.js 10
  */
 export const mergeFlatNextmaps = (...maps) => {
 	if (maps.length === 0) { return []; }
@@ -89,7 +84,6 @@ export const mergeFlatNextmaps = (...maps) => {
  * reflects all changes to the graph.
  * @param {...number[][]} ...maps a sequence of nextmaps
  * @returns {number[][]} one nextmap reflecting the sum of changes
- * @linkcode Origami ./src/graph/maps.js 23
  */
 export const mergeNextmaps = (...maps) => {
 	if (maps.length === 0) { return []; }
@@ -112,7 +106,6 @@ export const mergeNextmaps = (...maps) => {
  * reflects all changes to the graph.
  * @param {...number[]} ...maps a sequence of simplebackmaps
  * @returns {number[]} one backmap reflecting the sum of changes
- * @linkcode Origami ./src/graph/maps.js 43
  */
 export const mergeFlatBackmaps = (...maps) => {
 	if (maps.length === 0) { return []; }
@@ -130,7 +123,6 @@ export const mergeFlatBackmaps = (...maps) => {
  * reflects all changes to the graph.
  * @param {...number[][]} ...maps a sequence of backmaps
  * @returns {number[][]} one backmap reflecting the sum of changes
- * @linkcode Origami ./src/graph/maps.js 59
  */
 export const mergeBackmaps = (...maps) => {
 	if (maps.length === 0) { return []; }

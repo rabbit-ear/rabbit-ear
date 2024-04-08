@@ -273,7 +273,6 @@ const updateFacesFaces = ({ faces_vertices, faces_faces }, vertex, faces) => {
  * "vertex" is the index of the new vertex (or old index, if similar)
  * "edge" is a summary of changes to edges, with "map" and "remove",
  * where "map" is a nextmap (I believe)
- * @linkcode
  */
 export const splitEdge = (
 	graph,

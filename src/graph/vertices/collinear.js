@@ -28,7 +28,6 @@ export const getOtherVerticesInEdges = ({ edges_vertices }, vertex, edges) => (
  * @param {FOLD} graph a FOLD object
  * @param {number} vertex an index of a vertex in the graph
  * @returns {boolean} true if the vertex is collinear and can be removed.
- * @linkcode Origami ./src/graph/verticesCollinear.js 19
  */
 export const isVertexCollinear = ({
 	vertices_coords, vertices_edges, edges_vertices,

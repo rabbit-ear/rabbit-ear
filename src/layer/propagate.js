@@ -28,7 +28,6 @@ import {
  * @returns {(boolean | [number, number])} true if valid, false if invalid,
  * and in the case of an implied change, return an array where the
  * first item is a facePair ("3 5"), and the second is the order (like 1 or 2).
- * @linkcode
  */
 const buildRuleAndLookup = (type, constraint, ...orders) => {
 	// flip face order
@@ -147,7 +146,6 @@ const buildRuleAndLookup = (type, constraint, ...orders) => {
  *   tortilla_tortilla: number[],
  *   transitivity: number[],
  * }}
- * @linkcode
  */
 const getConstraintIndicesFromFacePairs = (
 	constraints,
@@ -196,7 +194,6 @@ const getConstraintIndicesFromFacePairs = (
  * which relate facePairs (key) like "3 5" to an order, either 0, 1, or 2.
  * @returns {{[key: string]: number}} an object that maps face-pair strings
  * to an order value, either 1 or 2
- * @linkcode
  */
 export const propagate = (
 	constraints,

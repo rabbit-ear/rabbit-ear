@@ -42,7 +42,6 @@ import {
  * @example
  * {number[]} array, [4:3, 7:5, 8:3, 12:3, 14:9] where indices
  * (3, 4, 8, 12) are all duplicates. (5,7), (9,14) are also duplicates.
- * @linkcode Origami ./src/graph/edgesViolations.js 47
  */
 export const duplicateEdges = ({ edges_vertices }) => {
 	if (!edges_vertices) { return []; }
@@ -116,7 +115,6 @@ export const getSimilarEdges = (
  * duplicateEdges() has already been called, provide the result here to speed
  * up the algorithm.
  * @returns {object} a summary of changes
- * @linkcode Origami ./src/graph/edgesViolations.js 129
  */
 export const removeDuplicateEdges = (graph, replace_indices) => {
 	// index: edge to remove, value: the edge which should replace it.

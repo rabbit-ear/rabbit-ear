@@ -25,7 +25,6 @@
  * @returns {TreeNode[][][]} an array of trees, where each tree is
  * an array of array of TreeNode. Each tree is organized into depths,
  * where each array contains an array of tree nodes at that depth.
- * @linkcode Origami ./src/graph/faceSpanningTree.js 59
  */
 export const minimumSpanningTrees = (array_array = [], rootIndices = []) => {
 	if (array_array.length === 0) { return []; }

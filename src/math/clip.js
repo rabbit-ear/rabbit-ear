@@ -16,22 +16,22 @@ import {
 	add2,
 	subtract2,
 	scale2,
-	flip,
+	flip2,
 } from "./vector.js";
 import {
 	overlapConvexPolygonPoint,
 } from "./overlap.js";
 
-/**
- * @description Clip an infinite line inside a bounding box
- * and return either:
- * - an array of two points (a segment)
- * - an array of one point (degenerate segment)
- * - undefined (no intersection)
- * @param {VecLine} line a line with a vector and an origin
- * @param {BoundingBox} box an AABB bounding box
- * @returns {number[] | undefined} the result.
- */
+// /**
+//  * @description Clip an infinite line inside a bounding box
+//  * and return either:
+//  * - an array of two points (a segment)
+//  * - an array of one point (degenerate segment)
+//  * - undefined (no intersection)
+//  * @param {VecLine} line a line with a vector and an origin
+//  * @param {BoundingBox} box an AABB bounding box
+//  * @returns {number[] | undefined} the result.
+//  */
 // export const clipLineInBoundingBox = ({ vector, origin }, { min, max, span }) => {
 // 	return clipLineConvexPolygon()
 // };
@@ -51,7 +51,7 @@ const lineLineParameter = (
 	const determinant0 = cross2(lineVector, polyVector);
 	const determinant1 = -determinant0;
 	const a2b = subtract2(polyOrigin, lineOrigin);
-	const b2a = flip(a2b);
+	const b2a = flip2(a2b);
 	const t0 = cross2(a2b, polyVector) / determinant0;
 	const t1 = cross2(b2a, lineVector) / determinant1;
 	if (polyLineFunc(t1, epsilon / magnitude2(polyVector))) {
@@ -108,7 +108,6 @@ const getMinMax = (numbers, func, scaled_epsilon) => {
  * @param {function} [fnLine=includeL] function to determine line/ray/segment,
  * and inclusive or exclusive.
  * @param {number} [epsilon=1e-6] optional epsilon
- * @linkcode Math ./src/intersect/clip.js 93
  */
 export const clipLineConvexPolygon = (
 	poly,
@@ -128,6 +127,7 @@ export const clipLineConvexPolygon = (
 	// and the valid inclusive/exclusive function
 	// todo: this line hardcodes the parameterization that segments and rays are cropping
 	// their lowest point at 0 and highest (if segment) at 1
+	/** @param {number} t */
 	const clip_fn = (t) => {
 		if (fnLine(t)) { return t; }
 		return t < 0.5 ? 0 : 1;
@@ -159,7 +159,6 @@ export const clipLineConvexPolygon = (
  * is an array of numbers.
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} a polygon as an array of points.
- * @linkcode Math ./src/intersect/clip.js 143
  */
 export const clipPolygonPolygon = (polygon1, polygon2, epsilon = EPSILON) => {
 	const inside = (p, cp1, cp2) => (

@@ -17,7 +17,6 @@ import { getDimensionQuick } from "../../fold/spec.js";
  * @example
  * no clusters: [ [0], [1], [2], [3], [4], ... ]
  * clusters: [ [0, 5], [1], [3], [2, 4]]
- * @linkcode Origami ./src/graph/verticesClusters.js 16
  */
 export const getVerticesClusters = ({ vertices_coords }, epsilon = EPSILON) => {
 	if (!vertices_coords) { return []; }

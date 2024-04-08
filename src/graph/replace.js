@@ -51,7 +51,6 @@ const makeIndexMap = (graph, key, replaceIndices, replaces) => {
  *
  * this can handle removing multiple indices at once; and is faster than
  * otherwise calling this multiple times with only one or a few removals.
- * @linkcode Origami ./src/graph/replace.js 30
  */
 const replaceGeometryIndices = (graph, key, replaceIndices) => {
 	// make sure replace indices are well-formed. values cannot be larger than keys.

@@ -34,7 +34,6 @@ const makePairsMap = (array, subsetIndices) => {
  * @param {FOLD} graph a FOLD object, containing edges_vertices
  * @returns {{[key: string]: number}} object mapping a space-separated
  * vertex pair to an edge index
- * @linkcode Origami ./src/graph/make.js 336
  */
 export const makeVerticesToEdge = ({ edges_vertices }, edges) => (
 	makePairsMap(edges_vertices, edges)
@@ -49,23 +48,21 @@ export const makeVerticesToEdge = ({ edges_vertices }, edges) => (
  * @param {FOLD} graph a FOLD object, containing faces_vertices
  * @returns {{[key: string]: number}} object mapping a space-separated
  * vertex pair to a face index
- * @linkcode Origami ./src/graph/make.js 336
  */
 export const makeVerticesToFace = ({ faces_vertices }, faces) => (
 	makePairsMap(faces_vertices, faces)
 );
 
 /**
-  * @description Make an object which answers the question: "which face
-  * contains these two edges in this exact order?". This is accomplished
-  * by building an object with keys containing edge pairs
-  * (space separated string), and the value is the face index.
-  * This will not work with non-manifold graphs.
-  * @param {FOLD} graph a FOLD object, containing faces_edges
-  * @returns {{[key: string]: number}} object mapping a space-separated
-  * edge pair to a face index
-  * @linkcode
-  */
+ * @description Make an object which answers the question: "which face
+ * contains these two edges in this exact order?". This is accomplished
+ * by building an object with keys containing edge pairs
+ * (space separated string), and the value is the face index.
+ * This will not work with non-manifold graphs.
+ * @param {FOLD} graph a FOLD object, containing faces_edges
+ * @returns {{[key: string]: number}} object mapping a space-separated
+ * edge pair to a face index
+ */
 export const makeEdgesToFace = ({ faces_edges }, faces) => (
 	makePairsMap(faces_edges, faces)
 );

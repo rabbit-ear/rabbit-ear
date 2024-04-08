@@ -25,7 +25,6 @@ import {
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} summary of changes, a nextmap and the indices removed.
- * @linkcode Origami ./src/graph/clean.js 24
  */
 const clean = (graph, epsilon) => {
 	// duplicate vertices has to be done first as it's possible that

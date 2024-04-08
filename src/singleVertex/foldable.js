@@ -35,8 +35,8 @@ import {
  * @attribution Implementation of the algorithm described in
  * the origami foldability paper by belcastro-Hull.
  * @param {FOLD} graph a FOLD graph with vertices in creasePattern layout
- * @returns {boolean[]} for every vertex, true if the vertex has
- * a valid folded state.
+ * @returns {number[]} for every vertex, 0 if the vertex has
+ * a valid folded state, or a number indicating the amount of error.
  */
 export const verticesFoldability = ({
 	vertices_coords, vertices_vertices, vertices_edges, vertices_faces,
@@ -114,11 +114,21 @@ export const verticesFoldability = ({
 };
 
 /**
- * @description
+ * @description Given a crease pattern, this method will test every vertex
+ * to determine if it is possible to be folded by walking around each vertex
+ * face by face and checking if we meet back up exactly where we started.
+ * This does not test for self-intersection, if the faces of a single vertex
+ * pokes through one another, this method may still consider it to be valid.
+ * This method supports 3D or 2D foldings.
+ * @attribution Implementation of the algorithm described in
+ * the origami foldability paper by belcastro-Hull.
+ * @param {FOLD} graph a FOLD graph with vertices in creasePattern layout
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {boolean[]} indices of vertices which have a valid folded state.
  */
 export const verticesFoldable = (graph, epsilon = EPSILON) => (
-	verticesFoldability(graph, epsilon)
-		.map(deviation => deviation < epsilon)
+	verticesFoldability(graph)
+		.map(deviation => Math.abs(deviation) < epsilon)
 );
 
 // would be nice if we can use faces_matrix. but this doesn't work

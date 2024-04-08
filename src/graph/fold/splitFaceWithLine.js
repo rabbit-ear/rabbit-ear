@@ -47,7 +47,6 @@ import Messages from "../../environment/messages.js";
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object|undefined} "vertices" and "edges" keys, indices of the
  * components which intersect the line. or undefined if no intersection
- * @linkcode Origami ./src/graph/intersect.js 162
  */
 export const intersectConvexFaceLine = ({
 	vertices_coords, edges_vertices, faces_vertices, faces_edges,
@@ -113,7 +112,6 @@ export const intersectConvexFaceLine = ({
  * @param {any[]} array an array that is meant to be thought of as circular
  * @param {number[]} indices two numbers, indices that divide the array into 2 parts
  * @returns {any[][]} the same array split into two arrays
- * @linkcode Origami ./src/general/arrays.js 49
  */
 const splitCircularArray = (array, indices) => {
 	indices.sort((a, b) => a - b);
@@ -433,7 +431,6 @@ export const update_faces_faces = ({ faces_vertices, faces_faces }, old_face, ne
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object|undefined} a summary of changes to the FOLD object,
  *  or undefined if no change (no intersection).
- * @linkcode Origami ./src/graph/splitFace/index.js 28
  */
 export const splitFaceWithLine = (graph, face, line, epsilon) => {
 	// survey face for any intersections which cross directly over a vertex

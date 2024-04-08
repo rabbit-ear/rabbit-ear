@@ -22,7 +22,6 @@
  * solved facePairs (keys) and their layer order 1 or 2 (value),
  * the object only includes those facePairs
  * which are solved, so, no 0-value entries will exist.
- * @linkcode
  */
 export const solveFlatAdjacentEdges = (
 	{ edges_faces, edges_assignment },

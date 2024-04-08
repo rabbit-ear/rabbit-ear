@@ -23,7 +23,7 @@ import {
  * @description this recursive algorithm works outwards-to-inwards, each repeat
  * decreases the size of the polygon by one point/side. (removes 2, adds 1)
  * and repeating the algorithm on the smaller polygon.
- * @param {number[][]} array of point objects (arrays of numbers, [x, y]).
+ * @param {number[][]} points array of point objects (arrays of numbers, [x, y]).
  * the counter-clockwise sorted points of the polygon. as we recurse this
  * list shrinks by removing the points that are "finished".
  * @returns {object[]} array of line segments as objects with keys:
@@ -122,7 +122,6 @@ const recurseSkeleton = (points, lines, bisectors) => {
  * make sure:
  *  - your polygon is convex (todo: make this algorithm work with non-convex)
  *  - your polygon points are sorted counter-clockwise
- * @linkcode Math ./src/geometry/straightSkeleton.js 119
  */
 export const straightSkeleton = (points) => {
 	// first time running this function, create the 2nd and 3rd parameters

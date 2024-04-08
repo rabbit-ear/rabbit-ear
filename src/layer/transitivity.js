@@ -17,7 +17,6 @@ import {
  * @param {boolean[]} faces_winding a boolean for each face, true for counter-clockwise.
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {TransitivityConstraint[]} list of arrays containing three face indices.
- * @linkcode
  */
 export const makeTransitivity = (
 	{ faces_polygon },
@@ -78,7 +77,6 @@ export const makeTransitivity = (
  * }} the two sets of constrains.
  * @returns {{[key: string]: boolean}} object where keys are space-separated
  * trios of faces "a b c" where a < b and b < c.
- * @linkcode
  */
 export const getTransitivityTriosFromTacos = ({ taco_taco, taco_tortilla }) => {
 	// using the list of all taco-taco conditions, store all permutations of

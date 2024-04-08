@@ -104,7 +104,6 @@ export const edgesAssignmentValues = Array.from("BbMmVvFfJjCcUu");
  * @description Get the English word for every FOLD spec
  * assignment character (like "M", or "b").
  * @constant {object}
- * @linkcode
  */
 export const edgesAssignmentNames = {
 	B: "boundary",
@@ -123,7 +122,6 @@ Object.keys(edgesAssignmentNames).forEach(key => {
  * @description Get the foldAngle in degrees for every FOLD assignment spec
  * character (like "M", or "b"), assuming the creases are flat folded.
  * @constant {object}
- * @linkcode
  */
 export const assignmentFlatFoldAngle = {
 	B: 0,
@@ -145,7 +143,6 @@ export const assignmentFlatFoldAngle = {
 /**
  * @description For every assignment type, can this edge be a folded edge?
  * @constant {object}
- * @linkcode
  */
 export const assignmentCanBeFolded = {
 	B: false,
@@ -169,7 +166,6 @@ export const assignmentCanBeFolded = {
  * a part of the boundary? Boundary edges are treated differently
  * when solving single-vertex flat foldability, for example.
  * @constant {object}
- * @linkcode
  */
 export const assignmentIsBoundary = {
 	B: true,
@@ -193,7 +189,6 @@ export const assignmentIsBoundary = {
  * This assumes that all assignments are flat folded.
  * @param {string} a FOLD edge assignment character
  * @returns {number} fold angle in degrees. M/V are assumed to be flat-folded.
- * @linkcode
  */
 export const edgeAssignmentToFoldAngle = (assignment) => (
 	assignmentFlatFoldAngle[assignment] || 0
@@ -206,7 +201,6 @@ export const edgeAssignmentToFoldAngle = (assignment) => (
  * @todo should "U" be "F" instead?
  * @param {number} angle fold angle in degrees
  * @returns {string} a FOLD edge assignment character
- * @linkcode
  */
 export const edgeFoldAngleToAssignment = (angle) => {
 	if (angle > EPSILON) { return "V"; }
@@ -219,7 +213,6 @@ export const edgeFoldAngleToAssignment = (angle) => {
  * -180, 0, 180, and the +/- epsilon around each number.
  * @param {number} angle fold angle in degrees
  * @returns {boolean} true if the fold angle is flat
- * @linkcode
  */
 export const edgeFoldAngleIsFlat = (angle) => (epsilonEqual(0, angle)
  || epsilonEqual(-180, angle)
@@ -232,7 +225,6 @@ export const edgeFoldAngleIsFlat = (angle) => (epsilonEqual(0, angle)
  * If a graph contains no edges_foldAngle the edges are assumed to be flat.
  * @param {FOLD} graph a FOLD object
  * @returns {boolean} are the edges of the graph flat folded?
- * @linkcode
  */
 export const edgesFoldAngleAreAllFlat = ({ edges_foldAngle }) => {
 	if (!edges_foldAngle) { return true; }
@@ -254,7 +246,6 @@ const filterKeys = (obj, matchFunction) => Object
  * @param {object} obj an object, FOLD object or otherwise.
  * @param {string} prefix a prefix to match against the keys
  * @returns {string[]} array of matching keys
- * @linkcode
  */
 export const filterKeysWithPrefix = (obj, prefix) => filterKeys(
 	obj,
@@ -268,7 +259,6 @@ export const filterKeysWithPrefix = (obj, prefix) => filterKeys(
  * @param {object} obj an object, FOLD object or otherwise.
  * @param {string} suffix a suffix to match against the keys
  * @returns {string[]} array of matching keys
- * @linkcode
  */
 export const filterKeysWithSuffix = (obj, suffix) => filterKeys(
 	obj,
@@ -280,7 +270,6 @@ export const filterKeysWithSuffix = (obj, suffix) => filterKeys(
  * and return every prefix substring that comes before the _.
  * @param {object} obj an object, FOLD object or otherwise.
  * @returns {string[]} array of prefixes
- * @linkcode
  */
 export const getAllPrefixes = (obj) => {
 	const hash = {};
@@ -296,7 +285,6 @@ export const getAllPrefixes = (obj) => {
  * and return every suffix substring that comes after the _.
  * @param {object} obj an object, FOLD object or otherwise.
  * @returns {string[]} array of suffixes
- * @linkcode
  */
 export const getAllSuffixes = (obj) => {
 	const hash = {};
@@ -314,7 +302,6 @@ export const getAllSuffixes = (obj) => {
  * @param {string} geometry_key a geometry item like "vertices"
  * @returns {object[]} an array of objects with FOLD keys but the
  * values are from this single element
- * @linkcode
  */
 export const transposeGraphArrays = (graph, geometry_key) => {
 	const matching_keys = filterKeysWithPrefix(graph, geometry_key);
@@ -335,7 +322,6 @@ export const transposeGraphArrays = (graph, geometry_key) => {
  * @param {string} geometry_key a geometry item like "vertices"
  * @param {number} index the index of an element
  * @returns {object} an object with FOLD keys but the values are from this single element
- * @linkcode
  */
 export const transposeGraphArrayAtIndex = (
 	graph,
@@ -362,7 +348,6 @@ const allFOLDKeys = Object.freeze([]
  * @param {FOLD} object a Javascript object, find out if it is a FOLD object
  * @returns {number} value between 0 and 1 where
  * 0 means no chance, 1 means 100% chance.
- * @linkcode
  */
 export const isFoldObject = (object = {}) => (
 	Object.keys(object).length === 0
@@ -375,7 +360,6 @@ export const isFoldObject = (object = {}) => (
  * for the presence of "foldedForm".
  * @param {FOLD} graph a FOLD object
  * @returns {boolean} true if the graph contains "foldedForm".
- * @linkcode
  */
 export const isFoldedForm = ({ frame_classes, file_classes }) => (
 	(frame_classes && frame_classes.includes("foldedForm"))
@@ -429,7 +413,6 @@ export const getDimensionQuick = ({ vertices_coords }) => {
  * @param {FOLD} graph a FOLD object
  * @returns {boolean[]} for every edge, is it folded? or does it have
  * the potential to be folded? where "unassigned" is yes.
- * @linkcode
  */
 export const makeEdgesIsFolded = ({ edges_vertices, edges_foldAngle, edges_assignment }) => {
 	if (edges_assignment === undefined) {

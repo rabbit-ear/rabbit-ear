@@ -34,7 +34,6 @@ const anglesToVecs = (angles, radius) => angles
  * @param {number} sides the number of sides in the polygon
  * @param {number} [circumradius=1] the polygon's circumradius
  * @returns {number[][]} an array of points, each point as an arrays of numbers
- * @linkcode Math ./src/geometry/polygons.js 31
  */
 export const makePolygonCircumradius = (sides = 3, circumradius = 1) => (
 	anglesToVecs(angleArray(sides), circumradius)
@@ -46,7 +45,6 @@ export const makePolygonCircumradius = (sides = 3, circumradius = 1) => (
  * @param {number} sides the number of sides in the polygon
  * @param {number} [circumradius=1] the polygon's circumradius
  * @returns {number[][]} an array of points, each point as an arrays of numbers
- * @linkcode Math ./src/geometry/polygons.js 42
  */
 export const makePolygonCircumradiusSide = (sides = 3, circumradius = 1) => {
 	const halfwedge = Math.PI / sides;
@@ -60,7 +58,6 @@ export const makePolygonCircumradiusSide = (sides = 3, circumradius = 1) => {
  * @param {number} sides the number of sides in the polygon
  * @param {number} [inradius=1] the polygon's inradius
  * @returns {number[][]} an array of points, each point as an arrays of numbers
- * @linkcode Math ./src/geometry/polygons.js 55
  */
 export const makePolygonInradius = (sides = 3, inradius = 1) => (
 	makePolygonCircumradius(sides, inradius / Math.cos(Math.PI / sides)));
@@ -71,7 +68,6 @@ export const makePolygonInradius = (sides = 3, inradius = 1) => (
  * @param {number} sides the number of sides in the polygon
  * @param {number} [inradius=1] the polygon's inradius
  * @returns {number[][]} an array of points, each point as an arrays of numbers
- * @linkcode Math ./src/geometry/polygons.js 65
  */
 export const makePolygonInradiusSide = (sides = 3, inradius = 1) => (
 	makePolygonCircumradiusSide(sides, inradius / Math.cos(Math.PI / sides)));
@@ -82,7 +78,6 @@ export const makePolygonInradiusSide = (sides = 3, inradius = 1) => (
  * @param {number} sides the number of sides in the polygon
  * @param {number} [length=1] the polygon's side length
  * @returns {number[][]} an array of points, each point as an arrays of numbers
- * @linkcode Math ./src/geometry/polygons.js 75
  */
 export const makePolygonSideLength = (sides = 3, length = 1) => (
 	makePolygonCircumradius(sides, (length / 2) / Math.sin(Math.PI / sides)));
@@ -93,7 +88,6 @@ export const makePolygonSideLength = (sides = 3, length = 1) => (
  * @param {number} sides the number of sides in the polygon
  * @param {number} [length=1] the polygon's side length
  * @returns {number[][]} an array of points, each point as an arrays of numbers
- * @linkcode Math ./src/geometry/polygons.js 85
  */
 export const makePolygonSideLengthSide = (sides = 3, length = 1) => (
 	makePolygonCircumradiusSide(sides, (length / 2) / Math.sin(Math.PI / sides)));
@@ -103,7 +97,6 @@ export const makePolygonSideLengthSide = (sides = 3, length = 1) => (
  * @param {number[][]} polygon a polygon as an array of ordered points in array form
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} a copy of the polygon with collinear points removed
- * @linkcode Math ./src/geometry/polygons.js 94
  */
 export const makePolygonNonCollinear = (polygon, epsilon = EPSILON) => {
 	// index map [i] to [i, i+1]
@@ -127,7 +120,6 @@ export const makePolygonNonCollinear = (polygon, epsilon = EPSILON) => {
  * @returns {number} the area of the polygon
  * @example
  * var area = polygon.signedArea([ [1,2], [5,6], [7,0] ])
- * @linkcode Math ./src/geometry/polygons.js 152
  */
 export const signedArea = points => 0.5 * points
 	.map((el, i, arr) => [el, arr[(i + 1) % arr.length]])
@@ -140,7 +132,6 @@ export const signedArea = points => 0.5 * points
  * @returns {number[]} one 2D point as an array of numbers
  * @example
  * var centroid = polygon.centroid([ [1,2], [8,9], [8,0] ])
- * @linkcode Math ./src/geometry/polygons.js 164
  */
 export const centroid = (points) => {
 	const sixthArea = 1 / (6 * signedArea(points));
@@ -172,7 +163,6 @@ const getDimension = (points) => {
  * @param {number} [padding=0] optionally add padding around the box
  * @returns {Box?} an object where "min" and "max" are two points and
  * "span" is the lengths. returns "undefined" if no points were provided.
- * @linkcode Math ./src/geometry/polygons.js 183
  */
 export const boundingBox = (points, padding = 0) => {
 	if (!points || !points.length) { return undefined; }

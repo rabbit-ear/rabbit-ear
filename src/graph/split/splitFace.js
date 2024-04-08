@@ -79,7 +79,7 @@ const updateFacesVerticesSplit = ({ faces_vertices }, face, vertices) => (
 	).map((face_vertices) => faces_vertices.push(face_vertices)));
 
 /**
-* @description
+* @description Internal
 * @param {FOLD} graph a FOLD object
 * @param {number} face the index of the face to be split into two faces
 * @param {number[]} vertices two vertices, members of this face's vertices,
@@ -630,7 +630,15 @@ export const cutFaceToPoint = (
 );
 
 /**
- * @description
+ * @description Split a face into two faces by specifying two vertices,
+ * place a new edge between the two vertices, and rebuild all component arrays.
+ * @param {FOLD} graph a FOLD object, modified in place, must contain
+ * vertices_coords, edges_vertices, and faces_vertices to work.
+ * @param {number} face index of face to split
+ * @param {number[]} vertices the vertices which will create a new edge
+ * @param {string} [assignment="U"] the assignment of the new edge
+ * @param {number} [foldAngle=0] the fold angle of the new edge
+ * @returns {object} a summary of changes to the FOLD object
  */
 export const splitFaceWithEdge = (
 	graph,
@@ -746,7 +754,6 @@ const splitFaceIsolatedEdge = (graph, vertices, assignment, foldAngle) => {
  * @param {string} [assignment="U"] the assignment of the new edge
  * @param {number} [foldAngle=0] the fold angle of the new edge
  * @returns {object} a summary of changes to the FOLD object
- * @linkcode
  */
 export const splitFace = (
 	graph,

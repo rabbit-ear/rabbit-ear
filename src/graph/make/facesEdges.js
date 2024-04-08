@@ -10,7 +10,6 @@ import {
  * @param {FOLD} graph a FOLD graph, with
  * edges_vertices and faces_vertices
  * @returns {number[][]} a `faces_edges` array
- * @linkcode Origami ./src/graph/make.js 751
  */
 export const makeFacesEdgesFromVertices = ({ edges_vertices, faces_vertices }) => {
 	const map = makeVerticesToEdge({ edges_vertices });

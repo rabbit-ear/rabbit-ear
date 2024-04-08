@@ -139,7 +139,6 @@ const buildFacesIfNeeded = (graph, reface) => {
  * @param {object} options object, with the ability to request that the
  * faces be rebuilt by walking 2D planar faces, specify { "faces": true }.
  * @return {FOLD} graph the same input graph object
- * @linkcode Origami ./src/graph/populate.js 114
  */
 const populate = (graph, options = {}) => {
 	if (typeof graph !== "object") { return graph; }

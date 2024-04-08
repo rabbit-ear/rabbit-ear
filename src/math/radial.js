@@ -30,7 +30,6 @@ import {
  * @param {number} floor angle in radians, lower bound
  * @param {number} ceiling angle in radians, upper bound
  * @returns {boolean} is the angle between floor and ceiling
- * @linkcode Math ./src/geometry/radial.js 32
  */
 export const isCounterClockwiseBetween = (angle, floor, ceiling) => {
 	while (ceiling < floor) { ceiling += TWO_PI; }
@@ -45,7 +44,6 @@ export const isCounterClockwiseBetween = (angle, floor, ceiling) => {
  * @param {number} a vector as an angle in radians
  * @param {number} b vector as an angle in radians
  * @returns {number} interior angle in radians
- * @linkcode Math ./src/geometry/radial.js 46
  */
 export const clockwiseAngleRadians = (a, b) => {
 	// this is on average 50 to 100 times faster than clockwiseAngle2
@@ -65,7 +63,6 @@ export const clockwiseAngleRadians = (a, b) => {
  * @param {number} a vector as an angle in radians
  * @param {number} b vector as an angle in radians
  * @returns {number} interior angle in radians, counter-clockwise from a to b
- * @linkcode Math ./src/geometry/radial.js 65
  */
 export const counterClockwiseAngleRadians = (a, b) => {
 	// this is on average 50 to 100 times faster than counterClockwiseAngle2
@@ -85,7 +82,6 @@ export const counterClockwiseAngleRadians = (a, b) => {
  * @param {number[]} a vector as an array of two numbers
  * @param {number[]} b vector as an array of two numbers
  * @returns {number} interior angle in radians, clockwise from a to b
- * @linkcode Math ./src/geometry/radial.js 84
  */
 export const clockwiseAngle2 = (a, b) => {
 	const dotProduct = b[0] * a[0] + b[1] * a[1];
@@ -101,7 +97,6 @@ export const clockwiseAngle2 = (a, b) => {
  * @param {number[]} a vector as an array of two numbers
  * @param {number[]} b vector as an array of two numbers
  * @returns {number} interior angle in radians, counter-clockwise from a to b
- * @linkcode Math ./src/geometry/radial.js 99
  */
 export const counterClockwiseAngle2 = (a, b) => {
 	const dotProduct = a[0] * b[0] + a[1] * b[1];
@@ -124,10 +119,9 @@ export const counterClockwiseAngle2 = (a, b) => {
 
 /**
  * @description calculate the angle bisection clockwise from the first vector to the second.
- * @param {number[]} a one 2D vector
- * @param {number[]} b one 2D vector
- * @returns {number[]} one 2D vector
- * @linkcode Math ./src/geometry/radial.js 123
+ * @param {[number, number]} a one 2D vector
+ * @param {[number, number]} b one 2D vector
+ * @returns {[number, number]} one 2D vector
  */
 export const clockwiseBisect2 = (a, b) => (
 	angleToVector(vectorToAngle(a) - clockwiseAngle2(a, b) / 2)
@@ -135,10 +129,9 @@ export const clockwiseBisect2 = (a, b) => (
 
 /**
  * @description calculate the angle bisection counter-clockwise from the first vector to the second.
- * @param {number[]} a one 2D vector
- * @param {number[]} b one 2D vector
- * @returns {number[]} one 2D vector
- * @linkcode Math ./src/geometry/radial.js 131
+ * @param {[number, number]} a one 2D vector
+ * @param {[number, number]} b one 2D vector
+ * @returns {[number, number]} one 2D vector
  */
 export const counterClockwiseBisect2 = (a, b) => (
 	angleToVector(vectorToAngle(a) + counterClockwiseAngle2(a, b) / 2)
@@ -150,7 +143,6 @@ export const counterClockwiseBisect2 = (a, b) => (
  * @param {number} angleA one angle in radians
  * @param {number} angleB one angle in radians
  * @returns {number[]} array of angles in radians
- * @linkcode Math ./src/geometry/radial.js 142
  */
 export const clockwiseSubsectRadians = (angleA, angleB, divisions) => {
 	const angle = clockwiseAngleRadians(angleA, angleB) / divisions;
@@ -164,7 +156,6 @@ export const clockwiseSubsectRadians = (angleA, angleB, divisions) => {
  * @param {number} angleA one angle in radians
  * @param {number} angleB one angle in radians
  * @returns {number[]} array of angles in radians
- * @linkcode Math ./src/geometry/radial.js 155
  */
 export const counterClockwiseSubsectRadians = (angleA, angleB, divisions) => {
 	const angle = counterClockwiseAngleRadians(angleA, angleB) / divisions;
@@ -178,7 +169,6 @@ export const counterClockwiseSubsectRadians = (angleA, angleB, divisions) => {
  * @param {number[]} vectorA one vector in array form
  * @param {number[]} vectorB one vector in array form
  * @returns {number[][]} array of vectors (which are arrays of numbers)
- * @linkcode Math ./src/geometry/radial.js 168
  */
 export const clockwiseSubsect2 = (vectorA, vectorB, divisions) => {
 	const angleA = Math.atan2(vectorA[1], vectorA[0]);
@@ -193,7 +183,6 @@ export const clockwiseSubsect2 = (vectorA, vectorB, divisions) => {
  * @param {number[]} vectorA one vector in array form
  * @param {number[]} vectorB one vector in array form
  * @returns {number[][]} array of vectors (which are arrays of numbers)
- * @linkcode Math ./src/geometry/radial.js 182
  */
 export const counterClockwiseSubsect2 = (vectorA, vectorB, divisions) => {
 	const angleA = Math.atan2(vectorA[1], vectorA[0]);
@@ -211,7 +200,6 @@ export const counterClockwiseSubsect2 = (vectorA, vectorB, divisions) => {
  * @param {number[]} radians array of angles in radians
  * @returns {number[]} array of indices of the input array, indicating
  * the counter-clockwise sorted arrangement.
- * @linkcode Math ./src/geometry/radial.js 201
  */
 export const counterClockwiseOrderRadians = (radians) => {
 	const counter_clockwise = radians
@@ -225,10 +213,9 @@ export const counterClockwiseOrderRadians = (radians) => {
 /**
  * @description sort an array of vectors by getting an array of
  * reference indices to the input array, instead of a sorted array of vectors.
- * @param {number[][]} ...args array of vectors (which are arrays of numbers)
+ * @param {number[][]} vectors array of vectors (which are arrays of numbers)
  * @returns {number[]} array of indices of the input array, indicating
  * the counter-clockwise sorted arrangement.
- * @linkcode Math ./src/geometry/radial.js 218
  */
 export const counterClockwiseOrder2 = (vectors) => (
 	counterClockwiseOrderRadians(vectors.map(vectorToAngle))
@@ -237,9 +224,8 @@ export const counterClockwiseOrder2 = (vectors) => (
 /**
  * @description given an array of angles, return the sector angles between
  * consecutive parameters. if radially unsorted, this will sort them.
- * @param {number[]} ...args array or sequence of angles in radians
+ * @param {number[]} radians array of angles in radians
  * @returns {number[]} array of sector angles in radians
- * @linkcode Math ./src/geometry/radial.js 230
  */
 export const counterClockwiseSectorsRadians = (radians) => (
 	counterClockwiseOrderRadians(radians)
@@ -251,9 +237,8 @@ export const counterClockwiseSectorsRadians = (radians) => (
 /**
  * @description given an array of vectors, return the sector angles between
  * consecutive parameters. if radially unsorted, this will sort them.
- * @param {number[][]} args array of 2D vectors (higher dimensions will be ignored)
+ * @param {number[][]} vectors array of 2D vectors (higher dimensions will be ignored)
  * @returns {number[]} array of sector angles in radians
- * @linkcode Math ./src/geometry/radial.js 244
  */
 export const counterClockwiseSectors2 = (vectors) => (
 	counterClockwiseSectorsRadians(vectors.map(vectorToAngle))
@@ -283,16 +268,15 @@ export const counterClockwiseSectors2 = (vectors) => (
 /**
  * @description which turn direction do 3 points make?
  * clockwise or counter-clockwise?
- * @param {number[]} p0 the start point
- * @param {number[]} p1 the middle point
- * @param {number[]} p2 the end point
+ * @param {[number, number]} p0 the start point
+ * @param {[number, number]} p1 the middle point
+ * @param {[number, number]} p2 the end point
  * @param {number} [epsilon=1e-6] optional epsilon
  * @returns {number|undefined} with 4 possible results:
  * - "0": collinear, no turn, forward
  * - "1": counter-clockwise turn, 0+epsilon < x < 180-epsilon
  * - "-1": clockwise turn, 0-epsilon > x > -180+epsilon
  * - "undefined": collinear but with a 180 degree turn.
- * @linkcode Math ./src/geometry/radial.js 282
  */
 export const threePointTurnDirection = (p0, p1, p2, epsilon = EPSILON) => {
 	const v = normalize2(subtract2(p1, p0));

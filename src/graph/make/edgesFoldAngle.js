@@ -26,7 +26,6 @@ const assignment_angles = { M: -180, m: -180, V: 180, v: 180 };
  * @description Convert edges assignment into fold angle in degrees for every edge.
  * @param {FOLD} graph a FOLD object, with edges_assignment
  * @returns {number[]} array of fold angles in degrees
- * @linkcode Origami ./src/graph/make.js 564
  */
 export const makeEdgesFoldAngle = ({ edges_assignment }) => edges_assignment
 	.map(a => assignment_angles[a] || 0);
@@ -44,7 +43,6 @@ export const makeEdgesFoldAngle = ({ edges_assignment }) => edges_assignment
  * will be consulted to differentiate between 180 degree M or V folds.
  * @param {FOLD} graph a FOLD object
  * @returns {number[]} for every edge, an angle in degrees.
- * @linkcode Origami ./src/graph/make.js 581
  */
 export const makeEdgesFoldAngleFromFaces = ({
 	vertices_coords,

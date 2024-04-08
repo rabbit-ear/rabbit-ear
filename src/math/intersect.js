@@ -35,7 +35,6 @@ import {
  * - point: {number[]|undefined} one 2D point or undefined
  * - a: {number|undefined} the intersection parameter along the first line
  * - b: {number|undefined} the intersection parameter along the second line
- * @linkcode Math ./src/intersect/intersect.js 39
 */
 export const intersectLineLine = (
 	a,
@@ -73,7 +72,6 @@ export const intersectLineLine = (
  * @param {function} [lineFunc=includeL] set the line/ray/segment
  * and inclusive/exclusive
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @linkcode Math ./src/intersect/intersect.js 74
  */
 export const intersectCircleLine = (
 	circle,

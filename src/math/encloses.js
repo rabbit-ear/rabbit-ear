@@ -11,7 +11,6 @@ import { EPSILON } from "./constant.js";
  * around the outer bounding box; a negative number will make
  * the boundary exclusive.
  * @returns {boolean} is the "inner" polygon completely inside the "outer"
- * @linkcode Math ./src/intersect/encloses.js 16
  */
 export const pointInBoundingBox = (point, box, epsilon = EPSILON) => {
 	for (let d = 0; d < point.length; d += 1) {
@@ -32,7 +31,6 @@ export const pointInBoundingBox = (point, box, epsilon = EPSILON) => {
  * around the outer bounding box; a negative number will make
  * the boundary exclusive.
  * @returns {boolean} is the "inner" polygon completely inside the "outer"
- * @linkcode Math ./src/intersect/encloses.js 16
  */
 export const enclosingBoundingBoxes = (outer, inner, epsilon = EPSILON) => {
 	const dimensions = Math.min(outer.min.length, inner.min.length);

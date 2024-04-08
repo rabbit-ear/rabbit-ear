@@ -17,7 +17,6 @@ import { maekawaSolver } from "../../singleVertex/maekawa.js";
  * @returns {object[]} array of solutions where each solution contains
  * "layer" and "assignment", where layer is a "faces_layer" mapping, and assignment
  * is an array of assignment characters.
- * @linkcode Origami ./src/layer/singleVertexSolver/assignmentSolver.js 20
  */
 const assignmentSolver = (orderedScalars, assignments, epsilon) => {
 	if (assignments == null) {

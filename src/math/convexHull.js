@@ -36,7 +36,7 @@ const mirrorArray = (arr) => arr.concat(arr.slice(0, -1).reverse());
  * @param {any[]} elements an array of any objects
  * @param {function} comparison a function which accepts two paramters, type
  * matching the any[] parameter, which returns -1, 0, or +1.
- * @returns {array[]} an array of indices, indices of the "elements" array
+ * @returns {number[]} an array of indices, indices of the "elements" array
  */
 const minimumCluster = (elements, comparison) => {
 	// find the set of all vectors that share the smallest X value within an epsilon
@@ -61,7 +61,6 @@ const minimumCluster = (elements, comparison) => {
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number|undefined} the index of the point in the array with
  * the smallest component values, or undefined if points is empty.
- * @linkcode Math ./src/general/search.js 60
  */
 const smallestVector2 = (points, epsilon = EPSILON) => {
 	if (!points || !points.length) { return undefined; }
@@ -91,7 +90,6 @@ const smallestVector2 = (points, epsilon = EPSILON) => {
  * @returns {number[][]} this returns indices in clusters.
  * @todo there is a wrap-around point where the cycle will not cluster
  * values which otherwise should be clustered.
- * @linkcode Math ./src/general/sort.js 75
  */
 export const convexHullRadialSortPoints = (points, epsilon = EPSILON) => {
 	const first = smallestVector2(points, epsilon);
@@ -127,7 +125,6 @@ export const convexHullRadialSortPoints = (points, epsilon = EPSILON) => {
  * @param {number} [epsilon=1e-6] undefined behavior when larger than 0.01
  * @returns {number[]} not the points, but the indices
  * of points in your "points" array
- * @linkcode Math ./src/geometry/convexHull.js 22
  */
 export const convexHull = (points = [], includeCollinear = false, epsilon = EPSILON) => {
 	if (points.length < 2) { return []; }
@@ -177,7 +174,6 @@ export const convexHull = (points = [], includeCollinear = false, epsilon = EPSI
  * @param {number} [epsilon=1e-6] undefined behavior when larger than 0.01
  * @returns {number[][]} the convex hull as a list of points,
  * where each point is an array of numbers
- * @linkcode Math ./src/geometry/convexHull.js 71
  */
 // export const convexHullAsPoints = (points = [], includeCollinear = false, epsilon = EPSILON) => (
 // 	convexHull(points, includeCollinear, epsilon)

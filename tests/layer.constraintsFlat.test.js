@@ -2,7 +2,7 @@ import fs from "fs";
 import { expect, test } from "vitest";
 import ear from "../src/index.js";
 
-test("makeSolverConstraintsFlat four panel square", () => {
+test("makeSolverConstraintsFlat, four panel square", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/panels-4x2.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
@@ -41,7 +41,7 @@ test("makeSolverConstraintsFlat four panel square", () => {
 	expect(transitivity).toMatchObject([]);
 });
 
-test("makeSolverConstraintsFlat strip weave", () => {
+test("makeSolverConstraintsFlat, strip weave", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/strip-weave.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
@@ -67,7 +67,7 @@ test("makeSolverConstraintsFlat strip weave", () => {
 	expect(faces_winding).toMatchObject([true, false, true, false, false, true, false]);
 });
 
-test("makeSolverConstraintsFlat zig-zag panels", () => {
+test("makeSolverConstraintsFlat, zig-zag panels", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/panels-zig-zag.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
@@ -99,7 +99,32 @@ test("makeSolverConstraintsFlat zig-zag panels", () => {
 	expect(transitivity).toMatchObject([[0, 1, 3]]);
 });
 
-test("makeSolverConstraintsFlat triangle strip", () => {
+// test("makeSolverConstraintsFlat, flat grid", () => {
+// 	const foldfile = fs.readFileSync("./tests/files/fold/layers-flat-grid.fold", "utf-8");
+// 	const fold = JSON.parse(foldfile);
+// 	const folded = {
+// 		...fold,
+// 		vertices_coords: ear.graph.makeVerticesCoordsFlatFolded(fold),
+// 	}
+// 	ear.graph.populate(folded);
+
+// 	const result = ear.layer.makeSolverConstraintsFlat(folded);
+
+// 	expect(result.constraints.taco_taco).toHaveLength(0);
+// 	expect(result.constraints.taco_tortilla).toHaveLength(0);
+// 	expect(result.constraints.tortilla_tortilla).toHaveLength(30);
+// 	expect(result.constraints.transitivity).toHaveLength(0);
+// 	expect(result).toMatchObject({
+// 		facePairs: [
+// 			"2 3", "4 23", "5 51", "6 50", "7 49", "8 48", "24 25", "26 32", "27 54", "28 55", "29 56", "30 31", "33 34", "35 36", "37 38", "39 40", "41 42", "43 44", "52 63", "53 62", "59 66",
+// 		],
+// 		orders: {
+// 			"2 3": 1, "24 25": 1, "30 31": 1, "33 34": 1, "37 38": 1, "41 42": 1,
+// 		}
+// 	});
+// });
+
+test("makeSolverConstraintsFlat, triangle strip", () => {
 	const fileStrip1 = fs.readFileSync("./tests/files/fold/triangle-strip.fold", "utf-8");
 	const fileStrip2 = fs.readFileSync("./tests/files/fold/triangle-strip-2.fold", "utf-8");
 	const foldStrip1 = JSON.parse(fileStrip1);
@@ -157,7 +182,7 @@ test("makeSolverConstraintsFlat triangle strip", () => {
 	expect(transitivity).toMatchObject([[2, 3, 14], [18, 19, 20]]);
 });
 
-test("makeSolverConstraintsFlat bird base", () => {
+test("makeSolverConstraintsFlat, bird base", () => {
 	const cp = ear.graph.bird();
 	const folded = {
 		...cp,
@@ -260,7 +285,7 @@ test("makeSolverConstraintsFlat bird base", () => {
 	]);
 });
 
-test("makeSolverConstraintsFlat kabuto", () => {
+test("makeSolverConstraintsFlat, kabuto", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/kabuto.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
@@ -289,7 +314,7 @@ test("makeSolverConstraintsFlat kabuto", () => {
 	expect(Object.keys(orders).length).toBe(20);
 });
 
-test("makeSolverConstraintsFlat crane", () => {
+test("makeSolverConstraintsFlat, crane", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	// const cp = ear.graph.getFramesByClassName(fold, "creasePattern")[0];
@@ -320,7 +345,7 @@ test("makeSolverConstraintsFlat crane", () => {
 	expect(Object.keys(orders).length).toBe(102);
 });
 
-test("makeSolverConstraintsFlat flapping bird", () => {
+test("makeSolverConstraintsFlat, flapping bird", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/randlett-flapping-bird.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];

@@ -7,7 +7,6 @@ import remove from "../remove.js";
  * @description Get the indices of all vertices which make no appearance in any edge.
  * @param {FOLD} graph a FOLD object
  * @returns {number[]} the indices of the isolated vertices
- * @linkcode Origami ./src/graph/verticesViolations.js 25
  */
 export const edgeIsolatedVertices = ({ vertices_coords, edges_vertices }) => {
 	if (!vertices_coords || !edges_vertices) { return []; }
@@ -28,7 +27,6 @@ export const edgeIsolatedVertices = ({ vertices_coords, edges_vertices }) => {
  * @description Get the indices of all vertices which make no appearance in any face.
  * @param {FOLD} graph a FOLD object
  * @returns {number[]} the indices of the isolated vertices
- * @linkcode Origami ./src/graph/verticesViolations.js 45
  */
 export const faceIsolatedVertices = ({ vertices_coords, faces_vertices }) => {
 	if (!vertices_coords || !faces_vertices) { return []; }
@@ -51,7 +49,6 @@ export const faceIsolatedVertices = ({ vertices_coords, faces_vertices }) => {
  * @description Get the indices of all vertices which make no appearance in any edge or face.
  * @param {FOLD} graph a FOLD object
  * @returns {number[]} the indices of the isolated vertices
- * @linkcode Origami ./src/graph/verticesViolations.js 68
  */
 export const isolatedVertices = ({ vertices_coords, edges_vertices, faces_vertices }) => {
 	if (!vertices_coords) { return []; }
@@ -89,7 +86,6 @@ export const isolatedVertices = ({ vertices_coords, edges_vertices, faces_vertic
  * isolatedVertices() has already been called, provide the result here to speed
  * up the algorithm.
  * @returns {object} summary of changes
- * @linkcode Origami ./src/graph/verticesViolations.js 105
  */
 export const removeIsolatedVertices = (graph, remove_indices) => {
 	if (!remove_indices) {

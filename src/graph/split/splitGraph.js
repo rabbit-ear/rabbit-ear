@@ -37,7 +37,14 @@ const arraysLengthSum = (...arrays) => arrays
 	.reduce((a, b) => a + b, 0);
 
 /**
- * @description
+ * @description The internal function for splitting a graph with a line
+ * @param {FOLD} graph a FOLD object, modified in place
+ * @param {VecLine} line a splitting line
+ * @param {function} lineDomain the domain function for the line
+ * @param {number[][]} interiorPoints if the line is a segment or ray,
+ * place its endpoints here
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object} an object describing the changes
  */
 export const splitGraphWithLineAndPoints = (
 	graph,
@@ -207,6 +214,14 @@ export const splitGraphWithLineAndPoints = (
 	};
 };
 
+/**
+ * @description Split a graph with a line, modifying the graph in place,
+ * returning an object describing the changes to the components.
+ * @param {FOLD} graph a FOLD object, modified in place
+ * @param {VecLine} line a splitting line
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object} an object describing the changes
+ */
 export const splitGraphWithLine = (graph, line, epsilon = EPSILON) => (
 	splitGraphWithLineAndPoints(
 		graph,
@@ -216,6 +231,14 @@ export const splitGraphWithLine = (graph, line, epsilon = EPSILON) => (
 		epsilon,
 	));
 
+/**
+ * @description Split a graph with a ray, modifying the graph in place,
+ * returning an object describing the changes to the components.
+ * @param {FOLD} graph a FOLD object, modified in place
+ * @param {VecLine} ray a splitting ray
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object} an object describing the changes
+ */
 export const splitGraphWithRay = (graph, ray, epsilon = EPSILON) => (
 	splitGraphWithLineAndPoints(
 		graph,
@@ -225,6 +248,14 @@ export const splitGraphWithRay = (graph, ray, epsilon = EPSILON) => (
 		epsilon,
 	));
 
+/**
+ * @description Split a graph with a segment, modifying the graph in place,
+ * returning an object describing the changes to the components.
+ * @param {FOLD} graph a FOLD object, modified in place
+ * @param {number[][]} segment a pair of points forming a line segment
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {object} an object describing the changes
+ */
 export const splitGraphWithSegment = (graph, segment, epsilon = EPSILON) => (
 	splitGraphWithLineAndPoints(
 		graph,

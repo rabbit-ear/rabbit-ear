@@ -18,9 +18,10 @@ import {
  * and given the location of that triangle's points in space, find the
  * location of the point in space.
  * https://stackoverflow.com/questions/9747227/2d-trilateration
- * @param {number[][]} pts three 2D triangle points
- * @param {number[]} radii three distances to each of the triangle points
- * @returns {number[] | undefined} the 2D location of the point
+ * @param {[[number, number], [number, number], [number, number]]} pts
+ * three 2D triangle points
+ * @param {[number, number, number]} radii three distances to each of the triangle points
+ * @returns {[number, number] | undefined} the 2D location of the point
  * inside the triangle, undefined if bad inputs.
  */
 export const trilateration = (pts, radii) => {
@@ -42,11 +43,10 @@ export const trilateration = (pts, radii) => {
 /**
  * @description Calculates the circumcircle with a boundary that
  * lies on three points provided by the user.
- * @param {number[]} a one 2D point as an array of numbers
- * @param {number[]} b one 2D point as an array of numbers
- * @param {number[]} c one 2D point as an array of numbers
+ * @param {[number, number]} a one 2D point as an array of numbers
+ * @param {[number, number]} b one 2D point as an array of numbers
+ * @param {[number, number]} c one 2D point as an array of numbers
  * @returns {Circle} a circle in "radius" (number) "origin" (number[]) form
- * @linkcode Math ./src/geometry/polygons.js 117
  */
 export const circumcircle = (a, b, c) => {
 	const A = b[0] - a[0];

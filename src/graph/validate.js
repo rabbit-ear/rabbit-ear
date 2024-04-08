@@ -187,7 +187,8 @@ const reflexiveTest = (a_a, aName) => (
 );
 
 /**
- * @description
+ * @description Validate that the winding around each vertex
+ * matches across arrays.
  * @param {FOLD} graph a FOLD object
  * @returns {string[]} list of errors, empty if none
  */
@@ -261,7 +262,8 @@ export const validateVerticesWinding = ({
 };
 
 /**
- * @description
+ * @description Validate that the winding around each face definition matches
+ * across arrays.
  * @param {FOLD} graph a FOLD object
  * @returns {string[]} list of errors, empty if none
  */

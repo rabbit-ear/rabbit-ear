@@ -12,7 +12,6 @@ const roundF = n => Math.round(n * 100) / 100;
  * @param {number | undefined} alpha the alpha component from 0 to 1
  * @returns {number[]} three values between 0 and 255, or four
  * if an alpha value is provided, where the fourth is between 0 and 1.
- * @linkcode Origami ./src/convert/svgParsers/colors/hexToRGB.js 10
  */
 const hslToRgb = (hue, saturation, lightness, alpha) => {
 	const s = saturation / 100;
@@ -44,7 +43,6 @@ const mapHexNumbers = (numbers, map) => {
  * This ignores any alpha values.
  * @param {string} value a hex color code as a string
  * @returns {number[]} three values between 0 and 255
- * @linkcode Origami ./src/convert/svgParsers/colors/hexToRGB.js 10
  */
 const hexToRgb = (string) => {
 	const numbers = string.replace(/#(?=\S)/g, "");

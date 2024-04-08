@@ -27,7 +27,6 @@ import {
  * @returns {boolean} is the point collinear to the line,
  * and in the case of ray/segment,
  * does the point lie within the bounds of the ray/segment?
- * @linkcode Math ./src/intersect/overlap.js 30
  */
 export const overlapLinePoint = (
 	{ vector, origin },
@@ -57,7 +56,6 @@ export const overlapLinePoint = (
  * - "t" {number[]}: the array of cross-product parameters of the point against
  *   every polygon's edge's vector. Can be used to trilaterate the point back
  *   into position.
- * @linkcode Math ./src/intersect/overlap.js 117
  */
 export const overlapConvexPolygonPoint = (
 	polygon,
@@ -87,7 +85,6 @@ export const overlapConvexPolygonPoint = (
  * @param {number[][]} poly1 a polygon as an array of points
  * @param {number[][]} poly2 a polygon as an array of points
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @linkcode Math ./src/intersect/overlap.js 136
  */
 export const overlapConvexPolygons = (poly1, poly2, epsilon = EPSILON) => {
 	for (let p = 0; p < 2; p += 1) {
@@ -130,7 +127,6 @@ export const overlapConvexPolygons = (poly1, poly2, epsilon = EPSILON) => {
  * @param {number} [epsilon=1e-6] an optional epsilon,
  * positive value (default) is inclusive, negative is exclusive.
  * @returns {boolean} true if the bounding boxes overlap each other
- * @linkcode Math ./src/intersect/overlap.js 176
  */
 export const overlapBoundingBoxes = (box1, box2, epsilon = EPSILON) => {
 	const dimensions = Math.min(box1.min.length, box2.min.length);

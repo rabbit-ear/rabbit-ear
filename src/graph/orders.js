@@ -65,7 +65,6 @@ export const faceOrdersSubset = (faceOrders, faces) => {
  * pre-calculated, or faces_vertices and vertices_coords to get the normals.
  * @returns {number[]} layers_face, for every layer (key) which face (value)
  * inhabits it. This only includes faces which are found in faceOrders.
- * @linkcode Origami ./src/layer/topological.js 10
  */
 export const linearizeFaceOrders = ({ faceOrders, faces_normal }, rootFace) => {
 	if (!faceOrders || !faceOrders.length) { return []; }
@@ -123,7 +122,6 @@ const fillInMissingFaces = ({ faces_vertices }, faces_layer) => {
  * @param {FOLD} graph a FOLD graph with either faceOrders or faces_layer.
  * @returns {number[]} layers_face, for every layer (key),
  * which face (value) inhabits it.
- * @linkcode Origami ./src/layer/topological.js 10
  */
 export const linearize2DFaces = ({
 	vertices_coords, faces_vertices, faceOrders, faces_layer, faces_normal,
@@ -153,7 +151,6 @@ export const linearize2DFaces = ({
  * @param {FOLD} graph a FOLD graph with faceOrders.
  * @returns {object[]} face-aligned array, one object per face,
  * each object with properties "vector" and "layer".
- * @linkcode Origami ./src/layer/nudge.js 37
  */
 export const nudgeFacesWithFaceOrders = ({
 	vertices_coords, faces_vertices, faceOrders, faces_normal,
@@ -190,7 +187,6 @@ export const nudgeFacesWithFaceOrders = ({
  * @param {FOLD} graph a FOLD graph with the parameter faces_layer.
  * @returns {object[]} face-aligned array, one object per face,
  * each object with properties "vector" and "layer".
- * @linkcode Origami ./src/layer/nudge.js 16
  */
 export const nudgeFacesWithFacesLayer = ({ faces_layer }) => {
 	const faces_nudge = [];
@@ -227,7 +223,6 @@ export const makeFacesLayer = ({ vertices_coords, faces_vertices, faceOrders, fa
  * in a faces_layer encoding.
  * @param {number[]} faces_layer a faces_layer array
  * @returns {number[]} a new faces_layer array
- * @linkcode Origami ./src/layer/general.js 12
  */
 export const flipFacesLayer = (faces_layer) => invertArrayToFlatMap(
 	invertFlatToArrayMap(faces_layer).reverse(),
@@ -250,7 +245,6 @@ export const flipFacesLayer = (faces_layer) => invertArrayToFlatMap(
  * @param {FOLD} graph a FOLD graph, with the vertices already folded.
  * @param {number[]} faces_layer a faces_layer array
  * @returns {string[]} an edges_assignment array.
- * @linkcode Origami ./src/layer/general.js 23
  */
 // export const facesLayerToEdgesAssignments = (graph, faces_layer) => {
 // 	const edges_assignment = [];
@@ -282,7 +276,6 @@ export const flipFacesLayer = (faces_layer) => invertArrayToFlatMap(
  * @param {number[]} faceOrders an array of FOLD spec faceOrders.
  * @returns {number[][]} NxN matrix, number of faces, containing +1,-1,0
  * as values showing the relationship between i to j in face[i][j].
- * @linkcode Origami ./src/layer/general.js 54
  */
 // export const faceOrdersToMatrix = (faceOrders) => {
 // 	const faces = [];

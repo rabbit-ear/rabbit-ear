@@ -14,7 +14,6 @@ const isIterable = (obj) => obj != null
  * @param {any[][]} args any array, intended to contain arrays of arrays.
  * @returns {array[]} a flattened copy, flattened up until the point before
  * combining arrays of elements.
- * @linkcode Math ./src/general/arrays.js 10
  */
 const semiFlattenArrays = function () {
 	switch (arguments.length) {
@@ -34,7 +33,6 @@ const semiFlattenArrays = function () {
  * @description Totally flatten, recursive
  * @param {array[][]} args any array, intended to contain arrays of arrays.
  * @returns {array[]} fully, recursively flattened array
- * @linkcode Math ./src/general/arrays.js 30
  */
 const flattenArrays = function () {
 	switch (arguments.length) {

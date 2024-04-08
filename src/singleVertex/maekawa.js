@@ -26,7 +26,6 @@ const getUnassignedIndices = (edges_assignment) => edges_assignment
  * assignment characters of the edges radially around a single vertex.
  * @returns {string[][]} array of arrays of strings, all permutations where "U"
  * assignments have been replaced with "V" or "M".
- * @linkcode Origami ./src/singleVertex/maekawaSolver.js 19
  */
 export const maekawaSolver = (vertices_edgesAssignments) => {
 	const unassigneds = getUnassignedIndices(vertices_edgesAssignments);

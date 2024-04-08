@@ -72,7 +72,6 @@ const unassigned_angle = { U: true, u: true };
  * @param {FOLD} graph a FOLD object
  * @param {number[]} [rootFaces=[]] the index of the face that will remain in place
  * @returns {number[][]} for every face, a 3x4 matrix (an array of 12 numbers).
- * @linkcode Origami ./src/graph/facesMatrix.js 65
  */
 export const makeFacesMatrix = (
 	{
@@ -135,7 +134,6 @@ export const makeFacesMatrix = (
  * @param {FOLD} graph a FOLD object
  * @param {number[]} [rootFaces=[]] the index of the face that will remain in place
  * @returns {number[][]} for every face, a 2x3 matrix (an array of 6 numbers).
- * @linkcode Origami ./src/graph/facesMatrix.js 141
  */
 export const makeFacesMatrix2 = (
 	{

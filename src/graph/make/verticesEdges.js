@@ -11,7 +11,6 @@ import {
  * @param {FOLD} graph a FOLD object, containing edges_vertices
  * @returns {number[][]} array of array of numbers, where each row corresponds to a
  * vertex index and the values in the inner array are edge indices.
- * @linkcode Origami ./src/graph/make.js 56
  */
 export const makeVerticesEdgesUnsorted = ({ edges_vertices }) => {
 	const vertices_edges = [];
@@ -34,7 +33,6 @@ export const makeVerticesEdgesUnsorted = ({ edges_vertices }) => {
  * @param {FOLD} graph a FOLD object, containing edges_vertices, vertices_vertices
  * @returns {number[][]} array of array of numbers, where each row corresponds to a
  * vertex index and the values in the inner array are edge indices.
- * @linkcode Origami ./src/graph/make.js 78
  */
 export const makeVerticesEdges = ({ edges_vertices, vertices_vertices }) => {
 	const edge_map = makeVerticesToEdge({ edges_vertices });

@@ -88,7 +88,6 @@ const parseVertex = (vertex) => vertex
  * expected to contain at least vertices and faces. All groups or object
  * separations are currently ignored, the contents are treated as one object.
  * @returns {FOLD} a FOLD representation of the OBJ file
- * @linkcode Origami ./src/convert/obj.js 77
  */
 const objToFold = (file) => {
 	const lines = file.split("\n").map(line => line.trim().split(/\s+/));

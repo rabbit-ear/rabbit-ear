@@ -25,7 +25,6 @@ import {
  * @param {FOLD} graph a FOLD object, with entries edges_vertices, faces_edges
  * @returns {number[][]} each entry relates to an edge, each array contains indices
  * of adjacent faces.
- * @linkcode Origami ./src/graph/make.js 455
  */
 export const makeEdgesFacesUnsorted = ({ edges_vertices, faces_vertices, faces_edges }) => {
 	// faces_vertices is only needed to build this array, if it doesn't exist.
@@ -54,7 +53,6 @@ export const makeEdgesFacesUnsorted = ({ edges_vertices, faces_vertices, faces_e
  * edges_vertices, faces_vertices, faces_edges
  * @returns {number[][]} each entry relates to an edge, each array contains indices
  * of adjacent faces.
- * @linkcode Origami ./src/graph/make.js 480
  */
 export const makeEdgesFaces = ({
 	vertices_coords, edges_vertices, edges_vector, faces_vertices, faces_edges, faces_center,

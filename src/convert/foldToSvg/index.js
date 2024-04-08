@@ -22,7 +22,6 @@ import {
  * - todo: more
  * @param {boolean} tell the draw method to resize the viewbox/stroke
  * @returns {SVGElement} SVG element, containing the rendering of the origami.
- * @linkcode Origami ./src/svg/index.js 185
  */
 const foldToSvg = (file, options = {}) => {
 	// render the file into a DOM element type.

@@ -287,7 +287,8 @@ const classifyEdgePair = ({ faces, planes, angleClasses }, facesFacesLookup) => 
 };
 
 /**
- * @description
+ * @description Given a FOLD graph in 3D, find all overlapping edge pairs
+ * which create solvable face-pairs between faces adjacent to the edges.
  * @param {{
  *   edges_faces: number[][],
  *   edgePairs: [number, number][],
@@ -317,7 +318,7 @@ export const getSolvable3DEdgePairs = ({
 		faces: edges.flatMap(e => edges_faces[e]),
 		planes: edges.flatMap(e => edges_faces[e].map(face => faces_plane[face])),
 		angleClasses: edges.map(edge => edges_angleClass[edge]),
-	}))
+	}));
 
 	// each edgePair gets one of these assignments.
 	// 0: ignore the first entry

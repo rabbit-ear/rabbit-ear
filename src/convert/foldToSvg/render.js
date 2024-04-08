@@ -159,7 +159,6 @@ const drawGroups = (graph, options = {}) => groupNames
  * @param {FOLD} graph a FOLD object
  * @param {object} options an optional options object to style the rendering
  * @returns {SVGElement} the first SVG parameter object.
- * @linkcode Origami ./src/svg/index.js 161
  */
 const render = (graph, element, options = {}) => {
 	// this will modify the options object and set some default

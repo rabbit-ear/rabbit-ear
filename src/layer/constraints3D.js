@@ -34,9 +34,35 @@ import {
 } from "./general.js";
 
 /**
- * @description
+ * @description Convert a 3D folded graph into the input parameters for the
+ * solver including taco-taco, taco-tortilla, tortilla-tortilla,
+ * and transitivity constraints.
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {{
+ *   constraints: {
+ *     taco_taco: TacoTacoConstraint[],
+ *     taco_tortilla: TacoTortillaConstraint[],
+ *     tortilla_tortilla: TortillaTortillaConstraint[],
+ *     transitivity: TransitivityConstraint[],
+ *   },
+ *   lookup: {
+ *     taco_taco: number[][],
+ *     taco_tortilla: number[][],
+ *     tortilla_tortilla: number[][],
+ *     transitivity: number[][],
+ *   },
+ *   facePairs: string[],
+ *   faces_winding: boolean[],
+ *   orders: { [key: string]: number },
+ * }} all data required for the solver, including:
+ * - constraints
+ * - lookup: which tells us location of faces inside of constraints
+ * - facePairs: all conditions that need to be solved, a list of
+ * space-separated pairs of face indices, "a b" where a < b.
+ * - faces_winding: for every face, which direction is the winding.
+ * - orders: solutions to facePairs that were discovered during
+ *   the construction of these constraints.
  */
 export const makeSolverConstraints3D = ({
 	vertices_coords, edges_vertices, edges_faces, edges_assignment, edges_foldAngle,

@@ -84,10 +84,10 @@
 /**
  * @typedef SweepEvent
  * @type {{ vertices: number[], t: number, start: number[], end: number[] }}
- * @property {} t - the scalar along the sweep axis which this event occurs
- * @property {} vertices - a list of indices currently overlapping this region
- * @property {} start - a list of indices beginning to overlap at this event
- * @property {} end - a list of indices no longer overlapping after this event
+ * @property {number} t - the scalar along the sweep axis which this event occurs
+ * @property {number[]} vertices - a list of indices currently overlapping this region
+ * @property {number[]} start - a list of indices beginning to overlap at this event
+ * @property {number[]} end - a list of indices no longer overlapping after this event
  */
 
 /**

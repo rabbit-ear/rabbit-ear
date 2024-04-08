@@ -15,7 +15,6 @@ import {
  * @param {number[]} array an array of integers
  * @returns {number[]} set of unique integers
  * @example [1,2,3,2,1] will result in [1,2,3]
- * @linkcode Origami ./src/general/arrays.js 10
  */
 export const uniqueElements = (array) => Array.from(new Set(array));
 
@@ -29,7 +28,6 @@ export const uniqueElements = (array) => Array.from(new Set(array));
  * @returns {any[]} the same input array but filtered to
  * remove elements which appear only once.
  * @example [1,2,3,2,1] will result in [1,2,2,1]
- * @linkcode Origami ./src/general/arrays.js 22
  */
 export const nonUniqueElements = (array) => {
 	const count = {};
@@ -46,7 +44,6 @@ export const nonUniqueElements = (array) => {
  * @param {number[]} array an array of numbers
  * @returns {number[]} set of sorted, unique numbers
  * @example [3, 2, 1.5, 2, 3] will result in [1.5, 2, 3]
- * @linkcode Origami ./src/general/arrays.js 38
  */
 export const uniqueSortedNumbers = (array) => {
 	const hash = {};
@@ -80,7 +77,7 @@ export const epsilonUniqueSortedNumbers = (array, epsilon = EPSILON) => {
  * the result will match the number shared between the two.
  * @param {any[]} array1 an array of any primitive type
  * @param {any[]} array2 an array of any primitive type
- * @param {any[]} an array of values found inside both arrays.
+ * @returns {any[]} an array of values found inside both arrays.
  */
 export const arrayIntersection = (array1, array2) => {
 	// create a lookup table for all values in array2, where the number
@@ -198,7 +195,6 @@ export const setDifferenceSortedEpsilonNumbers = (a, b, epsilon = EPSILON) => {
  * @param {function?} map an optional map function to run on all elements
  * @returns {number|undefined} an index from the input array,
  * or undefined if the array has no length.
- * @linkcode Math ./src/general/search.js 17
  */
 export const arrayMinimumIndex = (array, map) => {
 	if (!array.length) { return undefined; }
@@ -220,7 +216,6 @@ export const arrayMinimumIndex = (array, map) => {
  * @param {function?} map an optional map function to run on all elements
  * @returns {number|undefined} an index from the input array,
  * or undefined if the array has no length.
- * @linkcode
  */
 export const arrayMaximumIndex = (array, map) => {
 	if (!array.length) { return undefined; }
@@ -242,7 +237,7 @@ export const arrayMaximumIndex = (array, map) => {
  * in the subgraph() method, this method will re-join these arrays.
  * In the case where some arrays double up on indices, the index will be
  * overwritten, by the last array parameter in the sequence.
- * @param {...any[]} ...arrays arrays containing any type.
+ * @param {...any[]} arrays arrays containing any type.
  * @returns {any[]} one array
  */
 export const mergeArraysWithHoles = (...arrays) => {
@@ -259,7 +254,7 @@ export const mergeArraysWithHoles = (...arrays) => {
  * into a vertices_vertices or faces_faces style array, where for every index
  * its list contains the set of all indices (not including itself) which are
  * a member of the same cluster.
- * @param {number[][]} cluster a cluster array
+ * @param {number[][]} clusters a cluster array
  * @returns {number[][]} a reflexive array (like vertices_vertices)
  */
 export const clustersToReflexiveArrays = (clusters) => {

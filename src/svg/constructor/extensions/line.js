@@ -20,7 +20,6 @@ const setPoints = (element, ...args) => {
  * @name line
  * @description SVG Line element
  * @memberof SVG
- * @linkcode SVG ./src/nodes/spec/line.js 18
  */
 const lineDef = {
 	line: {

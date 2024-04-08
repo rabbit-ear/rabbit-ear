@@ -49,7 +49,6 @@ const groupByThree = (array) => (array.length === 3 ? [array] : Array
  * https://www.npmjs.com/package/earcut
  * @param {FOLD} graph a FOLD object.
  * @returns {number[][]} faces_vertices where all faces have only 3 vertices
- * @linkcode
  */
 export const triangulateNonConvexFacesVertices = (
 	{ vertices_coords, faces_vertices },
@@ -76,7 +75,6 @@ export const triangulateNonConvexFacesVertices = (
  * add new joined edges edges_vertices, assignment, and foldAngle.
  * @param {FOLD} graph a FOLD object, modified in place
  * @returns {FOLD} the same FOLD object as the parameter
- * @linkcode
  */
 const rebuildWithNewFaces = (graph) => {
 	if (!graph.edges_vertices) { graph.edges_vertices = []; }
@@ -141,7 +139,6 @@ const makeTriangulatedFacesNextMap = ({ faces_vertices }) => {
  * @returns {object} a summary of changes to the input parameter.
  * @todo preserve faceOrders, match preexisting faces against new ones,
  * this may create too much unnecessary data but at least it will work.
- * @linkcode
  */
 export const triangulate = (graph, earcut) => {
 	if (!graph.faces_vertices) { return {}; }

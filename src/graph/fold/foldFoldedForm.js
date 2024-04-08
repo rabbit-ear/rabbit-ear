@@ -49,7 +49,7 @@ const recalculatePointBetweenPoints = (points, parameter) => {
 };
 
 /**
- * @description
+ * @description In progress
  */
 export const foldFoldedForm = (
 	graph,
@@ -240,7 +240,7 @@ export const foldFoldedForm = (
 };
 
 /**
- * @description
+ * @description In progress
  */
 export const foldFoldedLine = (
 	graph,
@@ -262,7 +262,7 @@ export const foldFoldedLine = (
 	));
 
 /**
- * @description
+ * @description In progress
  */
 export const foldFoldedRay = (
 	graph,
@@ -284,7 +284,7 @@ export const foldFoldedRay = (
 	));
 
 /**
- * @description
+ * @description In progress
  */
 export const foldFoldedSegment = (
 	graph,

@@ -12,7 +12,6 @@ import {
  * @param {FOLD} graph a FOLD object, containing vertices_coords, faces_vertices
  * @returns {number[][]} array of array of numbers, where each row corresponds to a
  * vertex index and the values in the inner array are face indices.
- * @linkcode Origami ./src/graph/make.js 276
  */
 export const makeVerticesFacesUnsorted = ({ vertices_coords, vertices_edges, faces_vertices }) => {
 	const vertArray = vertices_coords || vertices_edges;
@@ -39,7 +38,6 @@ export const makeVerticesFacesUnsorted = ({ vertices_coords, vertices_edges, fac
  * @param {FOLD} graph a FOLD object, containing vertices_coords, vertices_vertices, faces_vertices
  * @returns {number[][]} array of array of numbers, where each row corresponds to a
  * vertex index and the values in the inner array are face indices.
- * @linkcode Origami ./src/graph/make.js 301
  */
 export const makeVerticesFaces = ({ vertices_coords, vertices_vertices, faces_vertices }) => {
 	if (!faces_vertices) { return vertices_coords.map(() => []); }

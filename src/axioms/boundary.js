@@ -25,7 +25,6 @@ const paramsToUniqueLine = (args) => args
  * @param {number[][]} boundary the polygon outline of the folding material
  * @param {any[][]} ...args the input parameters to the axiom number, points or lines
  * @returns {VecLine[]} an array of solutions as lines, or an empty array if no solutions.
- * @linkcode Origami ./src/axioms/axiomsInBoundary.js 33
  */
 export const axiomWithBoundary = (number, boundary, ...args) => {
 	const solutions = axiom(number, ...args);
@@ -43,7 +42,6 @@ export const axiomWithBoundary = (number, boundary, ...args) => {
  * @param {number[][]} boundary the bounding polygon representing the folding material
  * @param {any[][]} ...args the input parameters to the axiom number, points or lines
  * @returns {UniqueLine[]} an array of solutions as lines, or an empty array if no solutions.
- * @linkcode Origami ./src/axioms/axiomsInBoundary.js 58
  */
 export const normalAxiomWithBoundary = (number, boundary, ...args) => {
 	const solutions = normalAxiom(number, ...args).map(uniqueLineToVecLine);

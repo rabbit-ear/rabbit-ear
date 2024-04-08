@@ -11,7 +11,6 @@
  * @author https://jsperf.com/deep-copy-vs-json-stringify-json-parse/5
  * @param {object} o
  * @returns {object} a deep copy of the input
- * @linkcode Origami ./src/general/clone.js 14
  */
 const clonePolyfill = function (o) {
 	let newO;
@@ -44,7 +43,6 @@ const clonePolyfill = function (o) {
  * otherwise export the polyfill method.
  * @param {object} object
  * @returns {object} a deep copy of the input object
- * @linkcode
  */
 const clone = (typeof structuredClone === "function"
 	? structuredClone

@@ -14,7 +14,6 @@ import { makeFacesEdgesFromVertices } from "./make/facesEdges.js";
  * @param {FOLD} graph a FOLD graph. not modified.
  * @returns {FOLD|undefined} a new FOLD graph with exploded faces,
  * or undefined if no faces_vertices entry exists.
- * @linkcode Origami ./src/graph/explodeFaces.js 82
  */
 export const explodeFaces = ({
 	vertices_coords, edges_vertices, edges_assignment, edges_foldAngle,
@@ -64,7 +63,6 @@ export const explodeFaces = ({
  * @param {FOLD} graph a FOLD graph. not modified.
  * @returns {FOLD|undefined} a new FOLD graph with exploded faces,
  * or undefined if no faces_vertices entry exists.
- * @linkcode Origami ./src/graph/explodeFaces.js 82
  */
 export const explodeEdges = ({
 	vertices_coords, edges_vertices, edges_assignment, edges_foldAngle,

@@ -61,7 +61,6 @@ import {
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} for every face, a list of overlapping face indices
- * @linkcode
  */
 export const getFacesFacesOverlap = ({
 	vertices_coords, faces_vertices,
@@ -152,7 +151,10 @@ export const getEdgesEdgesCollinearOverlap = ({
 };
 
 /**
- * @description
+ * @description Given a FOLD graph with overlapping components, compute all
+ * overlap between vertices and vertices, vertices and edges, edges and edges,
+ * and faces and vertices. This leaves out faces and edges, but those can be
+ * computed via edges-edges using faces_edges.
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {{
@@ -217,7 +219,8 @@ export const getOverlappingComponents = ({
 };
 
 /**
- * @description
+ * @description Given a FOLD object with overlapping components (typically a
+ * folded form), get all overlapping faces edges.
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} for every face, a list of edge indices
@@ -365,7 +368,8 @@ export const getFacesEdgesOverlap = ({
 // both points of the same edge lie along a single polygon boundary edge.
 
 /**
- * @description
+ * @description Given a FOLD object with overlapping components (typically a
+ * folded form), get all overlapping faces edges.
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} for every edge, a list of face indices

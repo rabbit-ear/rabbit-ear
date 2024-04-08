@@ -10,10 +10,9 @@ import { nonUniqueElements } from "../../general/array.js";
  * now we refer to each face simply by its pair identifier. so now a face
  * layer stack would appear like: [1, 1, 0, 5, 5, 0] (which is a valid stack).
  * a bad layer stack would be: [1, 5, 1, 5].
- * @param {number[]} stacking order of each face where each face is
+ * @param {number[]} face_pair_stack stacking order of each face where each face is
  * encoded as its pair number identifier.
  * @returns {boolean} true if the taco stack passes this test. false if fails.
- * @linkcode Origami ./src/layer/singleVertexSolver/validateTacoTacoFacePairs.js 16
  */
 const validateTacoTacoFacePairs = (face_pair_stack) => {
 	// create a copy of "stack" that removes single faces currently missing

@@ -165,7 +165,6 @@ export const getVerticesCollinearToLine = (
  * @param {VecLine} line a line with a vector and origin component
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[]} array of edge indices which are collinear to the line
- * @linkcode Origami ./src/graph/intersect.js 39
  */
 export const getEdgesCollinearToLine = (
 	{ vertices_coords, edges_vertices, vertices_edges },
@@ -206,7 +205,6 @@ export const getEdgesCollinearToLine = (
  * So, we will create copies of the crease line, one per face, transformed
  * into place by its face's matrix, which superimposes many copies of the
  * crease line onto the crease pattern, each in place
- * @linkcode Origami ./src/graph/flatFold/index.js 96
  */
 export const flatFold = (
 	graph,

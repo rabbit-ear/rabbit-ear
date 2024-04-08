@@ -29,7 +29,6 @@ const fromPoints = (a, b, c, d) => [a, b, svg_distance2([a, b], [c, d])];
  * @param {number} radius the radius of the circle
  * @param {...number|number[]} center the center of the circle
  * @returns {Element} an SVG node element
- * @linkcode SVG ./src/nodes/spec/circle.js 28
  */
 const circleDef = {
 	circle: {

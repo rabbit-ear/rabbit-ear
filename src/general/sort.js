@@ -21,7 +21,6 @@ import {
  * every element in the array with the input item parameter, placing
  * the array element first, the input item second: fn(arrayElem, paramItem)
  * @returns {number[]} the indices of the original array, in sorted order
- * @linkcode Math ./src/general/sort.js 24
  */
 const sortAgainstItem = (array, item, compareFn) => array
 	.map((el, i) => ({ i, n: compareFn(el, item) }))
@@ -34,7 +33,6 @@ const sortAgainstItem = (array, item, compareFn) => array
  * @param {number[][]} points array of points (which are arrays of numbers)
  * @param {number[]} vector one vector
  * @returns {number[]} a list of sorted indices to the points array.
- * @linkcode Math ./src/general/sort.js 36
  */
 export const sortPointsAlongVector = (points, vector) => (
 	sortAgainstItem(points, vector, dot)
@@ -46,7 +44,6 @@ export const sortPointsAlongVector = (points, vector) => (
  * Vectors must be normalized within the 2nd dimension.
  * @param {number[][]} vectors a list of 2D unit vectors
  * @returns {number[]} a list of indices that reference the input list.
- * @linkcode
  * @notes
  *
  *       (+y)
@@ -94,7 +91,6 @@ export const radialSortUnitVectors2 = (vectors) => {
  * @param {number[]} origin a point which this line passes through,
  * by default this is set to be the origin.
  * @returns {number[]} a list of indices that reference the input list.
- * @linkcode
  */
 export const radialSortVectors3 = (
 	points,

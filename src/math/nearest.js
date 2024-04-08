@@ -28,7 +28,6 @@ import {
  * @param {number[][]} points an array of 2D points to test against
  * @param {number[]} point the 2D point to test nearness to
  * @returns {number[]} one point from the array of points
- * @linkcode Math ./src/geometry/nearest.js 26
  */
 export const nearestPoint2 = (points, point) => {
 	// todo speed up with partitioning
@@ -41,7 +40,6 @@ export const nearestPoint2 = (points, point) => {
  * @param {number[][]} points an array of points to test against
  * @param {number[]} point the point to test nearness to
  * @returns {number[]} one point from the array of points
- * @linkcode Math ./src/geometry/nearest.js 38
  */
 export const nearestPoint = (points, point) => {
 	// todo speed up with partitioning
@@ -59,7 +57,6 @@ export const nearestPoint = (points, point) => {
  * for segments, greater than 0 for rays, or unbounded for lines.
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[]} a point
- * @linkcode Math ./src/geometry/nearest.js 54
  */
 export const nearestPointOnLine = (
 	{ vector, origin },
@@ -86,7 +83,6 @@ export const nearestPointOnLine = (
  * @param {number[]} point the point to test nearness to
  * @returns {number[]} a point
  * edge index matches vertices such that edge(N) = [vert(N), vert(N + 1)]
- * @linkcode Math ./src/geometry/nearest.js 79
  */
 export const nearestPointOnPolygon = (polygon, point) => polygon
 	.map((p, i, arr) => subtract(arr[(i + 1) % arr.length], p))
@@ -100,10 +96,8 @@ export const nearestPointOnPolygon = (polygon, point) => polygon
  * @description find the nearest point on the boundary of a circle to another point
  * that is closest to the provided point.
  * @param {Circle} circle object with "radius" (number) and "origin" (number[])
- * @param {number[]} origin the origin of the circle as an array of numbers.
  * @param {number[]} point the point to test nearness to
  * @returns {number[]} a point
- * @linkcode Math ./src/geometry/nearest.js 95
  */
 export const nearestPointOnCircle = ({ radius, origin }, point) => (
 	add(origin, scale(normalize(subtract(point, origin)), radius))

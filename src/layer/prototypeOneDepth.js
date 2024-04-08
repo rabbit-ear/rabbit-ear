@@ -22,7 +22,6 @@ export const LayerPrototype = {
 	/**
 	 * @description For every branch, get the total number of states.
 	 * @returns {number[]} the total number of states in each branch.
-	 * @linkcode Origami ./src/layer/globalSolver/prototype.js 31
 	 */
 	count: function () {
 		return this.branches.map(arr => arr.length);
@@ -36,7 +35,6 @@ export const LayerPrototype = {
 	 * each branch, otherwise this will return index 0 from each branch.
 	 * @returns {number[]} a faces_layer ordering, where, for each face (index),
 	 * the value is that face's layer in the +Z order stack.
-	 * @linkcode Origami ./src/layer/globalSolver/prototype.js 69
 	 */
 	faceOrders: function (...indices) {
 		return solverSolutionToFaceOrders(
@@ -52,7 +50,6 @@ export const LayerPrototype = {
 	 * each branch, otherwise this will return index 0 from each branch.
 	 * @returns {number[]} a faces_layer ordering, where, for each face (index),
 	 * the value is that face's layer in the +Z order stack.
-	 * @linkcode Origami ./src/layer/globalSolver/prototype.js 69
 	 */
 	facesLayer: function (...indices) {
 		return invertFlatMap(this.linearize(...indices).reverse());
@@ -66,7 +63,6 @@ export const LayerPrototype = {
 	 * each branch, otherwise this will return index 0 from each branch.
 	 * @returns {object} an object with space-separated face pair keys, with
 	 * a value of +1 or -1, indicating the stacking order between the pair.
-	 * @linkcode Origami ./src/layer/globalSolver/prototype.js 43
 	 */
 	compile: function (...indices) {
 		// the "indices" is an array of numbers, the length matching "branches"
@@ -87,7 +83,6 @@ export const LayerPrototype = {
 	 * the first face is above the second.
 	 * @param {number[]} ...indices optionally specify which state from
 	 * each branch, otherwise this will return index 0 from each branch.
-	 * @linkcode
 	 */
 	directedPairs: function (...indices) {
 		const orders = this.compile(...indices);
@@ -103,7 +98,6 @@ export const LayerPrototype = {
 	 * in the solution. The first face in the array is "above" all others.
 	 * @param {number[]} ...indices optionally specify which state from
 	 * each branch, otherwise this will return index 0 from each branch.
-	 * @linkcode
 	 */
 	linearize: function (...indices) {
 		return topologicalSort(this.directedPairs(...indices));

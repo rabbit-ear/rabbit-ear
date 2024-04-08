@@ -51,7 +51,6 @@ const getVerticesWithNoFolds = ({ vertices_edges, edges_assignment }) => (
  * @param {FOLD} graph a FOLD object
  * @returns {number[]} for every vertex, the number of its edges which violate
  * Maekawa's theorem (0 means that the theorem is satisfied).
- * @linkcode
  */
 export const verticesFlatFoldabilityMaekawa = ({
 	edges_vertices, vertices_edges, edges_assignment,
@@ -85,7 +84,6 @@ export const verticesFlatFoldabilityMaekawa = ({
  * of near-zero indicates the theorem is satisfied for this vertex, if not,
  * the number will be positive if even-numbered-sectors (sectors including [0])
  * are larger than odd-numbered ones, and negative if visa-versa.
- * @linkcode
  */
 export const verticesFlatFoldabilityKawasaki = ({
 	vertices_coords,
@@ -129,7 +127,6 @@ export const verticesFlatFoldabilityKawasaki = ({
  * crease pattern, it assumes that all mountain/valley are flat folded.
  * @param {FOLD} graph a FOLD object
  * @returns {boolean[]} for every vertex, true if Maekawa's theorm is satisfied
- * @linkcode
  */
 export const verticesFlatFoldableMaekawa = (graph) => (
 	verticesFlatFoldabilityMaekawa(graph).map(deviation => deviation === 0)
@@ -141,10 +138,9 @@ export const verticesFlatFoldableMaekawa = (graph) => (
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {boolean[]} for every vertex, is Kawasaki's theorem satisfied?
- * @linkcode
  */
 export const verticesFlatFoldableKawasaki = (graph, epsilon = EPSILON) => (
-	verticesFlatFoldabilityKawasaki(graph, epsilon)
+	verticesFlatFoldabilityKawasaki(graph)
 		.map(Math.abs)
 		.map(deviation => deviation < epsilon)
 );
@@ -181,13 +177,12 @@ export const verticesFlatFoldable = (graph, epsilon) => (
 );
 
 /**
-* @description using edges_assignment, check if Maekawa's theorem is satisfied
-* for all vertices, and if not, return the vertices which violate the theorem.
-* todo: this assumes that valley/mountain folds are flat folded.
-* @param {FOLD} graph a FOLD object
-* @returns {number[]} indices of vertices which violate the theorem.
-* an empty array has no errors.
-* @linkcode
+ * @description using edges_assignment, check if Maekawa's theorem is satisfied
+ * for all vertices, and if not, return the vertices which violate the theorem.
+ * todo: this assumes that valley/mountain folds are flat folded.
+ * @param {FOLD} graph a FOLD object
+ * @returns {number[]} indices of vertices which violate the theorem.
+ * an empty array has no errors.
  */
 // export const validateMaekawa = (graph) => (
 // 	verticesFlatFoldableMaekawa(graph)

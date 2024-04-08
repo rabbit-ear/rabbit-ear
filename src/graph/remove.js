@@ -53,7 +53,6 @@ const makeIndexMap = (graph, key, removeIndices) => {
  * given removeIndices: [4, 6, 7]
  * given a geometry array: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
  * map becomes (where _ is undefined): [0, 1, 2, 3, _, 4, _, _, 5, 6]
- * @linkcode Origami ./src/graph/remove.js 33
  */
 const removeGeometryIndices = (graph, key, removeIndices) => {
 	const indexMap = makeIndexMap(graph, key, removeIndices);

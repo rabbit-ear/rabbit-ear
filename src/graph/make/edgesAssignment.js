@@ -14,7 +14,6 @@ import {
  * "makeEdgesAssignment()" will also assign "B"
  * @param {FOLD} graph a FOLD object, with edges_foldAngle
  * @returns {string[]} array of fold assignments
- * @linkcode Origami ./src/graph/make.js 531
  */
 export const makeEdgesAssignmentSimple = ({ edges_foldAngle }) => edges_foldAngle
 	.map(a => {
@@ -27,7 +26,6 @@ export const makeEdgesAssignmentSimple = ({ edges_foldAngle }) => edges_foldAngl
  * will assign "M" "V" "F" and "B" for edges with only one incident face.
  * @param {FOLD} graph a FOLD object, with edges_foldAngle
  * @returns {string[]} array of fold assignments
- * @linkcode Origami ./src/graph/make.js 543
  */
 export const makeEdgesAssignment = ({
 	edges_vertices, edges_foldAngle, edges_faces, faces_vertices, faces_edges,

@@ -40,13 +40,6 @@ import {
  * in a flat-foldable origami model. The result contains all possible
  * solutions, use the prototype methods available on this return object
  * to choose one solution, among other available options.
- *
- * for the 3D version:
- * @description This layer solver extends the taco/tortilla method by Jason Ku
- * into 3D by largely sorting faces into groups of coplanar-overlapping faces
- * and adding a few new types of constraints which join faces between groups.
- * This algorithm still requires faces be convex, and faces must be planar.
- *
  * @param {FOLD} graph a FOLD object with folded vertices in 2D
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {{
@@ -191,7 +184,14 @@ export const solveLayerOrdersSingleBranches = ({
 
 
 /**
- * @description
+ * @description Find all possible layer orderings of the faces
+ * in a 3D folded origami. The result contains all possible
+ * solutions, use the prototype methods available on this return object
+ * to choose one solution, among other available options.
+ * This layer solver extends the taco/tortilla method into 3D by
+ * sorting faces into groups of coplanar-overlapping faces
+ * and adding a few new types of constraints which join faces between groups.
+ * This algorithm still requires faces be convex, and faces must be planar.
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {{

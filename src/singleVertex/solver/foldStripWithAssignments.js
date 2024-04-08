@@ -17,7 +17,6 @@ import { assignmentsToFacesFlip } from "./general.js";
  * @returns {number[][]} array of sector positions with two indices representing
  * either end of the sector. any sectors caught between multiple
  * boundaries will be undefined.
- * @linkcode Origami ./src/layer/singleVertexSolver/foldStripWithAssignments.js 20
  */
 const foldStripWithAssignments = (faces, assignments) => {
 	// one number for each sector, locally, the movement away from 0.

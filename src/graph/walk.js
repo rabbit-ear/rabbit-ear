@@ -20,7 +20,6 @@
  * @returns {object|undefined} the walked face, an object arrays of numbers
  * under "vertices", "edges", and "angles", or if you are using a global
  * "walkedEdges" hash, if the faces was previously built, returns undefined.
- * @linkcode Origami ./src/graph/walk.js 14
  */
 export const walkSingleFace = (
 	{ vertices_vertices, vertices_sectors },
@@ -101,7 +100,6 @@ export const walkSingleFace = (
  * @returns {object[]} an array of face objects, where each face
  * has number arrays, "vertices", "edges", and "angles".
  * vertices and edges are indices, angles are radians.
- * @linkcode Origami ./src/graph/walk.js 67
  */
 export const walkPlanarFaces = ({ vertices_vertices, vertices_sectors }) => {
 	// walked edges is maintained globally, no walking down the same edge twice
@@ -126,7 +124,6 @@ export const walkPlanarFaces = ({ vertices_vertices, vertices_sectors }) => {
  * outlines the piece with opposite winding enclosing Infinity.
  * @param {object[]} walkedFaces the result from calling "walkPlanarFaces()"
  * @returns {object[]} a copy of the same input array with one fewer element
- * @linkcode Origami ./src/graph/walk.js 88
  */
 export const filterWalkedBoundaryFace = (walkedFaces) => walkedFaces
 	.filter(face => face.angles

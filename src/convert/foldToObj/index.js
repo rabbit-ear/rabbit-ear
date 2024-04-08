@@ -26,7 +26,6 @@ const getTitleAuthorDescription = (graph) => [
  * @param {number} frame_num the frame number inside the FOLD object to be
  * converted, if frames exist, if not this is ignored.
  * @returns {string} an OBJ representation of the FOLD object
- * @linkcode Origami ./src/convert/obj.js 77
  */
 const foldToObj = (file) => {
 	const graph = typeof file === "string" ? JSON.parse(file) : file;

@@ -41,7 +41,6 @@ import {
  * objects, where each top level array entry is a "branch" and inside each
  * branch is an array of solution objects when taken together compose
  * a complete solution.
- * @linkcode
  */
 const solveBranch = (
 	constraints,
@@ -148,7 +147,6 @@ const solveBranch = (
  * and values are 1 or 2 describing the relationship of the two faces.
  * Results are stored in "root" and "branches", to compile a complete solution,
  * append the "root" to one selection from each array in "branches".
- * @linkcode
  */
 export const solver = ({ constraints, lookup, facePairs, orders }) => {
 	// "orders" is any pre-solved orders between faces, in the default case,

@@ -9,7 +9,6 @@
  * @param {any[]} array an array that is meant to be thought of as circular
  * @param {number[]} indices two numbers, indices that divide the array into 2 parts
  * @returns {any[][]} the same array split into two arrays
- * @linkcode Origami ./src/general/arrays.js 49
  */
 export const splitCircularArray = (array, indices) => {
 	indices.sort((a, b) => a - b);
@@ -20,7 +19,7 @@ export const splitCircularArray = (array, indices) => {
 };
 
 /**
- * @description
+ * @description Unused
  * @param {any[]} array an array of any type
  * @param {number} spliceIndex the index to splice into the array
  * @param {any} newElement matching type as array, the new element to splice in
@@ -65,7 +64,7 @@ export const getAdjacencySpliceIndex = (cycle, adjacent, vertex) => {
 };
 
 /**
- * @description
+ * @description Unused
  */
 export const makeVerticesToEdgeLookup = ({ edges_vertices }, edges) => {
 	const verticesToEdge = {};
@@ -98,7 +97,7 @@ export const makeVerticesToFacesLookup = ({ faces_vertices }, faces) => {
 };
 
 /**
- * @description
+ * @description Unused
  */
 export const makeEdgesFacesSubarray = ({ faces_edges }, faces) => {
 	const edgesToFaces = [];

@@ -25,7 +25,6 @@ import {
  * @returns {number[][][]} array of array of array of numbers, where each row corresponds
  * to a vertex index, inner arrays correspond to vertices_vertices, and inside is a 2D vector
  * @todo this can someday be rewritten without edges_vertices
- * @linkcode Origami ./src/graph/make.js 395
  */
 export const makeVerticesVerticesVector = ({
 	vertices_coords, vertices_vertices, vertices_edges, vertices_faces,
@@ -60,7 +59,6 @@ export const makeVerticesVerticesVector = ({
  * @param {FOLD} graph a FOLD object, containing vertices_coords, vertices_vertices, edges_vertices
  * @returns {number[][]} array of array of numbers, where each row corresponds
  * to a vertex index, inner arrays contains angles in radians
- * @linkcode Origami ./src/graph/make.js 420
  */
 export const makeVerticesSectors = ({
 	vertices_coords, vertices_vertices, edges_vertices, edges_vector,

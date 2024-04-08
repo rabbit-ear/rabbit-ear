@@ -32,7 +32,6 @@ import {
  * @param {FOLD} graph a FOLD object, modified in place
  * @param {number[]} matrix a 3x4 matrix as a 12 number array
  * @returns {FOLD} the same input graph, modified
- * @linkcode Origami ./src/graph/affine.js 23
  */
 export const transform = function (graph, matrix) {
 	// apply to anything with a coordinate value
@@ -58,7 +57,6 @@ export const transform = function (graph, matrix) {
  * @param {number|number[]} scale the scale amount as a single (uniform)
  * value, or a vector for a non-uniform scale.
  * @returns {FOLD} the same input graph, modified.
- * @linkcode Origami ./src/graph/affine.js 48
  */
 export const scale = (graph, ...args) => {
 	const values = args.flat();
@@ -77,7 +75,6 @@ export const scale = (graph, ...args) => {
  * @param {FOLD} graph a FOLD object, modified in place
  * @param {number[]} optional. an array or series of numbers, the translation vector
  * @returns {FOLD} the same input graph, modified
- * @linkcode Origami ./src/graph/affine.js 64
  */
 export const translate = (graph, ...args) => {
 	const vector = getVector(...args);
@@ -94,7 +91,6 @@ export const translate = (graph, ...args) => {
  * @param {number} the rotation amount in radians
  * @param {number[]} optional. an array or series of numbers, the center of rotation
  * @returns {FOLD} the same input graph, modified
- * @linkcode Origami ./src/graph/affine.js 80
  */
 export const rotate = (graph, angle, vector, origin) => transform(
 	graph,
@@ -109,7 +105,6 @@ export const rotate = (graph, angle, vector, origin) => transform(
  * @param {number} the rotation amount in radians
  * @param {number[]} optional. an array or series of numbers, the center of rotation
  * @returns {FOLD} the same input graph, modified
- * @linkcode Origami ./src/graph/affine.js 80
  */
 export const rotateZ = (graph, angle, ...args) => {
 	const origin = getVector(...args);

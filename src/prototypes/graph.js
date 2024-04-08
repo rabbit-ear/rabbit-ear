@@ -44,7 +44,6 @@ import {
  * and layer order of faces.
  * @param {FOLD} [graph] an optional FOLD object,
  * otherwise the graph will initialize empty
- * @linkcode Origami ./src/classes/graph.js 50
  */
 const Graph = {};
 Graph.prototype = Object.create(Object.prototype);

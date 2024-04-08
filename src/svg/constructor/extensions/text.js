@@ -13,7 +13,6 @@ import { appendTo, setAttributes } from './shared/dom.js';
 /**
  * @description SVG text element
  * @memberof SVG
- * @linkcode SVG ./src/nodes/spec/text.js 11
  */
 const textDef = {
 	text: {

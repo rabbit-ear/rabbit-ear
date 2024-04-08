@@ -12,7 +12,6 @@
  * number of components, for each component, the value is its group number.
  * @param {number[][]} array_array an array of arrays of numbers
  * @returns {number[]} component array, the value is the group number
- * @linkcode Origami ./src/graph/connectedComponents.js 12
  */
 export const connectedComponents = (array_array) => {
 	const components = [];
@@ -55,7 +54,6 @@ export const connectedComponents = (array_array) => {
  * so that for [i, j], i <= j. This allows for circular references (i === j).
  * @param {number[][]} array_array an array of arrays of integers
  * @returns {[number, number][]} array of two-dimensional array pairs of indices.
- * @linkcode Origami ./src/general/arrays.js 128
  */
 export const connectedComponentsPairs = (array_array) => {
 	const pairs = [];

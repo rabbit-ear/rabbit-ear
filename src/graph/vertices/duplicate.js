@@ -12,7 +12,6 @@ import replace from "../replace.js";
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} arrays of clusters of similar vertices.
- * @linkcode
  */
 export const duplicateVertices = ({ vertices_coords }, epsilon) => (
 	getVerticesClusters({ vertices_coords }, epsilon)
@@ -35,7 +34,6 @@ export const duplicateVertices = ({ vertices_coords }, epsilon) => (
  * - if "true", average will be calculated
  * - if "false", the smallest vertex index in the cluster is used
  * @returns {object} summary of changes
- * @linkcode Origami ./src/graph/verticesViolations.js 129
  */
 export const removeDuplicateVertices = (graph, epsilon = EPSILON, makeAverage = true) => {
 	// replaces array will be [index:value] index is the element to delete,

@@ -16,7 +16,6 @@ import {
  * @param {FOLD} graph a FOLD object, containing vertices_coords, vertices_edges, edges_vertices
  * @returns {number[][]} array of array of numbers, where each row corresponds to a
  * vertex index and the values in the inner array are vertex indices.
- * @linkcode Origami ./src/graph/make.js 91
  */
 export const makeVerticesVertices2D = ({ vertices_coords, vertices_edges, edges_vertices }) => {
 	if (!vertices_edges) {
@@ -41,7 +40,6 @@ export const makeVerticesVertices2D = ({ vertices_coords, vertices_edges, edges_
  * @param {FOLD} graph a FOLD object, containing vertices_coords, vertices_edges, edges_vertices
  * @returns {number[][]} array of array of numbers, where each row corresponds to a
  * vertex index and the values in the inner array are vertex indices.
- * @linkcode Origami ./src/graph/make.js 115
  */
 export const makeVerticesVerticesFromFaces = ({
 	vertices_coords, vertices_faces, faces_vertices,
@@ -172,7 +170,6 @@ export const makeVerticesVerticesFromFaces = ({
  * @param {FOLD} graph a FOLD object, containing vertices_coords, vertices_edges, edges_vertices
  * @returns {number[][]} array of array of numbers, where each row corresponds to a
  * vertex index and the values in the inner array are vertex indices.
- * @linkcode Origami ./src/graph/make.js 245
  */
 export const makeVerticesVertices = (graph) => {
 	if (!graph.vertices_coords || !graph.vertices_coords.length) { return []; }

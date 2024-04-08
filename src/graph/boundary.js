@@ -40,7 +40,6 @@ import {
  * to be included in the bounding box.
  * @returns {BoundingBox?} dimensions stored as "span" "min" and "max".
  * "undefined" if no vertices exist in the graph.
- * @linkcode Origami ./src/graph/boundary.js 22
  */
 export const boundingBox = ({ vertices_coords }, padding) => (
 	BoundingBox(vertices_coords, padding)
@@ -52,7 +51,6 @@ export const boundingBox = ({ vertices_coords }, padding) => (
  * or does not contain boundary edges, this will return an empty array.
  * @param {FOLD} graph a FOLD object
  * @returns {number[]} unsorted list of vertex indices which lie along the boundary.
- * @linkcode Origami ./src/graph/boundary.js 33
  */
 export const boundaryVertices = ({ edges_vertices, edges_assignment = [] }) => (
 	uniqueElements(edges_vertices
@@ -72,7 +70,6 @@ const emptyBoundaryObject = () => ({ vertices: [], edges: [] });
  * use the "boundaries" method.
  * @param {FOLD} graph a FOLD object
  * @returns {object} with "vertices" and "edges", each arrays of indices.
- * @linkcode Origami ./src/graph/boundary.js 60
  */
 export const boundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
 	if (!edges_assignment || !edges_vertices) { return emptyBoundaryObject(); }
@@ -145,7 +142,6 @@ export const boundary = ({ vertices_edges, edges_vertices, edges_assignment }) =
  * @param {FOLD} graph a FOLD object
  * @returns {object[]} an array of boundary solutions, where each boundary
  * is an object with "vertices" and "edges", each arrays of indices.
- * @linkcode
  */
 export const boundaries = ({ vertices_edges, edges_vertices, edges_assignment }) => {
 	if (!edges_assignment || !edges_vertices) {
@@ -250,7 +246,6 @@ export const boundaries = ({ vertices_edges, edges_vertices, edges_assignment })
  * (vertices edges only required in case vertices_vertices needs to be built)
  * @returns {object} "vertices" and "edges" with arrays of indices.
  * @usage call populate() before to ensure this works.
- * @linkcode Origami ./src/graph/boundary.js 109
  */
 export const planarBoundary = ({
 	vertices_coords, vertices_edges, vertices_vertices, edges_vertices,
@@ -352,7 +347,6 @@ export const planarBoundary = ({
  * (vertices edges only required in case vertices_vertices needs to be built)
  * @returns {object} "vertices" and "edges" with arrays of indices.
  * @usage call populate() before to ensure this works.
- * @linkcode Origami ./src/graph/boundary.js 109
  */
 export const planarBoundaries = ({
 	vertices_coords, vertices_edges, vertices_vertices, edges_vertices,

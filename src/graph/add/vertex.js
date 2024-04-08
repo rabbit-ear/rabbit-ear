@@ -43,7 +43,6 @@ export const addVertex = (
  * @returns {number[]} index of vertex in new vertices_coords array.
  * the size of this array matches array size of source vertices.
  * duplicate (non-added) vertices returns their pre-existing counterpart's index.
- * @linkcode Origami ./src/graph/add/addVertices.js 16
  */
 export const addVertices = (graph, coordses = []) => {
 	if (!graph.vertices_coords) { graph.vertices_coords = []; }

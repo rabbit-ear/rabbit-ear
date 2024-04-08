@@ -49,7 +49,6 @@ import {
  * @param {FOLD} graph a FOLD object
  * @param {number[]} [rootFaces=[]] the index of the face that will remain in place
  * @returns {number[][]} a new set of `vertices_coords` with the new positions.
- * @linkcode Origami ./src/graph/verticesCoordsFolded.js 36
  */
 export const makeVerticesCoords3DFolded = ({
 	vertices_coords, vertices_faces, edges_vertices, edges_foldAngle,
@@ -84,7 +83,6 @@ export const makeVerticesCoords3DFolded = ({
  * @param {FOLD} graph a FOLD object
  * @param {number} [rootFaces=[]] the index of the face that will remain in place
  * @returns {number[][]} a new set of `vertices_coords` with the new positions.
- * @linkcode Origami ./src/graph/verticesCoordsFolded.js 69
  */
 export const makeVerticesCoordsFlatFolded = (
 	{
@@ -169,7 +167,6 @@ export const makeVerticesCoordsFlatFolded = (
  * @param {FOLD} graph a FOLD object
  * @param {number[]} [rootFaces=[]] the indices of the faces that will remain in place
  * @returns {number[][]} a new set of `vertices_coords` with the new positions.
- * @linkcode Origami ./src/graph/verticesCoordsFolded.js 69
  */
 export const makeVerticesCoordsFolded = (graph, rootFaces) => (
 	edgesFoldAngleAreAllFlat(graph)
@@ -189,9 +186,8 @@ export const makeVerticesCoordsFolded = (graph, rootFaces) => (
  * "fold" the vertices by finding one matrix per vertex and multiplying them.
  * @param {object} FOLD graph with vertices_coords, faces_vertices, and
  * if vertices_faces does not exist it will be built.
- * @param {number[][]} an array of 2x3 matrices. one per face.
+ * @param {number[][]} faces_matrix an array of 2x3 matrices. one per face.
  * @returns {number[][]} a new set of vertices_coords, transformed.
- * @linkcode Origami ./src/graph/facesMatrix.js 37
  */
 export const makeVerticesCoordsFoldedFromMatrix2 = ({
 	vertices_coords, vertices_faces, faces_vertices,

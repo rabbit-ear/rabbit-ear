@@ -68,7 +68,6 @@ export const makeEdgesFacesSide = ({
  * }} graph the fold graph with faces_center
  * @param {[number, number][]} edgePairs
  * @returns {[[number,number],[number,number]][]}
- * @linkcode Origami ./src/layer/solver2d/tacos/facesSide.js 33
  */
 export const makeEdgePairsFacesSide = (
 	{ vertices_coords, edges_vertices, edges_faces, faces_center },
@@ -96,7 +95,21 @@ export const makeEdgePairsFacesSide = (
 };
 
 /**
- *
+ * @description For every edge in a 2D graph, for each of its faces, get
+ * which side of the edge this face lies along. "Sidedness" is simply local
+ * to each edge, similar or collinear edges will not have a consistent side
+ * between them.
+ * @param {FOLD} graph a FOLD graph where, if faces_center exists then
+ * only edges_faces is needed, otherwise vertices and face data is needed.
+ * @param {{
+ *   lines: VecLine[],
+ *   edges_line: number[],
+ *   faces_plane: number[],
+ *   planes_transform: number[][],
+ * }} edgesLine-facesPlane-data the joined-results from
+ *   getEdgesLine() and getFacesPlane()
+ * @returns {number[][]} for every edge, for each of its 1 or 2 adjacent faces,
+ * a +1 or -1 for each face indicating which side of the edge the face lies on.
  */
 export const makeEdgesFacesSide2D = (
 	{ vertices_coords, edges_faces, faces_vertices, faces_center },
@@ -120,7 +133,10 @@ export const makeEdgesFacesSide2D = (
 };
 
 /**
- * @description
+ * @description For every edge, for each of its 1 or 2 adjacent faces,
+ * get which side of the edge this face lies on. All collinear edges
+ * are established to have a similar direction for sidedness, and this
+ * method works in 3D.
  * @param {FOLD} graph a FOLD graph where, if faces_center exists then
  * only edges_faces is needed, otherwise vertices and face data is needed.
  * @param {{

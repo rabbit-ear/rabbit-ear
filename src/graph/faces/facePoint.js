@@ -22,7 +22,6 @@ import {
  * @param {function} [domainFunction=include], an optional domain function
  * to specificy inclusive or exclusive.
  * @returns {number[]} an array of face indices
- * @linkcode
  */
 export const facesContainingPoint = (
 	{ vertices_coords, faces_vertices = [] },
@@ -50,7 +49,6 @@ export const facesContainingPoint = (
  * the point exists along an edge or a vertex.
  * @returns {number|undefined} the index of a face, or undefined
  * if the point does not lie inside any face.
- * @linkcode
  */
 export const faceContainingPoint = (
 	{ vertices_coords, faces_vertices },

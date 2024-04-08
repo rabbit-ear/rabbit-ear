@@ -36,7 +36,6 @@ import {
  * var faces = makePlanarFaces(graph);
  * faces_vertices = faces.map(el => el.vertices);
  * faces_edges = faces.map(el => el.edges);
- * @linkcode
  */
 export const makePlanarFaces = ({
 	vertices_coords, vertices_vertices, vertices_edges,
@@ -81,7 +80,6 @@ export const makePlanarFaces = ({
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {[number, number][][] | [number, number, number][][]} an array
  * of array of points, where each point is an array of 2 or 3 numbers
- * @linkcode
  */
 export const makeFacesPolygon = ({ vertices_coords, faces_vertices }, epsilon) => faces_vertices
 	.map(verts => verts.map(v => vertices_coords[v]))
@@ -93,7 +91,6 @@ export const makeFacesPolygon = ({ vertices_coords, faces_vertices }, epsilon) =
  * are not removed, which in some cases, this will be the preferred method.
  * @param {FOLD} graph a FOLD graph, with vertices_coords, faces_vertices
  * @returns {number[][][]} array of array of points, where each point is an array of numbers
- * @linkcode
  */
 export const makeFacesPolygonQuick = ({ vertices_coords, faces_vertices }) => (
 	faces_vertices.map(verts => verts.map(v => vertices_coords[v]))
@@ -103,7 +100,6 @@ export const makeFacesPolygonQuick = ({ vertices_coords, faces_vertices }) => (
  * @description For every face, get the face's centroid.
  * @param {FOLD} graph a FOLD graph, with vertices_coords, faces_vertices
  * @returns {[number, number][]} array of points, where each point is an array of numbers
- * @linkcode
  */
 export const makeFacesCentroid2D = ({ vertices_coords, faces_vertices }) => (
 	faces_vertices
@@ -116,7 +112,6 @@ export const makeFacesCentroid2D = ({ vertices_coords, faces_vertices }) => (
  * This is not not precise, and only relevant for faces which are convex.
  * @param {FOLD} graph a FOLD graph, with vertices_coords, faces_vertices
  * @returns {[number, number][]} array of points, where each point is an array of numbers
- * @linkcode
  */
 export const makeFacesCenter2DQuick = ({ vertices_coords, faces_vertices }) => (
 	makeFacesPolygonQuick({ vertices_coords, faces_vertices })
@@ -128,7 +123,6 @@ export const makeFacesCenter2DQuick = ({ vertices_coords, faces_vertices }) => (
  * This is not not precise, and only relevant for faces which are convex.
  * @param {FOLD} graph a FOLD graph, with vertices_coords, faces_vertices
  * @returns {[number, number, number][]} array of points, where each point is an array of numbers
- * @linkcode
  */
 export const makeFacesCenter3DQuick = ({ vertices_coords, faces_vertices }) => (
 	makeFacesPolygonQuick({ vertices_coords, faces_vertices })
@@ -143,7 +137,6 @@ export const makeFacesCenter3DQuick = ({ vertices_coords, faces_vertices }) => (
  * @param {FOLD} graph a FOLD graph, with vertices_coords, faces_vertices
  * @returns {[number, number][] | [number, number, number][]} array of points,
  * where each point is an array of either 2 or 3 numbers.
- * @linkcode
  */
 export const makeFacesCenterQuick = ({ vertices_coords, faces_vertices }) => (
 	makeFacesPolygonQuick({ vertices_coords, faces_vertices })

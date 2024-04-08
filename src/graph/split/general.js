@@ -70,7 +70,6 @@ const filterFacesWithTwoMatches = ({ faces_vertices }, faces, verticesHash) => (
   * @param {FOLD} graph a FOLD object
   * @param {number} edge index of the edge in the graph
   * @returns {number[]} array of 0, 1, or 2 face indices adjacent to the edge
-  * @linkcode
   */
 export const makeEdgesFacesForEdge = (
 	{ vertices_faces, edges_vertices, edges_faces, faces_vertices, faces_edges },

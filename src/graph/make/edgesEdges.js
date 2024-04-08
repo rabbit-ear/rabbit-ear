@@ -8,7 +8,6 @@
  * @param {FOLD} graph a FOLD object, with entries edges_vertices, vertices_edges
  * @returns {number[][]} each entry relates to an edge, each array contains indices
  * of other edges.
- * @linkcode Origami ./src/graph/make.js 441
  */
 export const makeEdgesEdges = ({ edges_vertices, vertices_edges }) => (
 	edges_vertices.map((verts, i) => {

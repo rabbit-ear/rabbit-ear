@@ -80,7 +80,7 @@ const arraysLengthSum = (...arrays) => arrays
 	.reduce((a, b) => a + b, 0);
 
 /**
- * @description
+ * @description In progress
  */
 export const foldGraphWithLineMethod = (
 	graph,
@@ -273,7 +273,7 @@ export const foldGraphWithLineMethod = (
 };
 
 /**
- * @description
+ * @description In progress
  */
 export const foldLine = (
 	graph,
@@ -295,7 +295,7 @@ export const foldLine = (
 	));
 
 /**
- * @description
+ * @description In progress
  */
 export const foldRay = (
 	graph,
@@ -317,7 +317,7 @@ export const foldRay = (
 	));
 
 /**
- * @description
+ * @description In progress
  */
 export const foldSegment = (
 	graph,

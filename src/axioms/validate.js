@@ -45,7 +45,6 @@ const reflectPoint = (foldLine, point) => {
  * @param {number[]} point1 the point parameter for axiom 1
  * @param {number[]} point2 the point parameter for axiom 1
  * @returns {boolean[]} true if the parameters/solutions are valid
- * @linkcode Origami ./src/axioms/validate.js 40
  */
 export const validateAxiom1 = (boundary, solutions, point1, point2) => [
 	[point1, point2]
@@ -64,7 +63,6 @@ export const validateAxiom1 = (boundary, solutions, point1, point2) => [
  * @param {number[]} point1 the point parameter for axiom 2
  * @param {number[]} point2 the point parameter for axiom 2
  * @returns {boolean[]} true if the parameters/solutions are valid
- * @linkcode Origami ./src/axioms/validate.js 51
  */
 export const validateAxiom2 = validateAxiom1;
 
@@ -77,7 +75,6 @@ export const validateAxiom2 = validateAxiom1;
  * @param {VecLine} line1 the line parameter for axiom 3
  * @param {VecLine} line2 the line parameter for axiom 3
  * @returns {boolean[]} array of booleans (true if valid) matching the solutions array
- * @linkcode Origami ./src/axioms/validate.js 60
  */
 export const validateAxiom3 = (boundary, solutions, line1, line2) => {
 	const segments = [line1, line2]
@@ -160,7 +157,6 @@ export const validateAxiom3 = (boundary, solutions, line1, line2) => {
  * @param {VecLine} line the line parameter for axiom 4
  * @param {number[]} point the point parameter for axiom 4
  * @returns {boolean[]} true if the parameters/solutions are valid
- * @linkcode Origami ./src/axioms/validate.js 135
  */
 export const validateAxiom4 = (boundary, solutions, line, point) => {
 	const perpendicular = { vector: rotate90(line.vector), origin: point };
@@ -185,7 +181,6 @@ export const validateAxiom4 = (boundary, solutions, line, point) => {
  * @param {number[]} point1 the point parameter for axiom 5
  * @param {number[]} point2 the point parameter for axiom 5
  * @returns {boolean[]} array of booleans (true if valid) matching the solutions array
- * @linkcode Origami ./src/axioms/validate.js 155
  */
 export const validateAxiom5 = (boundary, solutions, line, point1, point2) => {
 	if (solutions.length === 0) { return []; }
@@ -209,7 +204,6 @@ export const validateAxiom5 = (boundary, solutions, line, point1, point2) => {
  * @param {number[]} point1 the point parameter for axiom 6
  * @param {number[]} point2 the point parameter for axiom 6
  * @returns {boolean[]} array of booleans (true if valid) matching the solutions array
- * @linkcode Origami ./src/axioms/validate.js 173
  */
 export const validateAxiom6 = function (boundary, solutions, line1, line2, point1, point2) {
 	if (solutions.length === 0) { return []; }
@@ -236,7 +230,6 @@ export const validateAxiom6 = function (boundary, solutions, line1, line2, point
  * @param {VecLine} line2 the line parameter for axiom 7
  * @param {number[]} point the point parameter for axiom 7
  * @returns {boolean[]} true if the parameters/solutions are valid
- * @linkcode Origami ./src/axioms/validate.js 194
  */
 export const validateAxiom7 = (boundary, solutions, line1, line2, point) => {
 	// this method has been commented out because intersectConvexPolygonLine
@@ -281,7 +274,6 @@ export const validateAxiom7 = (boundary, solutions, line1, line2, point) => {
  * @param {number[] | VecLine} ...args the input parameters to the axiom method
  * @returns {boolean|boolean[]} for every solution, true if valid. Axioms 1, 2, 4, 7
  * return one boolean, 3, 5, 6 return arrays of booleans.
- * @linkcode Origami ./src/axioms/validate.js 234
  */
 export const validateAxiom = (number, boundary, solutions, ...args) => [null,
 	validateAxiom1,

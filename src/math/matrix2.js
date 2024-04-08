@@ -11,7 +11,6 @@
  * @description the identity matrix for 2x2 matrices
  * @constant {number[]}
  * @default
- * @linkcode Math ./src/algebra/matrix2.js 10
  */
 export const identity2x2 = [1, 0, 0, 1];
 
@@ -19,7 +18,6 @@ export const identity2x2 = [1, 0, 0, 1];
  * @description the identity matrix for 2x3 matrices (zero translation)
  * @constant {number[]}
  * @default
- * @linkcode Math ./src/algebra/matrix2.js 15
  */
 export const identity2x3 = identity2x2.concat(0, 0);
 
@@ -27,7 +25,6 @@ export const identity2x3 = identity2x2.concat(0, 0);
  * @param {number[]} vector, in array form
  * @param {number[]} matrix, in array form
  * @returns {number[]} vector, the input vector transformed by the matrix
- * @linkcode Math ./src/algebra/matrix2.js 22
  */
 export const multiplyMatrix2Vector2 = (matrix, vector) => [
 	matrix[0] * vector[0] + matrix[2] * vector[1] + matrix[4],
@@ -39,7 +36,6 @@ export const multiplyMatrix2Vector2 = (matrix, vector) => [
  * @param {number[]} vector of the line
  * @param {number[]} origin of the line
  * @returns {VecLine} the transformed line in vector-origin form
- * @linkcode Math ./src/algebra/matrix2.js 33
  */
 export const multiplyMatrix2Line2 = (matrix, vector, origin) => ({
 	vector: [
@@ -58,7 +54,6 @@ export const multiplyMatrix2Line2 = (matrix, vector, origin) => ({
  * @param {number[]} m1 a matrix as an array of numbers
  * @param {number[]} m2 a matrix as an array of numbers
  * @returns {number[]} matrix
- * @linkcode Math ./src/algebra/matrix2.js 49
  */
 export const multiplyMatrices2 = (m1, m2) => [
 	m1[0] * m2[0] + m1[2] * m2[1],
@@ -74,7 +69,6 @@ export const multiplyMatrices2 = (m1, m2) => [
  * in the case of 2x3, the translation component is ignored.
  * @param {number[]} m a matrix as an array of numbers
  * @returns {number} the determinant of the matrix
- * @linkcode Math ./src/algebra/matrix2.js 64
  */
 export const determinant2 = m => m[0] * m[3] - m[1] * m[2];
 
@@ -82,7 +76,6 @@ export const determinant2 = m => m[0] * m[3] - m[1] * m[2];
  * @description invert a 2x3 matrix
  * @param {number[]} m a matrix as an array of numbers
  * @returns {number[]|undefined} the inverted matrix, or undefined if not possible
- * @linkcode Math ./src/algebra/matrix2.js 71
  */
 export const invertMatrix2 = (m) => {
 	const det = determinant2(m);
@@ -106,7 +99,6 @@ export const invertMatrix2 = (m) => {
  * @param {number} x
  * @param {number} y
  * @returns {number[]} matrix
- * @linkcode Math ./src/algebra/matrix2.js 94
  */
 export const makeMatrix2Translate = (x = 0, y = 0) => identity2x2.concat(x, y);
 
@@ -114,7 +106,6 @@ export const makeMatrix2Translate = (x = 0, y = 0) => identity2x2.concat(x, y);
  * @param {number[]} non-uniform scaling vector for each axis
  * @param {number[]} origin homothetic center of the scale, default [0, 0]
  * @returns {number[]} matrix
- * @linkcode Math ./src/algebra/matrix2.js 100
  */
 export const makeMatrix2Scale = (scale = [1, 1], origin = [0, 0]) => [
 	scale[0],
@@ -129,7 +120,6 @@ export const makeMatrix2Scale = (scale = [1, 1], origin = [0, 0]) => [
  * @param {number} scale scale factor
  * @param {number[]} origin homothetic center of the scale, default [0, 0]
  * @returns {number[]} matrix
- * @linkcode Math ./src/algebra/matrix2.js 100
  */
 export const makeMatrix2UniformScale = (scale = 1, origin = [0, 0]) => (
 	makeMatrix2Scale([scale, scale], origin)
@@ -138,7 +128,6 @@ export const makeMatrix2UniformScale = (scale = 1, origin = [0, 0]) => (
 /**
  * @param {number} angle the angle of rotation, origin of transformation
  * @returns {number[]} matrix
- * @linkcode Math ./src/algebra/matrix2.js 113
  */
 export const makeMatrix2Rotate = (angle, origin = [0, 0]) => {
 	const cos = Math.cos(angle);
@@ -159,7 +148,6 @@ export const makeMatrix2Rotate = (angle, origin = [0, 0]) => {
  * @param {number[]} vector one 2D vector specifying the reflection axis
  * @param {number[]} [origin=[0,0]] 2D origin specifying a point of reflection
  * @returns {number[]} matrix
- * @linkcode Math ./src/algebra/matrix2.js 132
  */
 export const makeMatrix2Reflect = (vector, origin = [0, 0]) => {
 	// the line of reflection passes through origin, runs along vector

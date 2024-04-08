@@ -7,7 +7,6 @@
  * @param {FOLD} graph a FOLD graph, with faces_vertices
  * @returns {number[][]} each index relates to a face, each entry is an array
  * of numbers, each number is an index of an edge-adjacent face to this face.
- * @linkcode Origami ./src/graph/make.js 765
  */
 export const makeFacesFaces = ({ faces_vertices }) => {
 	// create a map that relates these space-separated vertex pair strings

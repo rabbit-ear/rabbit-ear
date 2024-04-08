@@ -28,7 +28,6 @@ import {
  * The line method allows all values.
  * @param {number} dist the length along the vector
  * @returns {number} the clamped input value (line does not clamp)
- * @linkcode Math ./src/general/functions.js 94
  */
 export const clampLine = dist => dist;
 
@@ -37,7 +36,6 @@ export const clampLine = dist => dist;
  * The ray method clamps values below -epsilon to be 0.
  * @param {number} dist the length along the vector
  * @returns {number} the clamped input value
- * @linkcode Math ./src/general/functions.js 102
  */
 export const clampRay = dist => (dist < -EPSILON ? 0 : dist);
 
@@ -46,7 +44,6 @@ export const clampRay = dist => (dist < -EPSILON ? 0 : dist);
  * The segment method clamps values below -epsilon to be 0 and above 1+epsilon to 1.
  * @param {number} dist the length along the vector
  * @returns {number} the clamped input value
- * @linkcode Math ./src/general/functions.js 110
  */
 export const clampSegment = (dist) => {
 	if (dist < -EPSILON) { return 0; }
@@ -61,7 +58,6 @@ export const clampSegment = (dist) => {
  * @param {number[]} p2 a point
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {boolean} true if the points lies collinear.
- * @linkcode Math ./src/geometry/lines.js 29
  */
 export const isCollinear = (p0, p1, p2, epsilon = EPSILON) => {
 	const vectors = [[p0, p1], [p1, p2]]
@@ -78,7 +74,6 @@ export const isCollinear = (p0, p1, p2, epsilon = EPSILON) => {
  * @param {boolean} [inclusive=false] if the point is the same as the endpoints
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {boolean} true if the point lies collinear and between the other two points.
- * @linkcode Math ./src/geometry/lines.js 29
  */
 export const collinearBetween = (p0, p1, p2, inclusive = false, epsilon = EPSILON) => {
 	const similar = [p0, p2]
@@ -97,7 +92,6 @@ export const collinearBetween = (p0, p1, p2, inclusive = false, epsilon = EPSILO
  * @param {VecLine} b a line with a "vector" and "origin" component
  * @param {number} t one scalar between 0 and 1 (not clamped)
  * @returns {number[]} one vector, dimensions matching first parameter
- * @linkcode Math ./src/geometry/lines.js 47
  */
 export const lerpLines = (a, b, t) => {
 	const vector = lerp(a.vector, b.vector, t);
@@ -138,7 +132,6 @@ const parallelPleat = (a, b, count) => {
  * @param {number} count the number of faces, the number of lines will be n-1.
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {VecLine[]} an array of lines, objects with "vector" and "origin"
- * @linkcode Math ./src/geometry/lines.js 65
  */
 export const pleat = (a, b, count, epsilon = EPSILON) => {
 	const determinant = cross2(a.vector, b.vector);
@@ -176,7 +169,6 @@ export const pleat = (a, b, count, epsilon = EPSILON) => {
  * @param {VecLine} b a line with a "vector" and "origin" component
  * @param {number} [epsilon=1e-6] an optional epsilon for testing parallel-ness.
  * @returns {VecLine[]} an array of lines, objects with "vector" and "origin"
- * @linkcode Math ./src/geometry/lines.js 107
  */
 export const bisectLines2 = (a, b, epsilon = EPSILON) => {
 	const solution = pleat(a, b, 2, epsilon).map(arr => arr[0]);

@@ -30,7 +30,6 @@ const is_boundary = { B: true, b: true };
  * @returns {number[][]} array of arrays. each inner array is a solution.
  * each solution is an ordering of faces_layer, where each index is a
  * face and each value is the layer the face occupies.
- * @linkcode Origami ./src/layer/singleVertexSolver/index.js 30
  */
 const singleVertexSolver = (ordered_scalars, assignments, epsilon = EPSILON) => {
 	const faces_folded = foldStripWithAssignments(ordered_scalars, assignments);

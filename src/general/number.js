@@ -6,7 +6,6 @@
  * @description Count the number of places deep past the decimal point.
  * @param {number} num any number
  * @returns {number} an integer, the number of decimal digits.
- * @linkcode Math ./src/general/numbers.js 8
  */
 const countPlaces = function (num) {
 	const m = (`${num}`).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
@@ -21,7 +20,6 @@ const countPlaces = function (num) {
  * @param {number} [places=15] an integer, the number of decimal places
  * to keep, beyond this point can be considered to be noise.
  * @returns {number} the cleaned floating point number
- * @linkcode
  */
 export const cleanNumber = function (number, places = 15) {
 	const num = typeof number === "number" ? number : parseFloat(number);

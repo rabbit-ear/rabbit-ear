@@ -1,12 +1,6 @@
 import { expect, test } from "vitest";
 import ear from "../src/index.js";
 
-const isEqual = (...args) => args
-	.map(el => JSON.stringify(el))
-	.map((el, i, arr) => [el, arr[(i + 1) % arr.length]])
-	.map(pair => pair[0] === pair[1])
-	.reduce((a, b) => a && b, true);
-
 test("axiom single function", () => {
 	ear.axiom.axiom(1, [0.75, 0.75], [0.15, 0.85]);
 	ear.axiom.axiom(2, [0.75, 0.75], [0.15, 0.85]);

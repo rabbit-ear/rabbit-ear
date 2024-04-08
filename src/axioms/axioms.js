@@ -48,7 +48,6 @@ import {
  * @param {number[]} point1 one 2D point
  * @param {number[]} point2 one 2D point
  * @returns {[VecLine]} an array of one solution line in {vector, origin} form
- * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 45
  */
 export const axiom1 = (point1, point2) => [{
 	vector: normalize2(subtract2(...resizeUp(point2, point1))),
@@ -60,7 +59,6 @@ export const axiom1 = (point1, point2) => [{
  * @param {number[]} point1 one 2D point
  * @param {number[]} point2 one 2D point
  * @returns {[UniqueLine]} an array of one solution line in {normal, distance} form
- * @linkcode Origami ./src/axioms/axiomsNormDist.js 38
  */
 export const normalAxiom1 = (point1, point2) => {
 	const normal = normalize2(rotate90(subtract2(point2, point1)));
@@ -75,7 +73,6 @@ export const normalAxiom1 = (point1, point2) => {
  * @param {number[]} point1 one 2D point
  * @param {number[]} point2 one 2D point
  * @returns {[VecLine]} an array of one solution line in {vector, origin} form
- * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 56
  */
 export const axiom2 = (point1, point2) => [{
 	vector: normalize2(rotate90(subtract2(
@@ -89,7 +86,6 @@ export const axiom2 = (point1, point2) => [{
  * @param {number[]} point1 one 2D point
  * @param {number[]} point2 one 2D point
  * @returns {[UniqueLine]} an array of one solution line in {normal, distance} form
- * @linkcode Origami ./src/axioms/axiomsNormDist.js 52
  */
 export const normalAxiom2 = (point1, point2) => {
 	const normal = normalize2(subtract2(point2, point1));
@@ -106,7 +102,6 @@ export const normalAxiom2 = (point1, point2) => {
  * @param {VecLine} line1 one 2D line in {vector, origin} form
  * @param {VecLine} line2 one 2D line in {vector, origin} form
  * @returns {[VecLine?, VecLine?]} an array of lines in {vector, origin} form
- * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 71
  */
 export const axiom3 = (line1, line2) => bisectLines2(line1, line2);
 
@@ -116,7 +111,6 @@ export const axiom3 = (line1, line2) => bisectLines2(line1, line2);
  * @param {UniqueLine} line1 one 2D line in {normal, distance} form
  * @param {UniqueLine} line2 one 2D line in {normal, distance} form
  * @returns {[UniqueLine?, UniqueLine?]} an array of solutions in {normal, distance} form
- * @linkcode Origami ./src/axioms/axiomsNormDist.js 67
  */
 export const normalAxiom3 = (line1, line2) => {
 	const determ = cross2(line1.normal, line2.normal);
@@ -143,7 +137,6 @@ export const normalAxiom3 = (line1, line2) => {
  * @param {VecLine} line one 2D line in {vector, origin} form
  * @param {number[]} point one 2D point
  * @returns {[VecLine]} the line in {vector, origin} form
- * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 80
  */
 export const axiom4 = (line, point) => [{
 	vector: rotate90(normalize2(line.vector)),
@@ -156,7 +149,6 @@ export const axiom4 = (line, point) => [{
  * @param {UniqueLine} line one 2D line in {normal, distance} form
  * @param {number[]} point one 2D point
  * @returns {[UniqueLine]} an array of one solution in {normal, distance} form
- * @linkcode Origami ./src/axioms/axiomsNormDist.js 87
  */
 export const normalAxiom4 = (line, point) => {
 	const normal = rotate90(line.normal);
@@ -171,7 +163,6 @@ export const normalAxiom4 = (line, point) => {
  * @param {number[]} point1 one 2D point, the point that the line(s) pass through
  * @param {number[]} point2 one 2D point, the point that is being brought onto the line
  * @returns {[VecLine, VecLine?]} an array of lines in {vector, origin} form
- * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 93
  */
 export const axiom5 = (line, point1, point2) => (
 	intersectCircleLine(
@@ -191,7 +182,6 @@ export const axiom5 = (line, point1, point2) => (
  * @param {number[]} point1 one 2D point, the point that the line(s) pass through
  * @param {number[]} point2 one 2D point, the point that is being brought onto the line
  * @returns {[UniqueLine?, UniqueLine?]} an array of solutions in {normal, distance} form
- * @linkcode Origami ./src/axioms/axiomsNormDist.js 101
  */
 export const normalAxiom5 = (line, point1, point2) => {
 	const p1base = dot2(point1, line.normal);
@@ -219,7 +209,6 @@ export const normalAxiom5 = (line, point1, point2) => {
  * @param {number[]} point1 the point to bring to the first line
  * @param {number[]} point2 the point to bring to the second line
  * @returns {[VecLine?, VecLine?, VecLine?]} an array of lines in {vector, origin} form
- * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 113
  */
 export const axiom6 = (line1, line2, point1, point2) => normalAxiom6(
 	vecLineToUniqueLine(line1),
@@ -239,7 +228,6 @@ export const axiom6 = (line1, line2, point1, point2) => normalAxiom6(
  * @param {number[]} point2 the point to bring to the second line
  * @returns {[UniqueLine?, UniqueLine?, UniqueLine?]} an array of solutions
  * in {normal, distance} form
- * @linkcode Origami ./src/axioms/axiomsNormDist.js 192
  */
 export const normalAxiom6 = (line1, line2, point1, point2) => {
 	// at least pointA must not be on lineA
@@ -297,7 +285,6 @@ export const normalAxiom6 = (line1, line2, point1, point2) => {
  * @param {number[]} point the point to bring onto the line
  * @returns {[VecLine?]} the line in {vector, origin} form
  * or undefined if the given lines are parallel
- * @linkcode Origami ./src/axioms/axiomsVecOrigin.js 132
  */
 export const axiom7 = (line1, line2, point) => {
 	const intersect = intersectLineLine(
@@ -327,7 +314,6 @@ export const axiom7 = (line1, line2, point) => {
  * the line which the perpendicular will be based off.
  * @param {number[]} point the point to bring onto the line
  * @returns {[UniqueLine?]} an array of one solution in {normal, distance} form
- * @linkcode Origami ./src/axioms/axiomsNormDist.js 243
  */
 export const normalAxiom7 = (line1, line2, point) => {
 	const normal = rotate90(line1.normal);
@@ -345,7 +331,6 @@ export const normalAxiom7 = (line1, line2, point) => {
  * @param {number} number the axiom number, 1-7
  * @param {number[] | VecLine} ...args the axiom input parameters
  * @returns {VecLine[]} an array of solution lines in {vector, origin} form
- * @linkcode Origami ./src/axioms/validate.js 234
  */
 export const axiom = (number, ...args) => [
 	null, axiom1, axiom2, axiom3, axiom4, axiom5, axiom6, axiom7,
@@ -359,7 +344,6 @@ export const axiom = (number, ...args) => [
  * @param {number[]?} point1 a point parameter, if required by the axiom
  * @param {number[]?} point2 a point parameter, if required by the axiom
  * @returns {UniqueLine[]} an array of solution lines in {normal, distance} form
- * @linkcode Origami ./src/axioms/validate.js 234
  */
 export const normalAxiom = (number, ...args) => [
 	null,
