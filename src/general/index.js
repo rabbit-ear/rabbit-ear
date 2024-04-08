@@ -1,5 +1,5 @@
 /**
- * Math (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 import * as arrayMethods from "./array.js";
 import * as clusterMethods from "./cluster.js";

@@ -121,6 +121,7 @@ export const clusterScalars = (numbers, epsilon = EPSILON) => {
 	// the values will be the sorted numbers,
 	// the comparison function will be a simple: is "a" epsilon similar to "b"?
 	const sortedNumbers = indices.map(i => numbers[i]);
+	/** @param {number} a @param {number} b */
 	const compFn = (a, b) => Math.abs(a - b) < epsilon;
 
 	// call the cluster method which results in a list of indices that refer

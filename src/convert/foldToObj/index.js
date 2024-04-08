@@ -19,15 +19,19 @@ const getTitleAuthorDescription = (graph) => [
 	.map(key => `# ${key.split("_")[1]}: ${graph[key]}`)
 	.join("\n");
 
+// todo:
+// should we add
+// param {number} frame_num the frame number inside the FOLD object to be
+//   converted, if frames exist, if not this is ignored.
+
 /**
  * @description Convert a FOLD object into an OBJ file. For FOLD objects
  * with many frames, this will only work on one frame at a time.
  * @param {FOLD|string} file a FOLD object
- * @param {number} frame_num the frame number inside the FOLD object to be
- * converted, if frames exist, if not this is ignored.
  * @returns {string} an OBJ representation of the FOLD object
  */
 const foldToObj = (file) => {
+	/** @type {FOLD} */
 	const graph = typeof file === "string" ? JSON.parse(file) : file;
 
 	// the comment section that will sit at the beginning of the file

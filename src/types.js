@@ -2,10 +2,13 @@
  * Rabbit Ear (c) Kraft
  */
 
+// todo: FOLD definition should contain a better recursive definition,
+// the inner frames cannot contain FILE information
+
 /**
  * @typedef FOLD
  * @type {{
- *   vertices_coords?: number[][],
+ *   vertices_coords?: ([number, number] | [number, number, number])[],
  *   vertices_vertices?: number[][],
  *   vertices_edges?: number[][],
  *   vertices_faces?: (number | null | undefined)[][],
@@ -15,7 +18,22 @@
  *   edges_foldAngle?: number[],
  *   faces_vertices?: number[][],
  *   faces_edges?: number[][],
- *   faces_faces?: (number | null | undefined)[][]
+ *   faces_faces?: (number | null | undefined)[][],
+ *   file_frames?: FOLD[],
+ *   file_spec?: number,
+ *   file_creator?: string,
+ *   file_author?: string,
+ *   file_title?: string,
+ *   file_description?: string,
+ *   file_classes?: string,
+ *   frame_author?: string,
+ *   frame_title?: string,
+ *   frame_description?: string,
+ *   frame_classes?: string,
+ *   frame_attributes?: string,
+ *   frame_unit?: string,
+ *   frame_parent?: number,
+ *   frame_inherit?: boolean,
  * }}
  * @description A Javascript object representation of a FOLD file which follows the FOLD
  * specification in that it contains any number of the geometry arrays.
@@ -32,6 +50,20 @@
  * @property {(number | null | undefined)[][]} [faces_faces] for each face, all adjacent faces
  * @property {FOLD[]} [file_frames] array of embedded FOLD objects, good for representing
  * a linear sequence like diagram steps for example.
+ * @property {number} [file_spec] metadata
+ * @property {string} [file_creator] metadata
+ * @property {string} [file_author] metadata
+ * @property {string} [file_title] metadata
+ * @property {string} [file_description] metadata
+ * @property {string[]} [file_classes] metadata
+ * @property {string} [frame_author] metadata
+ * @property {string} [frame_title] metadata
+ * @property {string} [frame_description] metadata
+ * @property {string[]} [frame_classes] metadata
+ * @property {string[]} [frame_attributes] metadata
+ * @property {string} [frame_unit] metadata
+ * @property {number} [frame_parent] metadata
+ * @property {boolean} [frame_inherit] metadata
  * @example
  * {
  *   vertices_coords: [[0, 0], [1, 0], [1, 1], [0, 1]],
@@ -43,21 +75,58 @@
  * }
  */
 
+
+// /**
+//  * @typedef VecLine
+//  * @type {{
+//  *   vector: [number, number] | [number, number, number],
+//  *   origin: [number, number] | [number, number, number],
+//  * }}
+//  * @description a line defined by a vector and a point along the line,
+//  * capable of representing a line in any dimension.
+//  * @property {[number, number] | [number, number, number]} vector
+//  * a vector describing the direction of the line
+//  * @property {[number, number] | [number, number, number]} origin
+//  * a point which the line passes through
+//  */
+
+/**
+ * @typedef VecLine2
+ * @type {{ vector: [number, number], origin: [number, number] }}
+ * @description a 2D line defined by a 2D vector and a 2D point along the line.
+ * @property {[number, number]} vector
+ * a vector describing the direction of the line
+ * @property {[number, number]} origin
+ * a point which the line passes through
+ */
+
+/**
+ * @typedef VecLine3
+ * @type {{ vector: [number, number, number], origin: [number, number, number] }}
+ * @description a 3D line defined by a 3D vector and a 3D point along the line.
+ * @property {[number, number, number]} vector
+ * a vector describing the direction of the line
+ * @property {[number, number, number]} origin
+ * a point which the line passes through
+ */
+
 /**
  * @typedef VecLine
  * @type {{ vector: number[], origin: number[] }}
  * @description a line defined by a vector and a point along the line,
  * capable of representing a line in any dimension.
- * @property {number[]} vector - a vector describing the direction of the line
- * @property {number[]} origin - a point which the line passes through
+ * @property {number[]} vector
+ * a vector describing the direction of the line
+ * @property {number[]} origin
+ * a point which the line passes through
  */
 
 /**
  * @typedef UniqueLine
- * @type {{ normal: number[], distance: number }}
+ * @type {{ normal: [number, number], distance: number }}
  * @description a 2D line defined by a unit normal vector and a value that
  * describes the shortest distance from the origin to a point on the line.
- * @property {number[]} normal - a unit vector that is normal to the line
+ * @property {[number, number]} normal - a unit vector that is normal to the line
  * @property {number} distance - the shortest distance
  * from the line to the origin
  */
@@ -75,10 +144,10 @@
 
 /**
  * @typedef Circle
- * @type {{ radius: number, origin: number[] }}
+ * @type {{ radius: number, origin: [number, number] }}
  * @description a circle primitive in 2D
  * @property {number} radius - the radius of the circle
- * @property {number[]} origin - the center of the circle as an array of numbers
+ * @property {[number, number]} origin - the center of the circle as an array of numbers
  */
 
 /**
@@ -176,6 +245,5 @@
  *     ],
  *   ],
  * }
- *
  *
  */

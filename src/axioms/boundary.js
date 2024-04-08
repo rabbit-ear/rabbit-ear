@@ -23,7 +23,7 @@ const paramsToUniqueLine = (args) => args
  * will be returned.
  * @param {number} number the axiom number, 1-7. **note, 0 is not an option**
  * @param {number[][]} boundary the polygon outline of the folding material
- * @param {any[][]} ...args the input parameters to the axiom number, points or lines
+ * @param {...any[][]} args the input parameters to the axiom number, points or lines
  * @returns {VecLine[]} an array of solutions as lines, or an empty array if no solutions.
  */
 export const axiomWithBoundary = (number, boundary, ...args) => {
@@ -40,7 +40,7 @@ export const axiomWithBoundary = (number, boundary, ...args) => {
  * only the results possible inside the boundary will be returned.
  * @param {number} number the axiom number, 1-7. **note, 0 is not an option**
  * @param {number[][]} boundary the bounding polygon representing the folding material
- * @param {any[][]} ...args the input parameters to the axiom number, points or lines
+ * @param {...any[][]} args the input parameters to the axiom number, points or lines
  * @returns {UniqueLine[]} an array of solutions as lines, or an empty array if no solutions.
  */
 export const normalAxiomWithBoundary = (number, boundary, ...args) => {

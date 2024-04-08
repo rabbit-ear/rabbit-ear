@@ -24,7 +24,8 @@
 	"scripts": {
 		"test": "vitest",
 		"clean": "node tests/clean.js",
-		"lineno": "node tests/lineno.js"
+		"lineno": "node tests/lineno.js",
+		"docs": "node tests/docs.js"
 	},
 	"license": "GPLv3",
 	"author": {

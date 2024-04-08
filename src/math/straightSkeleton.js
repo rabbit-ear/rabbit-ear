@@ -1,5 +1,5 @@
 /**
- * Math (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 import {
 	excludeR,

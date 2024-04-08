@@ -192,7 +192,7 @@ export const setDifferenceSortedEpsilonNumbers = (a, b, epsilon = EPSILON) => {
  * An optional map function parameter can be provided to map the
  * values into another state before searching for the minimum value.
  * @param {any[]} array an array of any comparable type
- * @param {function?} map an optional map function to run on all elements
+ * @param {function} [map] an optional map function to run on all elements
  * @returns {number|undefined} an index from the input array,
  * or undefined if the array has no length.
  */
@@ -213,7 +213,7 @@ export const arrayMinimumIndex = (array, map) => {
  * An optional map function parameter can be provided to map the
  * values into another state before searching for the maximum value.
  * @param {any[]} array an array of any comparable type
- * @param {function?} map an optional map function to run on all elements
+ * @param {function} [map] an optional map function to run on all elements
  * @returns {number|undefined} an index from the input array,
  * or undefined if the array has no length.
  */

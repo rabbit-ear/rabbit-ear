@@ -1,5 +1,5 @@
 /**
- * Math (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 import {
 	EPSILON,
@@ -102,6 +102,7 @@ export const lerpLines = (a, b, t) => {
 /**
  * @description a subroutine of pleat(), if we identify that
  * the two lines are parallel.
+ * @returns {VecLine2[][]} an array of lines, objects with "vector" and "origin"
  */
 const parallelPleat = (a, b, count) => {
 	const isOpposite = dot(a.vector, b.vector) < 0;
@@ -127,11 +128,11 @@ const parallelPleat = (a, b, count) => {
 /**
  * @description Between two lines, make a repeating sequence of
  * evenly-spaced lines to simulate a series of pleats.
- * @param {VecLine} a a line with a "vector" and "origin" component
- * @param {VecLine} b a line with a "vector" and "origin" component
+ * @param {VecLine2} a a line with a "vector" and "origin" component
+ * @param {VecLine2} b a line with a "vector" and "origin" component
  * @param {number} count the number of faces, the number of lines will be n-1.
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {VecLine[]} an array of lines, objects with "vector" and "origin"
+ * @returns {VecLine2[][]} an array of lines, objects with "vector" and "origin"
  */
 export const pleat = (a, b, count, epsilon = EPSILON) => {
 	const determinant = cross2(a.vector, b.vector);
@@ -165,10 +166,10 @@ export const pleat = (a, b, count, epsilon = EPSILON) => {
  * @description given two lines, find two lines which bisect the given lines,
  * if the given lines have an intersection, or return one
  * line if they are parallel.
- * @param {VecLine} a a line with a "vector" and "origin" component
- * @param {VecLine} b a line with a "vector" and "origin" component
+ * @param {VecLine2} a a line with a "vector" and "origin" component
+ * @param {VecLine2} b a line with a "vector" and "origin" component
  * @param {number} [epsilon=1e-6] an optional epsilon for testing parallel-ness.
- * @returns {VecLine[]} an array of lines, objects with "vector" and "origin"
+ * @returns {[VecLine2?, VecLine2?]} an array of lines, objects with "vector" and "origin"
  */
 export const bisectLines2 = (a, b, epsilon = EPSILON) => {
 	const solution = pleat(a, b, 2, epsilon).map(arr => arr[0]);

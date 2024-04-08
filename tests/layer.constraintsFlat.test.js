@@ -41,6 +41,7 @@ test("makeSolverConstraintsFlat, four panel square", () => {
 	expect(transitivity).toMatchObject([]);
 });
 
+
 test("makeSolverConstraintsFlat, strip weave", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/strip-weave.fold", "utf-8");
 	const fold = JSON.parse(foldfile);

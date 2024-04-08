@@ -1,5 +1,5 @@
 /**
- * Math (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 import * as constant from "./constant.js";
 import * as convert from "./convert.js";

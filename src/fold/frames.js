@@ -12,7 +12,7 @@ import Messages from "../environment/messages.js";
  * gathering all of its inherited parent frames and collapsing the
  * stack into one single frame. The input graph itself will not be modified.
  * @param {FOLD} graph a FOLD object
- * @param {number} frame which frame number to flatten (0 is the top level)
+ * @param {number} frameNumber which frame number to flatten (0 is the top level)
  * @returns {FOLD} one single, flattened FOLD frame (with no file_frames)
  */
 export const flattenFrame = (graph, frameNumber = 0) => {
@@ -33,6 +33,8 @@ export const flattenFrame = (graph, frameNumber = 0) => {
 	/**
 	 * @description recurse from the desired frame up through its parent
 	 * frames until we reach frame index 0, or a frame with no parent.
+	 * @param {number} currentIndex
+	 * @param {number[]} previousOrders
 	 * @returns {number[]} a list of frame indices, from parent to child.
 	 */
 	const recurse = (currentIndex, previousOrders) => {

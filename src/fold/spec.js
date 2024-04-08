@@ -187,7 +187,7 @@ export const assignmentIsBoundary = {
 /**
  * @description Convert an assignment character to a foldAngle in degrees.
  * This assumes that all assignments are flat folded.
- * @param {string} a FOLD edge assignment character
+ * @param {string} assignment a FOLD edge assignment character
  * @returns {number} fold angle in degrees. M/V are assumed to be flat-folded.
  */
 export const edgeAssignmentToFoldAngle = (assignment) => (
@@ -234,7 +234,12 @@ export const edgesFoldAngleAreAllFlat = ({ edges_foldAngle }) => {
 	return true;
 };
 
-// subroutine for filterKeysWithPrefix and filterKeysWithSuffix
+/**
+ * @description subroutine for filterKeysWithPrefix and filterKeysWithSuffix
+ * @param {object} obj
+ * @param {function} matchFunction
+ * @returns {string[]} array of matching keys
+ */
 const filterKeys = (obj, matchFunction) => Object
 	.keys(obj)
 	.filter(key => matchFunction(key));
@@ -249,6 +254,7 @@ const filterKeys = (obj, matchFunction) => Object
  */
 export const filterKeysWithPrefix = (obj, prefix) => filterKeys(
 	obj,
+	/** @param {string} s */
 	s => s.substring(0, prefix.length + 1) === `${prefix}_`,
 );
 
@@ -262,6 +268,7 @@ export const filterKeysWithPrefix = (obj, prefix) => filterKeys(
  */
 export const filterKeysWithSuffix = (obj, suffix) => filterKeys(
 	obj,
+	/** @param {string} s */
 	s => s.substring(s.length - suffix.length - 1, s.length) === `_${suffix}`,
 );
 
@@ -482,7 +489,7 @@ export const sortEdgesByAssignment = ({ edges_vertices, edges_assignment = [] })
  * @description Get a FOLD object's metadata, which includes all relevant
  * data inside any of the "file_" keys. Note: this does not include
  * any "frames_" frame metadata.
- * @param {FOLD} graph a FOLD object
+ * @param {FOLD} FOLD a FOLD object
  * @returns {object} an object containing the metadata keys and values
  */
 export const getFileMetadata = (FOLD = {}) => {

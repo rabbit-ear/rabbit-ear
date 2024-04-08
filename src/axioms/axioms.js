@@ -45,8 +45,8 @@ import {
 
 /**
  * @description origami axiom 1: form a line that passes between the given points
- * @param {number[]} point1 one 2D point
- * @param {number[]} point2 one 2D point
+ * @param {[number, number]} point1 one 2D point
+ * @param {[number, number]} point2 one 2D point
  * @returns {[VecLine]} an array of one solution line in {vector, origin} form
  */
 export const axiom1 = (point1, point2) => [{
@@ -56,8 +56,8 @@ export const axiom1 = (point1, point2) => [{
 
 /**
  * @description origami axiom 1: form a line that passes between the given points
- * @param {number[]} point1 one 2D point
- * @param {number[]} point2 one 2D point
+ * @param {[number, number]} point1 one 2D point
+ * @param {[number, number]} point2 one 2D point
  * @returns {[UniqueLine]} an array of one solution line in {normal, distance} form
  */
 export const normalAxiom1 = (point1, point2) => {
@@ -70,8 +70,8 @@ export const normalAxiom1 = (point1, point2) => {
 
 /**
  * @description origami axiom 2: form a perpendicular bisector between the given points
- * @param {number[]} point1 one 2D point
- * @param {number[]} point2 one 2D point
+ * @param {[number, number]} point1 one 2D point
+ * @param {[number, number]} point2 one 2D point
  * @returns {[VecLine]} an array of one solution line in {vector, origin} form
  */
 export const axiom2 = (point1, point2) => [{
@@ -83,8 +83,8 @@ export const axiom2 = (point1, point2) => [{
 
 /**
  * @description origami axiom 2: form a perpendicular bisector between the given points
- * @param {number[]} point1 one 2D point
- * @param {number[]} point2 one 2D point
+ * @param {[number, number]} point1 one 2D point
+ * @param {[number, number]} point2 one 2D point
  * @returns {[UniqueLine]} an array of one solution line in {normal, distance} form
  */
 export const normalAxiom2 = (point1, point2) => {
@@ -124,6 +124,7 @@ export const normalAxiom3 = (line1, line2) => {
 	}
 	const x = line1.distance * line2.normal[1] - line2.distance * line1.normal[1];
 	const y = line2.distance * line1.normal[0] - line1.distance * line2.normal[0];
+	/** @type {[number, number]} */
 	const intersect = [x / determ, y / determ];
 
 	return [add2, subtract2]
@@ -135,11 +136,11 @@ export const normalAxiom3 = (line1, line2) => {
  * @description origami axiom 4: form a line perpendicular to a given line that
  * passes through a point.
  * @param {VecLine} line one 2D line in {vector, origin} form
- * @param {number[]} point one 2D point
+ * @param {[number, number]} point one 2D point
  * @returns {[VecLine]} the line in {vector, origin} form
  */
-export const axiom4 = (line, point) => [{
-	vector: rotate90(normalize2(line.vector)),
+export const axiom4 = ({ vector }, point) => [{
+	vector: rotate90(normalize2(vector)),
 	origin: point,
 }];
 

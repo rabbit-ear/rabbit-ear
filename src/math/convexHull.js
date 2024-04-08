@@ -1,5 +1,5 @@
 /**
- * Math (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 import {
 	EPSILON,
@@ -23,6 +23,7 @@ import {
 /**
  * @description mirror an array and join it at the end, except
  * do not duplicate the final element, it should only appear once.
+ * @param {any[]} arr
  */
 const mirrorArray = (arr) => arr.concat(arr.slice(0, -1).reverse());
 
@@ -85,7 +86,7 @@ const smallestVector2 = (points, epsilon = EPSILON) => {
  * (within an epsilon). Within these clusters of similarly-angled
  * points, the points are sorted by distance so the nearest point
  * appears first in the cluster array.
- * @param {number[][]} points an array of points
+ * @param {[number, number][]} points an array of 2D points
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[][]} this returns indices in clusters.
  * @todo there is a wrap-around point where the cycle will not cluster
@@ -119,7 +120,7 @@ export const convexHullRadialSortPoints = (points, epsilon = EPSILON) => {
  * @description Convex hull from a set of 2D points, choose whether
  * to include or exclude points which lie collinear inside one of
  * the boundary lines. modified Graham scan algorithm.
- * @param {number[][]} points array of points, each point an array of numbers
+ * @param {[number, number][]} points array of points, each point an array of numbers
  * @param {boolean} [includeCollinear=false] true will include
  * points collinear along the boundary
  * @param {number} [epsilon=1e-6] undefined behavior when larger than 0.01

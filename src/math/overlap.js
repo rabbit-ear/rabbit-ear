@@ -1,5 +1,5 @@
 /**
- * Math (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 import {
 	EPSILON,
@@ -21,7 +21,7 @@ import {
  * and specify if the line is a line/ray/segment and test whether
  * the point lies within endpoint(s).
  * @param {VecLine} line a line in "vector" "origin" form
- * @param {number[]} point one 2D point
+ * @param {[number, number]} point one 2D point
  * @parma {function} [lineDomain=includeL] the domain of the line
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {boolean} is the point collinear to the line,

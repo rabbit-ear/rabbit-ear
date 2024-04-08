@@ -1,5 +1,5 @@
 /**
- * Math (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 // import { distance2 } from "../algebra/vector.js";
 // import { identity2x3 } from "../algebra/matrix2.js";

@@ -106,12 +106,47 @@ test("parallel same distance 3d", () => {
 	expect(result.lines.length).toBe(4);
 });
 
-test("parallel same distance 3d", () => {
+test("getEdgesLine, parallel lines at same distance in 3D, circle XY", () => {
 	const graph = {
 		vertices_coords: Array.from(Array(16))
 			.map((_, i) => (i / 16) * (Math.PI * 2))
 			.flatMap(a => [
-				[-1, Math.cos(a), Math.sin(a)], [1, Math.cos(a), Math.sin(a)],
+				[Math.cos(a), Math.sin(a), -1],
+				[Math.cos(a), Math.sin(a), 1],
+			]),
+		edges_vertices: Array.from(Array(16))
+			.map((_, i) => [i * 2, i * 2 + 1]),
+	};
+	const result = ear.graph.getEdgesLine(graph);
+	const lines_edges = ear.graph.invertFlatToArrayMap(result.edges_line);
+	lines_edges.forEach(el => expect(el.length).toBe(1));
+	expect(result.lines.length).toBe(16);
+});
+
+test("getEdgesLine, parallel lines at same distance in 3D, circle XZ", () => {
+	const graph = {
+		vertices_coords: Array.from(Array(16))
+			.map((_, i) => (i / 16) * (Math.PI * 2))
+			.flatMap(a => [
+				[Math.cos(a), -1, Math.sin(a)],
+				[Math.cos(a), 1, Math.sin(a)],
+			]),
+		edges_vertices: Array.from(Array(16))
+			.map((_, i) => [i * 2, i * 2 + 1]),
+	};
+	const result = ear.graph.getEdgesLine(graph);
+	const lines_edges = ear.graph.invertFlatToArrayMap(result.edges_line);
+	lines_edges.forEach(el => expect(el.length).toBe(1));
+	expect(result.lines.length).toBe(16);
+});
+
+test("getEdgesLine, parallel lines at same distance in 3D, circle YZ", () => {
+	const graph = {
+		vertices_coords: Array.from(Array(16))
+			.map((_, i) => (i / 16) * (Math.PI * 2))
+			.flatMap(a => [
+				[-1, Math.cos(a), Math.sin(a)],
+				[1, Math.cos(a), Math.sin(a)],
 			]),
 		edges_vertices: Array.from(Array(16))
 			.map((_, i) => [i * 2, i * 2 + 1]),

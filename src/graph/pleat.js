@@ -30,12 +30,13 @@ import {
  * lines as inputs. This is akin to origami axiom 3, but
  * that the result is not one bisector, but a fan of sectors.
  * @param {FOLD} graph a FOLD object
- * @param {number} lineA one of the two input lines
- * @param {number} lineB one of the two input lines
+ * @param {VecLine2} lineA one of the two input lines
+ * @param {VecLine2} lineB one of the two input lines
  * @param {number} count the number of pleats
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {number[][][][]} an array of arrays of segments, where each
- * segment is an array of points, each point is an array of numbers.
+ * @returns {[[number, number], [number, number]][][]} an
+ * array of arrays of segments, where each segment is an array
+ * of points, each point is an array of numbers.
  * The outer array always contains two inner arrays where the pleat lines
  * are sorted into two halves, both two angles between the lines.
  */

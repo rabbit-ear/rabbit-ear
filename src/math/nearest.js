@@ -1,5 +1,5 @@
 /**
- * Math (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 import {
 	EPSILON,
@@ -25,9 +25,9 @@ import {
 
 /**
  * @description find the one point in an array of 2D points closest to a 2D point.
- * @param {number[][]} points an array of 2D points to test against
- * @param {number[]} point the 2D point to test nearness to
- * @returns {number[]} one point from the array of points
+ * @param {[number, number][]} points an array of 2D points to test against
+ * @param {[number, number]} point the 2D point to test nearness to
+ * @returns {[number, number]} one point from the array of points
  */
 export const nearestPoint2 = (points, point) => {
 	// todo speed up with partitioning
@@ -50,10 +50,9 @@ export const nearestPoint = (points, point) => {
 
 /**
  * @description find the nearest point on a line, ray, or segment.
- * @param {number[]} vector the vector of the line
- * @param {number[]} origin a point that the line passes through
+ * @param {VecLine} line a line with a vector and origin
  * @param {number[]} point the point to test nearness to
- * @param {function} limiterFunc a clamp function to bound a calculation between 0 and 1
+ * @param {function} clampFunc a clamp function to bound a calculation between 0 and 1
  * for segments, greater than 0 for rays, or unbounded for lines.
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {number[]} a point

@@ -1,5 +1,5 @@
 /**
- * Math (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 import {
 	normalize2,
@@ -42,7 +42,7 @@ export const sortPointsAlongVector = (points, vector) => (
  * @description Radially sort a list of 2D unit vectors
  * counter-clockwise, starting from the +X axis, [1, 0].
  * Vectors must be normalized within the 2nd dimension.
- * @param {number[][]} vectors a list of 2D unit vectors
+ * @param {[number, number][]} vectors a list of 2D unit vectors
  * @returns {number[]} a list of indices that reference the input list.
  * @notes
  *
@@ -72,7 +72,9 @@ export const radialSortUnitVectors2 = (vectors) => {
 	// each side can be sorted by simply comparing the x value since these
 	// vectors are normalized. decreasing or increasing, for +Y and -Y.
 	const sorts = [
+		/** @param {number} a @param {number} b */
 		(a, b) => vectors[b][0] - vectors[a][0],
+		/** @param {number} a @param {number} b */
 		(a, b) => vectors[a][0] - vectors[b][0],
 	];
 
@@ -86,9 +88,9 @@ export const radialSortUnitVectors2 = (vectors) => {
  * Imagine the line as a plane's normal, project the points down into the
  * plane, normalized, and use them as input to the related method which
  * radially sorts 2D normalized vectors, using our projected plane.
- * @param {number[][]} points a list of 3D points
- * @param {number[]} vector a 3D vector describing the line's vector
- * @param {number[]} origin a point which this line passes through,
+ * @param {[number, number, number][]} points a list of 3D points
+ * @param {[number, number, number]} vector a 3D vector describing the line's vector
+ * @param {[number, number, number]} origin a point which this line passes through,
  * by default this is set to be the origin.
  * @returns {number[]} a list of indices that reference the input list.
  */

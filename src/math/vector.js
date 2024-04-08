@@ -1,5 +1,5 @@
 /**
- * Math (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 import { EPSILON } from "./constant.js";
 
@@ -432,6 +432,20 @@ export const parallel2 = (v, u, epsilon = EPSILON) => Math
 export const resize = (dimension, vector) => (vector.length === dimension
 	? vector
 	: Array(dimension).fill(0).map((z, i) => (vector[i] ? vector[i] : z)));
+
+/**
+ * @description Resize a vector to 2D, filling any missing values with 0.
+ * @param {number[]} vector the vector to resize
+ * @returns {[number, number]} a copy of the vector in 2D.
+ */
+export const resize2 = (vector) => [vector[0] || 0, vector[1] || 0];
+
+/**
+ * @description Resize a vector to 3D, filling any missing values with 0.
+ * @param {number[]} vector the vector to resize
+ * @returns {[number, number, number]} a copy of the vector in 3D.
+ */
+export const resize3 = (vector) => [vector[0] || 0, vector[1] || 0, vector[2] || 0];
 
 /**
  * @description Make the two vectors match in dimension by appending the
