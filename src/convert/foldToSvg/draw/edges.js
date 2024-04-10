@@ -68,7 +68,7 @@ const segmentToPath = s => `M${s[0][0]} ${s[0][1]}L${s[1][0]} ${s[1][1]}`;
 const edgesPathData = (graph) => (
 	graph.vertices_coords && graph.edges_vertices
 		? makeEdgesCoords(graph).map(segment => segmentToPath(segment)).join("")
-		: []
+		: ""
 );
 
 /**

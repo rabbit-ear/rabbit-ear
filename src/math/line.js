@@ -12,12 +12,14 @@ import {
 	dot,
 	cross2,
 	normalize,
+	normalize2,
 	subtract,
 	add2,
 	subtract2,
 	scale2,
 	lerp,
 	flip,
+	flip2,
 } from "./vector.js";
 import {
 	counterClockwiseSubsect2,
@@ -63,7 +65,7 @@ export const isCollinear = (p0, p1, p2, epsilon = EPSILON) => {
 	const vectors = [[p0, p1], [p1, p2]]
 		.map(pts => subtract(pts[1], pts[0]))
 		.map(vector => normalize(vector));
-	return epsilonEqual(1.0, Math.abs(dot(...vectors)), epsilon);
+	return epsilonEqual(1.0, Math.abs(dot(vectors[0], vectors[1])), epsilon);
 };
 
 /**
@@ -83,7 +85,7 @@ export const collinearBetween = (p0, p1, p2, inclusive = false, epsilon = EPSILO
 	const vectors = [[p0, p1], [p1, p2]]
 		.map(segment => subtract(segment[1], segment[0]))
 		.map(vector => normalize(vector));
-	return epsilonEqual(1.0, dot(...vectors), EPSILON);
+	return epsilonEqual(1.0, dot(vectors[0], vectors[1]), EPSILON);
 };
 
 /**
@@ -91,7 +93,7 @@ export const collinearBetween = (p0, p1, p2, inclusive = false, epsilon = EPSILO
  * @param {VecLine} a a line with a "vector" and "origin" component
  * @param {VecLine} b a line with a "vector" and "origin" component
  * @param {number} t one scalar between 0 and 1 (not clamped)
- * @returns {number[]} one vector, dimensions matching first parameter
+ * @returns {VecLine} one line
  */
 export const lerpLines = (a, b, t) => {
 	const vector = lerp(a.vector, b.vector, t);
@@ -102,7 +104,7 @@ export const lerpLines = (a, b, t) => {
 /**
  * @description a subroutine of pleat(), if we identify that
  * the two lines are parallel.
- * @returns {VecLine2[][]} an array of lines, objects with "vector" and "origin"
+ * @returns {[VecLine2[], VecLine2[]]} an array of lines, objects with "vector" and "origin"
  */
 const parallelPleat = (a, b, count) => {
 	const isOpposite = dot(a.vector, b.vector) < 0;
@@ -116,10 +118,12 @@ const parallelPleat = (a, b, count) => {
 	const vectors = Array
 		.from(Array(count - 1))
 		.map((_, i) => lerp(aVector, bVector, (i + 1) / count));
+	/** @type {VecLine2[]} */
 	const lines = vectors.map((vector, i) => ({
-		vector,
-		origin: [...origins[i]],
+		vector: [vector[0], vector[1]],
+		origin: [origins[i][0], origins[i][1]],
 	}));
+	/** @type {[VecLine2[], VecLine2[]]} */
 	const solution = [lines, lines];
 	solution[(isOpposite ? 0 : 1)] = [];
 	return solution;
@@ -132,34 +136,51 @@ const parallelPleat = (a, b, count) => {
  * @param {VecLine2} b a line with a "vector" and "origin" component
  * @param {number} count the number of faces, the number of lines will be n-1.
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {VecLine2[][]} an array of lines, objects with "vector" and "origin"
+ * @returns {[VecLine2[], VecLine2[]]} an array of lines, objects with "vector" and "origin"
  */
 export const pleat = (a, b, count, epsilon = EPSILON) => {
 	const determinant = cross2(a.vector, b.vector);
 	const numerator = cross2(subtract2(b.origin, a.origin), b.vector);
 	const t = numerator / determinant;
-	const normalized = [a.vector, b.vector].map(vec => normalize(vec));
-	const isParallel = Math.abs(cross2(...normalized)) < epsilon;
+	const normalized = [a.vector, b.vector].map(vec => normalize2(vec));
+	const isParallel = Math.abs(cross2(normalized[0], normalized[1])) < epsilon;
 	if (isParallel) {
 		return parallelPleat(a, b, count);
 	}
 	// two sets of pleats will be generated, between either pairs
 	// of interior angles, unless the lines are parallel.
+	/** @type {[[[number, number], [number, number]], [[number, number], [number, number]]]} */
 	const sides = determinant > -epsilon
-		? [[a.vector, b.vector], [flip(b.vector), a.vector]]
-		: [[b.vector, a.vector], [flip(a.vector), b.vector]];
-	const pleatVectors = sides
-		.map(pair => counterClockwiseSubsect2(pair[0], pair[1], count));
+		? [[a.vector, b.vector], [flip2(b.vector), a.vector]]
+		: [[b.vector, a.vector], [flip2(a.vector), b.vector]];
+	/** @type {[[number, number][], [number, number][]]} */
+	// const pleatVectors = sides
+	// 	.map(pair => counterClockwiseSubsect2(pair[0], pair[1], count));
+	const pleatVectors = [
+		counterClockwiseSubsect2(sides[0][0], sides[0][1], count),
+		counterClockwiseSubsect2(sides[1][0], sides[1][1], count),
+	];
 	// there is an intersection as long as the lines are not parallel
 	const intersection = add2(a.origin, scale2(a.vector, t));
 	// the origin of the lines will be either the intersection,
 	// or in the case of parallel, a lerp between the two line origins.
 	const origins = Array.from(Array(count - 1)).map(() => intersection);
-	return pleatVectors
-		.map(side => side.map((vector, i) => ({
-			vector,
-			origin: [...origins[i]],
-		})));
+	// return pleatVectors
+	// 	.map(side => side.map((vector, i) => ({
+	// 		vector: [vector[0], vector[1]],
+	// 		origin: [origins[i][0], origins[i][1]],
+	// 	})));
+
+	return [
+		pleatVectors[0].map((vector, i) => ({
+			vector: [vector[0], vector[1]],
+			origin: [origins[i][0], origins[i][1]],
+		})),
+		pleatVectors[1].map((vector, i) => ({
+			vector: [vector[0], vector[1]],
+			origin: [origins[i][0], origins[i][1]],
+		})),
+	];
 };
 
 /**
@@ -172,7 +193,9 @@ export const pleat = (a, b, count, epsilon = EPSILON) => {
  * @returns {[VecLine2?, VecLine2?]} an array of lines, objects with "vector" and "origin"
  */
 export const bisectLines2 = (a, b, epsilon = EPSILON) => {
-	const solution = pleat(a, b, 2, epsilon).map(arr => arr[0]);
+	const [biA, biB] = pleat(a, b, 2, epsilon).map(arr => arr[0]);
+	/** @type {[VecLine2, VecLine2]} */
+	const solution = [biA, biB];
 	solution.forEach((val, i) => {
 		if (val === undefined) { delete solution[i]; }
 	});

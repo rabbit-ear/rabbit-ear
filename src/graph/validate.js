@@ -115,7 +115,7 @@ const intersectionOfStrings = (array1, array2) => {
  * all arrays contain the same indices. This works with arrays with holes.
  * O(n)
  * @param {any[][]} arrays any number of arrays
- * @returns {string[]} array of error messages. empty if all tests pass.
+ * @returns {number[][]} array of error messages. empty if all tests pass.
  */
 const arraysHaveSameIndices = (arrays = []) => {
 	// base case test passes.
@@ -429,9 +429,6 @@ export const validate = (graph) => {
 
 	if (graph.vertices_vertices) {
 		reflexiveErrors.push(...reflexiveTest(graph.vertices_vertices, "vertices"));
-	}
-	if (graph.edges_edges) {
-		reflexiveErrors.push(...reflexiveTest(graph.edges_edges, "edges"));
 	}
 	if (graph.faces_faces) {
 		reflexiveErrors.push(...reflexiveTest(graph.faces_faces, "faces"));

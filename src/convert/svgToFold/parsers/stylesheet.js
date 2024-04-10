@@ -3,6 +3,7 @@
  */
 import window from "../../../environment/window.js";
 import { getRootParent } from "../../../svg/general/dom.js";
+
 /**
  * @description Convert a style element, CSSStyleSheet, into a nested
  * object with selectors as keys, then attributes as 2nd layer keys.
@@ -16,7 +17,12 @@ export const parseCSSStyleSheet = (sheet) => {
 	// with the key:value being the key and the contents of that rule.
 	for (let i = 0; i < sheet.cssRules.length; i += 1) {
 		const cssRules = sheet.cssRules[i];
-		if (cssRules.type !== 1) { continue; }
+		if (cssRules.constructor.name !== "CSSStyleRule") { continue; }
+		// /** @type {CSSStyleRule|undefined} */
+		// const cssStyleRule = sheet.cssRules[i].constructor.name !== "CSSStyleRule"
+		// 	? sheet.cssRules[i]
+		// 	: undefined;
+		// if (cssRules.type !== 1) { continue; }
 		const selectorList = cssRules.selectorText
 			.split(/,/gm)
 			.filter(Boolean)
@@ -30,6 +36,7 @@ export const parseCSSStyleSheet = (sheet) => {
 	}
 	return stylesheets;
 };
+
 /**
  * @description This is a very strange function, and it's all because
  * of a very strange quirk that CSSStyleSheet property does not exist
@@ -37,13 +44,14 @@ export const parseCSSStyleSheet = (sheet) => {
  * (ie: converted from XML string), but it does exist if it is.
  * So, we detect if this is the case, quickly append it to the body,
  * process the style sheets, then remove it from the DOM.
- * @param {Element} svg the SVG DOM element
- * @param {Element[]} elements the result of calling flattenDomTree.
+ * @param {SVGStyleElement} style the SVG style DOM element
  * @returns {object[]} style sheets as objects, with CSS selectors as
  * keys, for example: { ".redline": { "stroke-width": "0.5" } }.
  */
 export const parseStyleElement = (style) => {
-	if (style.sheet) { return parseCSSStyleSheet(style.sheet); }
+	/** @type {CSSStyleSheet|undefined} */
+	const styleSheet = "sheet" in style ? style.sheet : undefined;
+	if (styleSheet) { return parseCSSStyleSheet(styleSheet); }
 	const rootParent = getRootParent(style);
 	const isHTMLBound = rootParent.constructor === window().HTMLDocument;
 	if (!isHTMLBound) {
@@ -57,7 +65,7 @@ export const parseStyleElement = (style) => {
 			: window().document.createElement("body");
 		body.appendChild(style);
 		// parse style sheet.
-		const parsedStyle = parseCSSStyleSheet(style.sheet);
+		const parsedStyle = parseCSSStyleSheet(styleSheet);
 		// remove style from document.body. append to previous parent
 		body.removeChild(style);
 		if (prevParent != null) {
@@ -65,8 +73,9 @@ export const parseStyleElement = (style) => {
 		}
 		return parsedStyle;
 	}
-	return {};
+	return [];
 };
+
 /**
  * @description Given one or many parsed stylesheets, hunt for a match based
  * on nodeName selector, id selector, or class selector, and return the value

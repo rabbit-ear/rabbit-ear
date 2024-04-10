@@ -9,6 +9,8 @@ import {
 	average,
 	average2,
 	average3,
+	resize2,
+	resize3,
 } from "../../math/vector.js";
 import {
 	walkPlanarFaces,
@@ -29,7 +31,7 @@ import {
  * down every edge (both ways). This does not include the outside face which winds
  * around the boundary backwards enclosing the outside space.
  * @param {FOLD} graph a FOLD object
- * @returns {object[]} array of faces as objects containing "vertices",
+ * @returns {object} array of faces as objects containing "vertices",
  * "edges", and "angles"
  * @example
  * // to convert the return object into faces_vertices and faces_edges
@@ -78,12 +80,14 @@ export const makePlanarFaces = ({
  * in that polygon's faces_vertices array.
  * @param {FOLD} graph a FOLD graph, with vertices_coords, faces_vertices
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {[number, number][][] | [number, number, number][][]} an array
+ * @returns {([number, number] | [number, number, number])[][]} an array
  * of array of points, where each point is an array of 2 or 3 numbers
  */
-export const makeFacesPolygon = ({ vertices_coords, faces_vertices }, epsilon) => faces_vertices
-	.map(verts => verts.map(v => vertices_coords[v]))
-	.map(polygon => makePolygonNonCollinear(polygon, epsilon));
+export const makeFacesPolygon = ({ vertices_coords, faces_vertices }, epsilon) => (
+	faces_vertices
+		.map(verts => verts.map(v => vertices_coords[v]))
+		.map(polygon => makePolygonNonCollinear(polygon, epsilon))
+);
 
 /**
  * @description map vertices_coords onto each face's set of vertices,
@@ -104,6 +108,7 @@ export const makeFacesPolygonQuick = ({ vertices_coords, faces_vertices }) => (
 export const makeFacesCentroid2D = ({ vertices_coords, faces_vertices }) => (
 	faces_vertices
 		.map(fv => fv.map(v => vertices_coords[v]))
+		.map(coords => coords.map(resize2))
 		.map(coords => centroid(coords))
 );
 
@@ -115,6 +120,7 @@ export const makeFacesCentroid2D = ({ vertices_coords, faces_vertices }) => (
  */
 export const makeFacesCenter2DQuick = ({ vertices_coords, faces_vertices }) => (
 	makeFacesPolygonQuick({ vertices_coords, faces_vertices })
+		.map(coords => coords.map(resize2))
 		.map(coords => average2(...coords))
 );
 
@@ -126,6 +132,7 @@ export const makeFacesCenter2DQuick = ({ vertices_coords, faces_vertices }) => (
  */
 export const makeFacesCenter3DQuick = ({ vertices_coords, faces_vertices }) => (
 	makeFacesPolygonQuick({ vertices_coords, faces_vertices })
+		.map(coords => coords.map(resize3))
 		.map(coords => average3(...coords))
 		// assume vertices_coords is 3D, if not, center point[2] will be NaN, fix it
 		.map(point => (Number.isNaN(point[2]) ? [point[0], point[1], 0] : point))

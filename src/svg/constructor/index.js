@@ -1,9 +1,9 @@
 /* svg (c) Kraft, MIT License */
-import SVGWindow from '../environment/window.js';
+import RabbitEarWindow from '../environment/window.js';
 import NS from '../spec/namespace.js';
 import nodes_children from '../spec/nodes_children.js';
 import nodes_attributes from '../spec/nodes_attributes.js';
-import { toCamel } from '../general/transformCase.js';
+import { toCamel } from '../general/string.js';
 import extensions from './extensions/index.js';
 
 /**
@@ -41,7 +41,7 @@ const Constructor = (name, parent, ...initArgs) => {
 	// or, if the extension specifies a custom initializer, run it instead
 	const element = init
 		?	init(...initArgs)
-		: SVGWindow().document.createElementNS(NS, nodeName);
+		: RabbitEarWindow().document.createElementNS(NS, nodeName);
 
 	// if the parent exists, make this element a child
 	if (parent) { parent.appendChild(element); }

@@ -1,6 +1,6 @@
 /* svg (c) Kraft, MIT License */
 import { str_arrow, str_head, str_tail, str_boolean, str_object, str_function } from '../../../environment/strings.js';
-import { toCamel } from '../../../general/transformCase.js';
+import { toCamel } from '../../../general/string.js';
 import { svgSemiFlattenArrays } from '../../../arguments/semiFlattenArrays.js';
 import makeCoordinates from '../../../arguments/makeCoordinates.js';
 import makeArrowPaths from './makeArrowPaths.js';

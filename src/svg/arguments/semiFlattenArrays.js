@@ -7,6 +7,7 @@ import { str_string, str_function } from '../environment/strings.js';
 
 const svgIsIterable = (obj) => obj != null
 	&& typeof obj[Symbol.iterator] === str_function;
+
 /**
  * @description flatten only until the point of comma separated entities.
  * This will preserve vectors (number[]) in an array of array of vectors.

@@ -34,7 +34,7 @@ export const magnitude = v => Math.sqrt(v
 
 /**
  * @description compute the magnitude a 2D vector.
- * @param {[number, number]} v one 2D vector
+ * @param {[number, number] | [number, number, number]} v one 2D vector
  * @returns {number} one scalar
  */
 export const magnitude2 = v => Math.sqrt(v[0] * v[0] + v[1] * v[1]);
@@ -48,7 +48,7 @@ export const magnitude3 = v => Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]
 
 /**
  * @description compute the square-magnitude a 2D vector.
- * @param {number[]} v one 2D vector
+ * @param {[number, number] | [number, number, number]} v one 2D vector
  * @returns {number} one scalar
  */
 export const magSquared2 = v => v[0] * v[0] + v[1] * v[1];
@@ -74,12 +74,12 @@ export const normalize = (v) => {
 
 /**
  * @description normalize the input vector and return a new vector as a copy.
- * @param {[number, number]} v one 2D vector
+ * @param {[number, number] | [number, number, number]} v one 2D vector
  * @returns {[number, number]} one 2D vector
  */
 export const normalize2 = (v) => {
 	const m = magnitude2(v);
-	return m === 0 ? v : [v[0] / m, v[1] / m];
+	return m === 0 ? [v[0], v[1]] : [v[0] / m, v[1] / m];
 };
 
 /**
@@ -102,7 +102,7 @@ export const scale = (v, s) => v.map(n => n * s);
 
 /**
  * @description scale an input vector by one number, return a copy.
- * @param {[number, number]} v one 2D vector
+ * @param {[number, number] | [number, number, number]} v one 2D vector
  * @param {number} s one scalar
  * @returns {[number, number]} one 2D vector
  */
@@ -128,8 +128,8 @@ export const add = (v, u) => v.map((n, i) => n + (u[i] || 0));
 /**
  * @description add two vectors and return the sum as another vector,
  * do not modify the input vectors.
- * @param {[number, number]} v one 2D vector
- * @param {[number, number]} u one 2D vector
+ * @param {[number, number] | [number, number, number]} v one 2D vector
+ * @param {[number, number] | [number, number, number]} u one 2D vector
  * @returns {[number, number]} one 2D vector
  */
 export const add2 = (v, u) => [v[0] + u[0], v[1] + u[1]];
@@ -155,8 +155,8 @@ export const subtract = (v, u) => v.map((n, i) => n - (u[i] || 0));
 /**
  * @description subtract the second vector from the first,
  * return the result as a copy.
- * @param {[number, number]} v one 2D vector
- * @param {[number, number]} u one 2D vector
+ * @param {[number, number] | [number, number, number]} v one 2D vector
+ * @param {[number, number] | [number, number, number]} u one 2D vector
  * @returns {[number, number]} one 2D vector
  */
 export const subtract2 = (v, u) => [v[0] - u[0], v[1] - u[1]];
@@ -182,8 +182,8 @@ export const dot = (v, u) => v
 
 /**
  * @description compute the dot product of two 2D vectors.
- * @param {[number, number]} v one 2D vector
- * @param {[number, number]} u one 2D vector
+ * @param {[number, number] | [number, number, number]} v one 2D vector
+ * @param {[number, number] | [number, number, number]} u one 2D vector
  * @returns {number} one scalar
  */
 export const dot2 = (v, u) => v[0] * u[0] + v[1] * u[1];
@@ -206,8 +206,8 @@ export const midpoint = (v, u) => v.map((n, i) => (n + u[i]) / 2);
 
 /**
  * @description compute the midpoint of two 2D vectors.
- * @param {[number, number]} v one 2D vector
- * @param {[number, number]} u one 2D vector
+ * @param {[number, number] | [number, number, number]} v one 2D vector
+ * @param {[number, number] | [number, number, number]} u one 2D vector
  * @returns {[number, number]} one 2D vector
  */
 export const midpoint2 = (v, u) => scale2(add2(v, u), 0.5);
@@ -279,8 +279,8 @@ export const lerp = (v, u, t = 0) => {
 /**
  * @description the determinant of the matrix of the 2 vectors
  * (possible bad name, 2D cross product is undefined)
- * @param {[number, number]} v one 2D vector
- * @param {[number, number]} u one 2D vector
+ * @param {[number, number] | [number, number, number]} v one 2D vector
+ * @param {[number, number] | [number, number, number]} u one 2D vector
  * @returns {number} one scalar; the determinant; the magnitude
  * of the 2D cross product vector.
  */
@@ -310,8 +310,8 @@ export const distance = (v, u) => Math.sqrt(v
 
 /**
  * @description compute the distance between two 2D vectors
- * @param {[number, number]} v one 2D vector
- * @param {[number, number]} u one 2D vector
+ * @param {[number, number] | [number, number, number]} v one 2D vector
+ * @param {[number, number] | [number, number, number]} u one 2D vector
  * @returns {number} one scalar
  */
 export const distance2 = (v, u) => {
@@ -344,7 +344,7 @@ export const flip = v => v.map(n => -n);
 /**
  * @description return a copy of the input vector where
  * each element's sign flipped
- * @param {[number, number]} v one 2D vector
+ * @param {[number, number] | [number, number, number]} v one 2D vector
  * @returns {[number, number]} one 2D vector
  */
 export const flip2 = v => [-v[0], -v[1]];
@@ -360,7 +360,7 @@ export const flip3 = v => [-v[0], -v[1], -v[2]];
 /**
  * @description return a copy of the input vector rotated
  * 90 degrees counter-clockwise
- * @param {[number, number]} v one 2D vector
+ * @param {[number, number] | [number, number, number]} v one 2D vector
  * @returns {[number, number]} one 2D vector
  */
 export const rotate90 = v => [-v[1], v[0]];
@@ -368,7 +368,7 @@ export const rotate90 = v => [-v[1], v[0]];
 /**
  * @description return a copy of the input vector rotated
  * 270 degrees counter-clockwise
- * @param {[number, number]} v one 2D vector
+ * @param {[number, number] | [number, number, number]} v one 2D vector
  * @returns {[number, number]} one 2D vector
  */
 export const rotate270 = v => [v[1], -v[0]];
@@ -413,8 +413,8 @@ export const parallel = (v, u, epsilon = EPSILON) => parallelNormalized(
 
 /**
  * @description check if two 2D vectors are parallel to each other within an epsilon
- * @param {[number, number]} v one 2D vector
- * @param {[number, number]} u one 2D vector
+ * @param {[number, number] | [number, number, number]} v one 2D vector
+ * @param {[number, number] | [number, number, number]} u one 2D vector
  * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
  * @returns {boolean} are the two vectors parallel within an epsilon?
  */
@@ -473,7 +473,7 @@ export const resizeUp = (a, b) => [a, b]
  * @description Using a given 2D vector as the first basis vector for
  * two-dimensions, return two normalized basis vectors, the second
  * vector being the 90 degree rotation of the first.
- * @param {[number, number]} vector a 2D vector
+ * @param {[number, number] | [number, number, number]} vector a 2D vector
  * @returns {[number, number][]} array of two 2D basis vectors
  */
 export const basisVectors2 = (vector = [1, 0]) => {

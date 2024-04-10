@@ -45,7 +45,7 @@ export const facesContainingPoint = (
  * This is a 2D-only method, any z-axis data will be ignored.
  * @param {FOLD} graph a FOLD object
  * @param {[number, number]} point the point to test
- * @param {[number, number]} vector an optional vector, used in the case that
+ * @param {[number, number]} [vector] an optional vector, used in the case that
  * the point exists along an edge or a vertex.
  * @returns {number|undefined} the index of a face, or undefined
  * if the point does not lie inside any face.

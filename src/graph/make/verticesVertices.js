@@ -183,7 +183,7 @@ export const makeVerticesVertices = (graph) => {
 };
 
 /**
- *
+ * @param {FOLD} graph a FOLD object
  */
 export const makeVerticesVerticesUnsorted = ({ vertices_edges, edges_vertices }) => {
 	if (!vertices_edges) {

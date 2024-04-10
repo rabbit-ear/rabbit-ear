@@ -103,7 +103,7 @@ export const invertMatrix2 = (m) => {
 export const makeMatrix2Translate = (x = 0, y = 0) => identity2x2.concat(x, y);
 
 /**
- * @param {number[]} non-uniform scaling vector for each axis
+ * @param {number[]} scale non-uniform scaling vector for each axis
  * @param {number[]} origin homothetic center of the scale, default [0, 0]
  * @returns {number[]} matrix
  */
@@ -146,7 +146,7 @@ export const makeMatrix2Rotate = (angle, origin = [0, 0]) => {
  * remember vector comes before origin. origin comes last, so that it's easy
  * to leave it empty and make a reflection through the origin.
  * @param {number[]} vector one 2D vector specifying the reflection axis
- * @param {number[]} [origin=[0,0]] 2D origin specifying a point of reflection
+ * @param {number[]} [origin=[0,0]] a 2D origin specifying a point of reflection
  * @returns {number[]} matrix
  */
 export const makeMatrix2Reflect = (vector, origin = [0, 0]) => {

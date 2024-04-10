@@ -42,9 +42,16 @@ export const makeFacesVertexData = ({
 	};
 };
 
-// thick edges
+/**
+ * @returns {{
+ *   vertices_coords: any,
+ *   vertices_color: any,
+ *   verticesEdgesVector: any,
+ *   vertices_vector: any,
+ * } | undefined}
+ */
 export const makeThickEdgesVertexData = (graph, options) => {
-	if (!graph || !graph.vertices_coords || !graph.edges_vertices) { return []; }
+	if (!graph || !graph.vertices_coords || !graph.edges_vertices) { return undefined; }
 	const assignmentColors = options && options.dark ? dark : light;
 	const assignment_color = {
 		...assignmentColors,

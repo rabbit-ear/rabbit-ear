@@ -8,7 +8,8 @@
  * any "vertices_" arrays that exist in the graph will be filled with
  * empty arrays. This vertex will be initialized as isolated.
  * @param {FOLD} graph a FOLD object
- * @param {number[]} coords the position of the new vertex
+ * @param {[number, number]|[number, number, number]} coords
+ * the position of the new vertex
  * @param {number[]} [vertices] optional vertices to become vertices_vertices
  * @param {number[]} [edges] optional edges to become vertices_edges
  * @param {number[]} [faces] optional faces to become vertices_faces
@@ -41,7 +42,8 @@ export const addVertex = (
  * any "vertices_" arrays that exist in the graph will be filled with
  * empty arrays. The new vertices will be initialized as isolated.
  * @param {FOLD} graph a FOLD graph, modified in place.
- * @param {number[][]} points array of points to be added to the graph
+ * @param {([number, number]|[number, number, number])[]} points
+ * array of points to be added to the graph
  * @returns {number[]} index of vertex in new vertices_coords array.
  * the size of this array matches array size of source vertices.
  * duplicate (non-added) vertices returns their pre-existing counterpart's index.

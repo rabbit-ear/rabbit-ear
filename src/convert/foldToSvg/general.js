@@ -12,8 +12,8 @@ const unitBounds = { min: [0, 0], span: [1, 1] };
 /**
  * @description Given an attribute dictionary with keys and values,
  * Set each key/value as an attribute on the SVG element.
- * @param {Element} any SVG / DOM element
- * @param {object} an object with keys and values, intended that
+ * @param {Element} el any SVG / DOM element
+ * @param {object} attributes an object with keys and values, intended that
  * the values be simple primitives (boolean, number, string)
  */
 export const setKeysAndValues = (el, attributes = {}) => Object
@@ -22,7 +22,7 @@ export const setKeysAndValues = (el, attributes = {}) => Object
 
 /**
  * @description Convert a bounding box type into a viewbox string
- * @param {Box?} an object with "min" and "span" as two points
+ * @param {Box?} box an object with "min" and "span" as two points
  * @returns {string} an SVG viewBox string
  */
 export const boundingBoxToViewBox = (box) => [box.min, box.span]
@@ -49,7 +49,7 @@ export const getViewBox = (graph) => {
  * This is useful to get a sense for how thick the strokeWidth should be
  * to make a reasonable rendering.
  * @param {FOLD} graph a FOLD object
- * @param {number} a scale between 0.0 and 1.0, looking for the
+ * @param {number} n a scale between 0.0 and 1.0, looking for the
  * nth smallest or largest edge length.
  * @returns {number} the length of the edge at the nth percent of edges
  * sorted by length.
@@ -79,7 +79,7 @@ export const getNthPercentileEdgeLength = (
  * @description Given a FOLD graph, find a suitable stroke-width for
  * the purposes of rendering the edges.
  * @param {FOLD} graph a FOLD object
- * @param {number} vmax if the dimensions of the graph are already
+ * @param {number} [vmax] if the dimensions of the graph are already
  * calculated, provide the longest length along one axis here.
  * @returns {number} a suitable value for a stroke-width
  */

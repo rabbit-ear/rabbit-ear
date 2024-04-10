@@ -35,7 +35,7 @@ export const foldedFormFaces = (gl, version = 1, graph = {}, options = {}) => {
 	return {
 		program,
 		vertexArrays: makeFoldedVertexArrays(gl, program, exploded, options),
-		elementArrays: makeFoldedElementArrays(gl, version, exploded, options),
+		elementArrays: makeFoldedElementArrays(gl, version, exploded), // , options),
 		flags: [gl.DEPTH_TEST],
 		makeUniforms,
 	};
@@ -62,7 +62,7 @@ export const foldedFormFacesOutlined = (gl, version = 1, graph = {}, options = {
 	return {
 		program,
 		vertexArrays: makeFoldedVertexArrays(gl, program, exploded, options),
-		elementArrays: makeFoldedElementArrays(gl, version, exploded, options),
+		elementArrays: makeFoldedElementArrays(gl, version, exploded), // , options),
 		flags: [gl.DEPTH_TEST],
 		makeUniforms,
 	};

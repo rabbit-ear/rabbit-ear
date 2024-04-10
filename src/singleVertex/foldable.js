@@ -103,7 +103,7 @@ export const verticesFoldability = ({
 
 		// walk around the vertex and cumulatively apply each edge's transform,
 		// if the vertex is foldable, the matrix will end up back as the identity.
-		let matrix = identity3x4;
+		let matrix = [...identity3x4];
 		localMatrices.forEach(m => { matrix = multiplyMatrices3(matrix, m); });
 
 		// only check the first 9 elements, we don't care about the translate part.

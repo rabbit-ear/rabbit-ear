@@ -45,8 +45,8 @@ count.vertices = ({ vertices_coords, vertices_faces, vertices_vertices }) => (
  * @param {FOLD} graph a FOLD object
  * @returns {number} the number of edges in the graph
  */
-count.edges = ({ edges_vertices, edges_edges, edges_faces }) => (
-	maxArraysLength([edges_vertices, edges_edges, edges_faces]));
+count.edges = ({ edges_vertices, edges_faces }) => (
+	maxArraysLength([edges_vertices, edges_faces]));
 
 /**
  * @description Get the number of faces in a graph.

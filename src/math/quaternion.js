@@ -19,21 +19,22 @@ import {
 /**
  * @description Create a quaternion which represents a rotation from
  * one 3D vector to another. Quaternion encoded as 0:x, 1:y, 2:z, 3:w.
- * @param {number[]} u a 3D vector
- * @param {number[]} v a 3D vector
- * @returns {number[]} a quaternion representing a rotation
+ * @param {[number, number, number]} u a 3D vector
+ * @param {[number, number, number]} v a 3D vector
+ * @returns {[number, number, number, number]} a quaternion representing a rotation
  */
 export const quaternionFromTwoVectors = (u, v) => {
 	const w = cross3(u, v);
 	const q = [w[0], w[1], w[2], dot(u, v)];
 	q[3] += magnitude(q);
-	return normalize(q);
+	const [a, b, c, d] = normalize(q);
+	return [a, b, c, d];
 };
 
 /**
  * @description Create a 4x4 matrix from a quaternion,
  * the quaternion encoded as 0:x, 1:y, 2:z, 3:w.
- * @param {number[]} quaternion a quaternion
+ * @param {[number, number, number, number]} q a quaternion
  * @returns {number[]} a 4x4 matrix (array of 16 numbers)
  */
 export const matrix4FromQuaternion = (q) => multiplyMatrices4([

@@ -6,7 +6,7 @@ import {
 	cross3,
 	subtract3,
 	parallel,
-	resize,
+	resize3,
 } from "../math/vector.js";
 
 /**
@@ -22,7 +22,7 @@ import {
 export const makeFacesNormal = ({ vertices_coords, faces_vertices }) => {
 	// ensure that all points are in 3D
 	const vertices_coords3D = vertices_coords
-		.map(coord => resize(3, coord));
+		.map(coord => resize3(coord));
 
 	return faces_vertices
 		.map(vertices => vertices
@@ -65,6 +65,7 @@ export const makeVerticesNormal = ({ vertices_coords, faces_vertices, faces_norm
 	};
 
 	// for every vertex's face, add the vector to the vertex's vector
+	/** @type {[number, number, number][]} */
 	const vertices_normals = vertices_coords.map(() => [0, 0, 0]);
 	faces_vertices
 		.forEach((vertices, f) => vertices

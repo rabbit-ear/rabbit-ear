@@ -1,6 +1,6 @@
 /* svg (c) Kraft, MIT License */
-import SVGWindow from '../../../environment/window.js';
-import makeUUID from '../../../general/makeUUID.js';
+import RabbitEarWindow from '../../../environment/window.js';
+import { makeUUID } from '../../../general/string.js';
 
 /**
  * SVG (c) Kraft
@@ -13,15 +13,15 @@ const Animation = function (element) {
 	const handlers = {};
 
 	const stop = () => {
-		if (SVGWindow().cancelAnimationFrame) {
-			SVGWindow().cancelAnimationFrame(requestId);
+		if (RabbitEarWindow().cancelAnimationFrame) {
+			RabbitEarWindow().cancelAnimationFrame(requestId);
 		}
 		Object.keys(handlers).forEach(uuid => delete handlers[uuid]);
 	};
 
 	const play = (handler) => {
 		stop();
-		if (!handler || !(SVGWindow().requestAnimationFrame)) { return; }
+		if (!handler || !(RabbitEarWindow().requestAnimationFrame)) { return; }
 		start = performance.now();
 		frame = 0;
 		const uuid = makeUUID();
@@ -30,10 +30,10 @@ const Animation = function (element) {
 			handler({ time, frame });
 			frame += 1;
 			if (handlers[uuid]) {
-				requestId = SVGWindow().requestAnimationFrame(handlers[uuid]);
+				requestId = RabbitEarWindow().requestAnimationFrame(handlers[uuid]);
 			}
 		};
-		requestId = SVGWindow().requestAnimationFrame(handlers[uuid]);
+		requestId = RabbitEarWindow().requestAnimationFrame(handlers[uuid]);
 	};
 
 	Object.defineProperty(element, "play", { set: play, enumerable: true });

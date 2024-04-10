@@ -4,6 +4,11 @@
 import { makeCPEdgesVertexData } from "./data.js";
 import { triangulateConvexFacesVertices } from "../../graph/triangulate.js";
 
+/**
+ * @param {object} gl WebGL context
+ * @param {object} program
+ * @param {FOLD} graph a FOLD object
+ */
 export const makeCPEdgesVertexArrays = (gl, program, graph, options) => {
 	if (!graph || !graph.vertices_coords || !graph.edges_vertices) {
 		return [];
@@ -14,6 +19,9 @@ export const makeCPEdgesVertexArrays = (gl, program, graph, options) => {
 		verticesEdgesVector,
 		vertices_vector,
 	} = makeCPEdgesVertexData(graph, options);
+
+	// todo: better
+	if (!vertices_coords) { return []; }
 	return [{
 		location: gl.getAttribLocation(program, "v_position"),
 		buffer: gl.createBuffer(),

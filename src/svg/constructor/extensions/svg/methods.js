@@ -1,8 +1,8 @@
 /* svg (c) Kraft, MIT License */
-import SVGWindow from '../../../environment/window.js';
+import RabbitEarWindow from '../../../environment/window.js';
 import { str_style } from '../../../environment/strings.js';
 import NS from '../../../spec/namespace.js';
-import makeCDATASection from '../../../general/makeCDATASection.js';
+import { makeCDATASection } from '../../../general/cdata.js';
 import { setViewBox, getViewBox } from '../../../general/viewBox.js';
 import makeBackground from './makeBackground.js';
 import getSVGFrame from './getSVGFrame.js';
@@ -45,7 +45,7 @@ const findOneElement = function (element, nodeName) {
 const stylesheet = function (element, textContent) {
 	let styleSection = findOneElement(element, str_style);
 	if (styleSection == null) {
-		styleSection = SVGWindow().document.createElementNS(NS, str_style);
+		styleSection = RabbitEarWindow().document.createElementNS(NS, str_style);
 		styleSection.setTextContent = (text) => {
 			styleSection.textContent = "";
 			styleSection.appendChild(makeCDATASection(text));

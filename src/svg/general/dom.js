@@ -1,29 +1,37 @@
 /* svg (c) Kraft, MIT License */
-import SVGWindow from '../environment/window.js';
+import RabbitEarWindow from '../environment/window.js';
 import { transformStringToMatrix } from './transforms.js';
 import { svg_multiplyMatrices2 } from './algebra.js';
 
 /**
  * SVG (c) Kraft
  */
+
 /**
+ * @description Parse a string into an XML Element
  * @param {string} input an SVG as a string
  * @param {string} mimeType default to XML, for SVG use "image/svg+xml".
+ * @returns {Element|null} the document element or null if unsuccessful.
  */
 const xmlStringToElement = (input, mimeType = "text/xml") => {
-	const result = (new (SVGWindow().DOMParser)()).parseFromString(input, mimeType);
+	const result = (new (RabbitEarWindow().DOMParser)()).parseFromString(input, mimeType);
 	return result ? result.documentElement : null;
 };
+
 /**
  * @description Get the furthest root parent up the DOM tree
+ * @param {Element} el an element
+ * @returns {Element} the top-most parent in the parent node chain.
  */
 const getRootParent = (el) => {
+	/** @type {Element} */
 	let parent = el;
-	while (parent.parentNode != null) {
-		parent = parent.parentNode;
+	while (parent && parent.parentElement != null) {
+		parent = parent.parentElement;
 	}
 	return parent;
 };
+
 /**
  * @description search up the parent-chain until we find the first
  * <Element> with the nodeName matching the parameter,
@@ -31,17 +39,21 @@ const getRootParent = (el) => {
  * Note: there is no protection against a dependency cycle.
  * @param {Element} element a DOM element
  * @param {string} nodeName the name of the element, like "svg" or "div"
- * @returns {Element|undefined} the element if it exists
+ * @returns {Element|null} the element if it exists
  */
 const findElementTypeInParents = (element, nodeName) => {
 	if ((element.nodeName || "") === nodeName) {
+		/** @type {Element} */
 		return element;
 	}
-	return element.parentNode
-		? findElementTypeInParents(element.parentNode, nodeName)
-		: undefined;
+	/** @type {Element} */
+	const parent = element.parentElement;
+	return parent
+		? findElementTypeInParents(parent, nodeName)
+		: null;
 };
 
+// polyfil for adding to a classlist
 const polyfillClassListAdd = (el, ...classes) => {
 	const hash = {};
 	const getClass = el.getAttribute("class");
@@ -54,7 +66,7 @@ const polyfillClassListAdd = (el, ...classes) => {
 /**
  * @description Add classes to an Element, essentially classList.add(), but
  * it will call a polyfill if classList doesn't exist (as in @xmldom/xmldom)
- * @param {Element} element a DOM element
+ * @param {Element} el a DOM element
  * @param {...string} classes a list of class strings to be added to the element
  */
 const addClass = (el, ...classes) => {
@@ -63,12 +75,15 @@ const addClass = (el, ...classes) => {
 		? el.classList.add(...classes)
 		: polyfillClassListAdd(el, ...classes);
 };
+
 /**
  * @description Recurse through a DOM element and flatten all elements
  * into one array. This ignores all style attributes, including
  * "transform" which by its absense really makes this function useful
  * for treating all elements on an individual bases, and not a reliable
  * reflection of where the element will end up, globally speaking.
+ * @param {Element|ChildNode} el an element
+ * @returns {(Element|ChildNode)[]} a flat list of all elements
  */
 const flattenDomTree = (el) => (
 	el.childNodes == null || !el.childNodes.length
@@ -103,8 +118,8 @@ const objectifyAttributes = (list) => {
 	return obj;
 };
 /**
- * @param {object} the parent element's attribute object
- * @param {Element} the current element
+ * @param {object} parentAttrs the parent element's attribute object
+ * @param {Element|ChildNode} element the current element
  */
 const attrAssign = (parentAttrs, element) => {
 	const attrs = objectifyAttributes(getAttributes(element));
@@ -119,6 +134,7 @@ const attrAssign = (parentAttrs, element) => {
 	const transform = `matrix(${matrix.join(", ")})`;
 	return { ...parentAttrs, ...attrs, transform };
 };
+
 /**
  * @description Recurse through a DOM element and flatten all elements
  * into one array, where each element also has a style object which
@@ -126,6 +142,11 @@ const attrAssign = (parentAttrs, element) => {
  * to the element itself, the closer to the element gets priority, and
  * the parent attributes will be overwritten, except in the case of
  * "transform", where the parent-child values are computed and merged.
+ * @param {Element|ChildNode} element
+ * @param {object} attributes key value pairs of attributes
+ * @returns {{ element: Element|ChildNode, attributes: object }[]}
+ * a flat array of objects containing the element and an object describing
+ * the attributes.
  */
 const flattenDomTreeWithStyle = (element, attributes = {}) => (
 	element.childNodes == null || !element.childNodes.length

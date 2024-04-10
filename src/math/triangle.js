@@ -5,18 +5,24 @@ import {
 	EPSILON,
 } from "./constant.js";
 import {
-	subtract2,
-	scale2,
-	distance2,
-	dot2,
 	magnitude2,
+	magnitude3,
+	dot2,
+	dot3,
+	scale2,
+	scale3,
+	distance2,
+	distance3,
 	add2,
+	add3,
+	subtract2,
+	subtract3,
 } from "./vector.js";
 
 /**
  * @description Given a point has known distances to three triangle points,
  * and given the location of that triangle's points in space, find the
- * location of the point in space.
+ * location of the point in space. This method works for 2D faces and points.
  * https://stackoverflow.com/questions/9747227/2d-trilateration
  * @param {[[number, number], [number, number], [number, number]]} pts
  * three 2D triangle points
@@ -24,7 +30,7 @@ import {
  * @returns {[number, number] | undefined} the 2D location of the point
  * inside the triangle, undefined if bad inputs.
  */
-export const trilateration = (pts, radii) => {
+export const trilateration2 = (pts, radii) => {
 	if (pts[0] === undefined || pts[1] === undefined || pts[2] === undefined) {
 		return undefined;
 	}
@@ -38,6 +44,33 @@ export const trilateration = (pts, radii) => {
 	const x = ((radii[0] ** 2) - (radii[1] ** 2) + (d ** 2)) / (2 * d);
 	const y = ((radii[0] ** 2) - (radii[2] ** 2) + (i ** 2) + (j ** 2)) / (2 * j) - ((i * x) / j);
 	return add2(add2(pts[0], scale2(ex, x)), scale2(ey, y));
+};
+
+/**
+ * @description Given a point has known distances to three triangle points,
+ * and given the location of that triangle's points in space, find the
+ * location of the point in space. This method works for 3D faces and points.
+ * https://stackoverflow.com/questions/9747227/2d-trilateration
+ * @param {[[number, number, number], [number, number, number], [number, number, number]]} pts
+ * three 3D triangle points
+ * @param {[number, number, number]} radii three distances to each of the triangle points
+ * @returns {[number, number, number] | undefined} the 3D location of the point
+ * inside the triangle, undefined if bad inputs.
+ */
+export const trilateration3 = (pts, radii) => {
+	if (pts[0] === undefined || pts[1] === undefined || pts[2] === undefined) {
+		return undefined;
+	}
+	const ex = scale3(subtract3(pts[1], pts[0]), 1 / distance3(pts[1], pts[0]));
+	const i = dot3(ex, subtract3(pts[2], pts[0]));
+	const exi = scale3(ex, i);
+	const p2p0exi = subtract3(subtract3(pts[2], pts[0]), exi);
+	const ey = scale3(p2p0exi, (1 / magnitude3(p2p0exi)));
+	const d = distance3(pts[1], pts[0]);
+	const j = dot3(ey, subtract3(pts[2], pts[0]));
+	const x = ((radii[0] ** 2) - (radii[1] ** 2) + (d ** 2)) / (2 * d);
+	const y = ((radii[0] ** 2) - (radii[2] ** 2) + (i ** 2) + (j ** 2)) / (2 * j) - ((i * x) / j);
+	return add3(add3(pts[0], scale3(ex, x)), scale3(ey, y));
 };
 
 /**
@@ -66,6 +99,7 @@ export const circumcircle = (a, b, c) => {
 			radius: Math.sqrt(dx * dx + dy * dy),
 		};
 	}
+	/** @type {[number, number]} */
 	const origin = [(D * E - B * F) / G, (A * F - C * E) / G];
 	const dx = origin[0] - a[0];
 	const dy = origin[1] - a[1];

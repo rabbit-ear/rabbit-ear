@@ -1,7 +1,7 @@
 /* svg (c) Kraft, MIT License */
 import NS from '../../spec/namespace.js';
-import SVGWindow from '../../environment/window.js';
-import makeCDATASection from '../../general/makeCDATASection.js';
+import RabbitEarWindow from '../../environment/window.js';
+import { makeCDATASection } from '../../general/cdata.js';
 
 /**
  * SVG (c) Kraft
@@ -10,7 +10,7 @@ import makeCDATASection from '../../general/makeCDATASection.js';
 const styleDef = {
 	style: {
 		init: (text) => {
-			const el = SVGWindow().document.createElementNS(NS, "style");
+			const el = RabbitEarWindow().document.createElementNS(NS, "style");
 			el.setAttribute("type", "text/css");
 			el.textContent = "";
 			el.appendChild(makeCDATASection(text));

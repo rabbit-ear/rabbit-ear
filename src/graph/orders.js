@@ -22,6 +22,7 @@ import {
 import {
 	invertFlatMap,
 	invertFlatToArrayMap,
+	invertArrayToFlatMap,
 } from "./maps.js";
 // import {
 // 	makeFacesWinding,
@@ -73,8 +74,7 @@ export const linearizeFaceOrders = ({ faceOrders, faces_normal }, rootFace) => {
 	}
 
 	// get a flat, unique, array of all faces present in faceOrders
-	const faces = uniqueSortedNumbers(faceOrders
-		.flatMap(order => [order[0], order[1]]));
+	const faces = uniqueSortedNumbers(faceOrders.flatMap(([a, b]) => [a, b]));
 
 	// we need to pick one face which determines the linearization direction.
 	// if the user supplied rootFace is not in "faces", ignore it.

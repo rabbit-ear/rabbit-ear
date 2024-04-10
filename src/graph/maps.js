@@ -68,7 +68,7 @@ export const invertArrayMap = (map) => {
  * @description Provide two or more simple nextmaps in the order
  * they were made and this will merge them into one nextmap which
  * reflects all changes to the graph.
- * @param {...number[]} ...maps a sequence of simple nextmaps
+ * @param {...number[]} maps a sequence of simple nextmaps
  * @returns {number[]} one nextmap reflecting the sum of changes
  */
 export const mergeFlatNextmaps = (...maps) => {
@@ -82,7 +82,7 @@ export const mergeFlatNextmaps = (...maps) => {
  * @description Provide two or more nextmaps in the order
  * they were made and this will merge them into one nextmap which
  * reflects all changes to the graph.
- * @param {...number[][]} ...maps a sequence of nextmaps
+ * @param {...number[][]} maps a sequence of nextmaps
  * @returns {number[][]} one nextmap reflecting the sum of changes
  */
 export const mergeNextmaps = (...maps) => {
@@ -104,7 +104,7 @@ export const mergeNextmaps = (...maps) => {
  * @description Provide two or more simple backmaps in the order
  * they were made and this will merge them into one backmap which
  * reflects all changes to the graph.
- * @param {...number[]} ...maps a sequence of simplebackmaps
+ * @param {...number[]} maps a sequence of simplebackmaps
  * @returns {number[]} one backmap reflecting the sum of changes
  */
 export const mergeFlatBackmaps = (...maps) => {
@@ -121,7 +121,7 @@ export const mergeFlatBackmaps = (...maps) => {
  * @description Provide two or more  backmaps in the order
  * they were made and this will merge them into one backmap which
  * reflects all changes to the graph.
- * @param {...number[][]} ...maps a sequence of backmaps
+ * @param {...number[][]} maps a sequence of backmaps
  * @returns {number[][]} one backmap reflecting the sum of changes
  */
 export const mergeBackmaps = (...maps) => {

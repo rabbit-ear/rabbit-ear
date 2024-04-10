@@ -1,5 +1,5 @@
 /* svg (c) Kraft, MIT License */
-import { capitalized } from '../../../general/transformCase.js';
+import { capitalized } from '../../../general/string.js';
 import { convertToViewBox } from '../../../general/viewBox.js';
 
 /**

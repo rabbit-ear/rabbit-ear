@@ -78,9 +78,9 @@ export const nearestPointOnLine = (
  * @description given a polygon and a point, in 2D,
  * find a point on the boundary of the polygon
  * that is closest to the provided point.
- * @param {number[][]} polygon an array of points (which are arrays of numbers)
- * @param {number[]} point the point to test nearness to
- * @returns {number[]} a point
+ * @param {[number, number][]} polygon an array of points (which are arrays of numbers)
+ * @param {[number, number]} point the point to test nearness to
+ * @returns {object} a point
  * edge index matches vertices such that edge(N) = [vert(N), vert(N + 1)]
  */
 export const nearestPointOnPolygon = (polygon, point) => polygon

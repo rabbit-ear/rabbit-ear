@@ -10,6 +10,7 @@ const isNodeOrBun = typeof process === "object"
 	&& (process.versions.node != null || process.versions.bun != null);
 
 const isDeno = typeof window === "object"
+	&& "Deno" in window
 	&& typeof window.Deno === "object";
 
 const isBackend = isNodeOrBun || isDeno;

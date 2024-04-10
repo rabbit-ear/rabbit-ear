@@ -15,6 +15,7 @@
  */
 export const connectedComponents = (array_array) => {
 	const components = [];
+	/** @param {number} index @param {number} currentGroup */
 	const recurse = (index, currentGroup) => {
 		// only set unset component entries.
 		// the return value is only meaningful during the first call to recurse()

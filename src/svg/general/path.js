@@ -2,9 +2,13 @@
 /**
  * SVG (c) Kraft
  */
+
 const markerRegEx = /[MmLlSsQqLlHhVvCcSsQqTtAaZz]/g;
 const digitRegEx = /-?[0-9]*\.?\d+/g;
 
+/**
+ * @description Path names in English
+ */
 const pathCommandNames = {
 	m: "move",
 	l: "line",
@@ -17,11 +21,13 @@ const pathCommandNames = {
 	t: "smoothQuadCurve",
 	z: "close",
 };
+
 // make capitalized copies of each command
 Object.keys(pathCommandNames).forEach((key) => {
 	const s = pathCommandNames[key];
 	pathCommandNames[key.toUpperCase()] = s.charAt(0).toUpperCase() + s.slice(1);
 });
+
 /**
  * if the command is relative, it will build upon offset coordinate
  */
@@ -55,21 +61,21 @@ const getEndpoint = (command, values, offset = [0, 0]) => {
  */
 const parsePathCommands = (d) => {
 	const results = [];
-	let match;
-	while ((match = markerRegEx.exec(d)) !== null) {
+	let match = markerRegEx.exec(d);
+	while (match !== null) {
 		results.push(match);
+		match = markerRegEx.exec(d);
 	}
 	return results
-		.map((result, i, arr) => [
-			result[0],
-			result.index,
-			i === arr.length - 1
+		.map((result, i, arr) => ({
+			command: result[0],
+			start: result.index,
+			end: i === arr.length - 1
 				? d.length - 1
 				: arr[(i + 1) % arr.length].index - 1,
-		])
-		.map(el => {
-			const command = el[0];
-			const valueString = d.substring(el[1] + 1, el[2] + 1);
+		}))
+		.map(({ command, start, end }) => {
+			const valueString = d.substring(start + 1, end + 1);
 			const strings = valueString.match(digitRegEx);
 			const values = strings ? strings.map(parseFloat) : [];
 			return { command, values };
@@ -78,7 +84,9 @@ const parsePathCommands = (d) => {
 
 const parsePathCommandsWithEndpoints = (d) => {
 	let pen = [0, 0];
-	const commands = parsePathCommands(d);
+	const parsedCommands = parsePathCommands(d);
+	const commands = parsedCommands
+		.map(obj => ({ ...obj, end: undefined, start: undefined }));
 	if (!commands.length) { return commands; }
 	commands.forEach((command, i) => {
 		commands[i].end = getEndpoint(command.command, command.values, pen);

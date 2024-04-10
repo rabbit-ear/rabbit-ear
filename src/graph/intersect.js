@@ -35,8 +35,8 @@ import {
  * @description Intersect a line/ray/segment with a FOLD graph but only
  * consider the graph's vertices.
  * @param {FOLD} graph a fold graph in creasePattern or foldedForm
- * @param {VecLine} line a line/ray/segment in vector origin form
- * @param {function} lineFunc the function which characterizes the line
+ * @param {VecLine2} line a line/ray/segment in vector origin form
+ * @param {Function} lineDomain the function which characterizes the line
  * into a line, ray, or segment.
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {(number|undefined)[]} an array matching the length of vertices,
@@ -72,11 +72,11 @@ export const intersectLineVertices = (
  * Vertex intersection information is available under the "vertices" key,
  * and collinear edges can be found by checking if both vertices are overlapped.
  * @param {FOLD} graph a fold graph in creasePattern or foldedForm
- * @param {VecLine} line a line/ray/segment in vector origin form
- * @param {function} lineDomain the function which characterizes "line"
+ * @param {VecLine2} line a line/ray/segment in vector origin form
+ * @param {Function} lineDomain the function which characterizes "line"
  * parameter into a line, ray, or segment.
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {{ vertices: boolean[], edges: (object|undefined)[]}} an object
+ * @returns {{ vertices: (number|undefined)[], edges: (object|undefined)[]}} an object
  * summarizing the intersections with edges and vertices:
  * - vertices: for every vertex, a number or undefined. If there is an
  *   intersection with the line, the number is the parameter along the line's
@@ -122,10 +122,10 @@ export const intersectLineVerticesEdges = (
 	// const edgesNoOverlapIntersection = edges_vertices
 	const edges = edges_vertices
 		.map(ev => ev.map(v => vertices_coords[v]))
-		.map((seg, e) => (edgesVerticesOverlap[e].length === 0
+		.map(([s0, s1], e) => (edgesVerticesOverlap[e].length === 0
 			? intersectLineLine(
 				{ vector, origin },
-				pointsToLine(...seg),
+				pointsToLine(s0, s1),
 				lineDomain,
 				includeS,
 			)
@@ -161,12 +161,16 @@ export const intersectLineVerticesEdges = (
  *   two vertices which are neighbors are simply a collinear edge,
  *   "filterCollinearFacesData" will handle these, but if you are dealing with
  *   non-convex polygons you might have a lot of work parsing this data.
- * @param {VecLine} line a line/ray/segment in vector origin form
- * @param {function} lineDomain the function which characterizes "line"
+ * @param {FOLD} graph a FOLD object
+ * @param {VecLine2} line a line/ray/segment in vector origin form
+ * @param {Function} lineDomain the function which characterizes "line"
  * parameter into a line, ray, or segment.
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {{ vertices: boolean[], edges: (object|undefined)[]}} an object
- * summarizing the intersections with vertices, edges, and faces:
+ * @returns {{
+ *   vertices: number[],
+ *   edges: (object|undefined)[],
+ *   faces: (object|undefined)[],
+ * }} an object summarizing the intersections with vertices, edges, and faces:
  * - vertices: for every vertex, true or false, does the vertex overlap the line
  * - edges: a list of intersections, undefined if no intersection or collinear,
  *   or an intersection object which describes:
@@ -250,14 +254,18 @@ export const intersectLine = (
  * @description Intersect a line/ray/segment with a FOLD graph and
  * check a list of input points to see which faces each point lies inside,
  * returning the intersect information with vertices, edges, and faces.
- * @param {VecLine} line a line/ray/segment in vector origin form
- * @param {function} lineDomain the function which characterizes "line"
+ * @param {FOLD} graph a FOLD object
+ * @param {VecLine2} line a line/ray/segment in vector origin form
+ * @param {Function} lineDomain the function which characterizes "line"
  * parameter into a line, ray, or segment.
  * @param {number[][]} [interiorPoints=[]] in the case of a ray or segment,
  * include the endpoint(s) and they will be included if they appear in a face.
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {{ vertices: boolean[], edges: (object|undefined)[]}} an object
- * summarizing the intersections with vertices, edges, and faces:
+ * @returns {{
+ *   vertices: number[],
+ *   edges: (object|undefined)[],
+ *   faces: (object|undefined)[],
+ * }} an object summarizing the intersections with vertices, edges, and faces:
  * - vertices: for every vertex, true or false, does the vertex overlap the line
  * - edges: a list of intersections, undefined if no intersection or collinear,
  *   or an intersection object which describes:

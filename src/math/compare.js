@@ -62,15 +62,19 @@ export const exclude = (n, epsilon = EPSILON) => n > epsilon;
 
 /**
  * @description the domain function for an inclusive line
+ * @param {number} _ the number to test against
+ * @param {number} [__] an optional epsilon
  * @returns {boolean} true
  */
-export const includeL = () => true;
+export const includeL = (_, __) => true;
 
 /**
  * @description the domain function for an exclusive line
+ * @param {number} _ the number to test against
+ * @param {number} [__=1e-6] an optional epsilon
  * @returns {boolean} true
  */
-export const excludeL = () => true;
+export const excludeL = (_, __) => true;
 
 /**
  * @description the domain function for an inclusive ray

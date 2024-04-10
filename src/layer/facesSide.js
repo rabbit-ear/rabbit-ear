@@ -61,11 +61,7 @@ export const makeEdgesFacesSide = ({
  * edges and the edges' adjacent faces, give each face a +1 or -1 based
  * on which side of the edge it is on. "side" determined by the cross-
  * product against the edge's vector.
- * @param {{
- *   vertices_coords: number[][],
- *   edges_vertices: number[][],
- *   faces_center: number[][],
- * }} graph the fold graph with faces_center
+ * @param {FOLD} graph the fold graph with faces_center
  * @param {[number, number][]} edgePairs
  * @returns {[[number,number],[number,number]][]}
  */

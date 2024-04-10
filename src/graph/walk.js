@@ -17,7 +17,8 @@
  * @param {object} [walkedEdges={}] memo object, to prevent walking down
  * duplicate paths, or finding duplicate faces, this dictionary will
  * store and check against vertex pairs "i j".
- * @returns {object|undefined} the walked face, an object arrays of numbers
+ * @returns {{ vertices: number[], edges: string[], angles?: number[] } | undefined}
+ * the walked face, an object arrays of numbers
  * under "vertices", "edges", and "angles", or if you are using a global
  * "walkedEdges" hash, if the faces was previously built, returns undefined.
  */
@@ -97,7 +98,8 @@ export const walkSingleFace = (
  * @description Given a planar graph, discover all faces by counter-clockwise
  * walking by starting at every edge.
  * @param {FOLD} graph a FOLD object with the additional vertices_sectors data
- * @returns {object[]} an array of face objects, where each face
+ * @returns {{ vertices: number[], edges: string[], angles?: number[] }[]}
+ * an array of face objects, where each face
  * has number arrays, "vertices", "edges", and "angles".
  * vertices and edges are indices, angles are radians.
  */
@@ -122,8 +124,10 @@ export const walkPlanarFaces = ({ vertices_vertices, vertices_sectors }) => {
  * @algorithm 180 - sector angle = the turn angle. counter clockwise
  * turns are +, clockwise will be -, this removes the one face that
  * outlines the piece with opposite winding enclosing Infinity.
- * @param {object[]} walkedFaces the result from calling "walkPlanarFaces()"
- * @returns {object[]} a copy of the same input array with one fewer element
+ * @param {{ vertices: number[], edges: string[], angles?: number[] }[]}
+ * walkedFaces the result from calling "walkPlanarFaces()"
+ * @returns {{ vertices: number[], edges: string[], angles?: number[] }[]}
+ * a copy of the same input array with one fewer element
  */
 export const filterWalkedBoundaryFace = (walkedFaces) => walkedFaces
 	.filter(face => face.angles

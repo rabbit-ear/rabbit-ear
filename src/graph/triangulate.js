@@ -48,6 +48,7 @@ const groupByThree = (array) => (array.length === 3 ? [array] : Array
  * Earcut is a small and capable library with zero dependencies.
  * https://www.npmjs.com/package/earcut
  * @param {FOLD} graph a FOLD object.
+ * @param {any} earcut the earcut npm package from Mapbox
  * @returns {number[][]} faces_vertices where all faces have only 3 vertices
  */
 export const triangulateNonConvexFacesVertices = (
@@ -116,6 +117,8 @@ const rebuildWithNewFaces = (graph) => {
  * describes how the faces will change after triangulation,
  * specifically by triangulateConvexFacesVertices or
  * triangulateNonConvexFacesVertices.
+ * @param {FOLD} graph a FOLD object
+ * @returns {number[][]} a nextmap of faces
  */
 const makeTriangulatedFacesNextMap = ({ faces_vertices }) => {
 	let count = 0;
@@ -134,7 +137,7 @@ const makeTriangulatedFacesNextMap = ({ faces_vertices }) => {
  * a reference to the package "Earcut" by Mapbox. Earcut is a small and
  * capable library with zero dependencies: https://www.npmjs.com/package/earcut
  * @param {FOLD} graph a FOLD object, modified in place.
- * @param {object} earcut an optional reference to the Earcut library
+ * @param {any} earcut an optional reference to the Earcut library
  * by Mapbox, required to operate on a graph with non-convex faces.
  * @returns {object} a summary of changes to the input parameter.
  * @todo preserve faceOrders, match preexisting faces against new ones,

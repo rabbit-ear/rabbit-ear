@@ -46,6 +46,7 @@ export const makeEdgesLength = ({ vertices_coords, edges_vertices }) => (
  * that encloses the edge, and will work in n-dimensions. Intended for
  * fast line-sweep algorithms.
  * @param {FOLD} graph a FOLD graph with vertices and edges.
+ * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {Box[]} an array of boxes, length matching the number of edges
  */
 export const makeEdgesBoundingBox = ({

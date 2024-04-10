@@ -149,9 +149,9 @@ Graph.prototype.flatFolded = function () {
 	return this;
 };
 
-Graph.prototype.flatFold = function () {
-	flatFold(this, getLine(arguments));
-	return this;
-};
+// Graph.prototype.flatFold = function () {
+// 	flatFold(this, getLine(arguments));
+// 	return this;
+// };
 
 export default Graph.prototype;

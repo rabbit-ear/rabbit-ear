@@ -1,5 +1,5 @@
 /* svg (c) Kraft, MIT License */
-import { toKebab } from '../../../general/transformCase.js';
+import { toKebab } from '../../../general/string.js';
 
 /**
  * SVG (c) Kraft

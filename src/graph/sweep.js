@@ -80,7 +80,7 @@ export const sweepValues = (
 
 	// is the edge degenerate along the sweep axis?
 	// (both values are an epsilon away from each other)
-	const isDegenerate = edgesValues.map(pair => epsilonEqual(...pair, epsilon));
+	const isDegenerate = edgesValues.map(([a, b]) => epsilonEqual(a, b, epsilon));
 
 	// for each edge, which of its two vertices is first along the sweep axis.
 	// this does not handle the degenerate case, the upcoming object will
@@ -202,8 +202,8 @@ export const sweep = ({
 	const edgesValues = edges_vertices.map(edge => edge.map(e => values[e]));
 	const facesValues = faces_edgeVertices.map(face => face.map(e => values[e]));
 	// is the span degenerate? (both values are an epsilon away from each other)
-	const edgesDegenerate = edgesValues.map(pair => epsilonEqual(...pair, epsilon));
-	const facesDegenerate = facesValues.map(pair => epsilonEqual(...pair, epsilon));
+	const edgesDegenerate = edgesValues.map(([a, b]) => epsilonEqual(a, b, epsilon));
+	const facesDegenerate = facesValues.map(([a, b]) => epsilonEqual(a, b, epsilon));
 	// which vertex comes first along the sweep axis
 	const edgesDirection = edgesValues.map(([a, b]) => Math.sign(a - b));
 	const facesDirection = facesValues.map(([a, b]) => Math.sign(a - b));

@@ -2,9 +2,9 @@
  * Rabbit Ear (c) Kraft
  */
 import {
-	scale,
-	add,
-	resize,
+	scale3,
+	add3,
+	resize3,
 } from "../../math/vector.js";
 import clone from "../../general/clone.js";
 import {
@@ -51,9 +51,9 @@ export const makeExplodedGraph = (graph, layerNudge = LAYER_NUDGE) => {
 			const nudge = faces_nudge[oldFace];
 			if (!nudge) { return; }
 			exploded.faces_vertices[face].forEach(v => {
-				const vec = scale(nudge.vector, nudge.layer * layerNudge);
-				exploded.vertices_coords[v] = add(
-					resize(3, exploded.vertices_coords[v]),
+				const vec = scale3(nudge.vector, nudge.layer * layerNudge);
+				exploded.vertices_coords[v] = add3(
+					resize3(exploded.vertices_coords[v]),
 					vec,
 				);
 			});

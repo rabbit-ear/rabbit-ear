@@ -9,7 +9,7 @@ import populate from "../graph/populate.js";
  * counter-clockwise order.
  * @param {number} w the width of the rectangle
  * @param {number} h the height of the rectangle
- * @returns {number[][]} a list of points
+ * @returns {[number, number][]} a list of 2D points
  */
 const makeRectCoords = (w, h) => [[0, 0], [w, 0], [w, h], [0, h]];
 
@@ -17,7 +17,7 @@ const makeRectCoords = (w, h) => [[0, 0], [w, 0], [w, h], [0, h]];
  * @description Given an already initialized vertices_coords array,
  * create a fully-populated graph that sets these vertices to be
  * the closed boundary of a polygon.
- * @param {number[][]} vertices_coords
+ * @param {[number, number][]} vertices_coords
  * @returns {FOLD} graph a FOLD graph with the vertices_coords
  * as counter-clockwise consecutive points in the boundary forming one face.
  */

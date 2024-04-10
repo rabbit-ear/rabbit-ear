@@ -79,8 +79,8 @@ export const counterClockwiseAngleRadians = (a, b) => {
 /**
  * @description There are 2 interior angles between 2 vectors, A-to-B clockwise,
  * and A-to-B counter-clockwise. Get the clockwise one from A to B.
- * @param {number[]} a vector as an array of two numbers
- * @param {number[]} b vector as an array of two numbers
+ * @param {[number, number]} a 2D vector as an array of two numbers
+ * @param {[number, number]} b 2D vector as an array of two numbers
  * @returns {number} interior angle in radians, clockwise from a to b
  */
 export const clockwiseAngle2 = (a, b) => {
@@ -94,8 +94,8 @@ export const clockwiseAngle2 = (a, b) => {
 /**
  * @description There are 2 interior angles between 2 vectors, A-to-B clockwise,
  * and A-to-B counter-clockwise. Get the counter-clockwise one from A to B.
- * @param {number[]} a vector as an array of two numbers
- * @param {number[]} b vector as an array of two numbers
+ * @param {[number, number]} a 2D vector as an array of two numbers
+ * @param {[number, number]} b 2D vector as an array of two numbers
  * @returns {number} interior angle in radians, counter-clockwise from a to b
  */
 export const counterClockwiseAngle2 = (a, b) => {
@@ -166,9 +166,9 @@ export const counterClockwiseSubsectRadians = (angleA, angleB, divisions) => {
 /**
  * @description subsect into n-divisions the angle clockwise from one vector to the next
  * @param {number} divisions number of angles minus 1
- * @param {number[]} vectorA one vector in array form
- * @param {number[]} vectorB one vector in array form
- * @returns {number[][]} array of vectors (which are arrays of numbers)
+ * @param {[number, number]} vectorA one vector in array form
+ * @param {[number, number]} vectorB one vector in array form
+ * @returns {[number, number][]} array of vectors (which are arrays of numbers)
  */
 export const clockwiseSubsect2 = (vectorA, vectorB, divisions) => {
 	const angleA = Math.atan2(vectorA[1], vectorA[0]);
@@ -180,9 +180,9 @@ export const clockwiseSubsect2 = (vectorA, vectorB, divisions) => {
 /**
  * @description subsect into n-divisions the angle counter-clockwise from one vector to the next
  * @param {number} divisions number of angles minus 1
- * @param {number[]} vectorA one vector in array form
- * @param {number[]} vectorB one vector in array form
- * @returns {number[][]} array of vectors (which are arrays of numbers)
+ * @param {[number, number]} vectorA one 2D vector in array form
+ * @param {[number, number]} vectorB one 2D vector in array form
+ * @returns {[number, number][]} array of vectors (which are arrays of numbers)
  */
 export const counterClockwiseSubsect2 = (vectorA, vectorB, divisions) => {
 	const angleA = Math.atan2(vectorA[1], vectorA[0]);
@@ -213,7 +213,7 @@ export const counterClockwiseOrderRadians = (radians) => {
 /**
  * @description sort an array of vectors by getting an array of
  * reference indices to the input array, instead of a sorted array of vectors.
- * @param {number[][]} vectors array of vectors (which are arrays of numbers)
+ * @param {[number, number][]} vectors array of vectors (which are arrays of numbers)
  * @returns {number[]} array of indices of the input array, indicating
  * the counter-clockwise sorted arrangement.
  */
@@ -237,7 +237,7 @@ export const counterClockwiseSectorsRadians = (radians) => (
 /**
  * @description given an array of vectors, return the sector angles between
  * consecutive parameters. if radially unsorted, this will sort them.
- * @param {number[][]} vectors array of 2D vectors (higher dimensions will be ignored)
+ * @param {[number, number][]} vectors array of 2D vectors (higher dimensions will be ignored)
  * @returns {number[]} array of sector angles in radians
  */
 export const counterClockwiseSectors2 = (vectors) => (

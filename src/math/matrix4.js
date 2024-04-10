@@ -325,9 +325,9 @@ export const makeOrthographicMatrix4 = (top, right, bottom, left, near, far) => 
 ];
 
 /**
- * @param {number[]} position the location of the camera in 3D space
- * @param {number[]} target the point in space the camera is looking towards
- * @param {number[]} up the vector pointing up out the top of the camera.
+ * @param {[number, number, number]} position the location of the camera in 3D space
+ * @param {[number, number, number]} target the point in space the camera is looking towards
+ * @param {[number, number, number]} up the vector pointing up out the top of the camera.
  * @returns {number[]} one 4x4 matrix
  */
 export const makeLookAtMatrix4 = (position, target, up) => {

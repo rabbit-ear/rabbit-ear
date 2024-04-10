@@ -274,7 +274,7 @@ export const makeMatrix3UniformScale = (scale = 1, origin = [0, 0, 0]) => (
  * @description make a 3x4 representing a reflection across a line in the XY plane
  * This is a 2D operation, assumes everything is in the XY plane.
  * @param {number[]} vector one 2D vector specifying the reflection axis
- * @param {number[]} [origin=[0,0]] 2D origin specifying a point of reflection
+ * @param {number[]} [origin=[0,0]] a 2D origin specifying a point of reflection
  * @returns {number[]} one 3x4 matrix
  */
 export const makeMatrix3ReflectZ = (vector, origin = [0, 0]) => {

@@ -22,6 +22,7 @@ export const topologicalSort = (directedEdges) => {
 	directedEdges.forEach(edge => { verticesParents[edge[1]].push(edge[0]); });
 	const ordering = [];
 	const visited = {};
+	/** @param {number} vertex */
 	const recurse = (vertex) => {
 		if (visited[vertex]) { return; }
 		visited[vertex] = true;

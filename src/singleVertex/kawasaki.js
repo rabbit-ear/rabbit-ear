@@ -83,7 +83,7 @@ export const kawasakiSolutionsRadians = (radians) => radians
  * when added to the set, the set satisfies Kawasaki's theorem.
  * @usage this is hard coded to work for flat-plane, where sectors sum to 360deg
  * @param {number[][]} vectors array of vectors, the edges around a single vertex. pre-sorted.
- * @returns {number[][]} for every sector either one vector
+ * @returns {[number, number][]} for every sector either one vector
  * or undefined if that sector contains no solution.
  */
 export const kawasakiSolutionsVectors = (vectors) => (

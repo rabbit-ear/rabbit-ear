@@ -11,6 +11,7 @@
 export const makeFacesFaces = ({ faces_vertices }) => {
 	// create a map that relates these space-separated vertex pair strings
 	// to an array of faces which contain this edge (vertex-pair).
+	/** @type {{ [key: string]: number[] }} */
 	const vertexPairToFaces = {};
 
 	// for every face's faces_vertices, pair a vertex with the next vertex,

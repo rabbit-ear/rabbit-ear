@@ -27,18 +27,22 @@ import {
 	makeFacesNormal,
 } from "../../graph/normals.js";
 
-const newFoldFile = () => {
-	const graph = {};
-	graph.file_spec = file_spec;
-	graph.file_creator = file_creator;
-	graph.file_classes = ["singleModel"];
-	graph.frame_classes = [];
-	graph.frame_attributes = [];
-	graph.vertices_coords = [];
-	graph.faces_vertices = [];
-	return graph;
-};
+/**
+ * @returns {FOLD} graph a FOLD object
+ */
+const newFoldFile = () => ({
+	file_spec: file_spec,
+	file_creator: file_creator,
+	file_classes: ["singleModel"],
+	frame_classes: [],
+	frame_attributes: [],
+	vertices_coords: [],
+	faces_vertices: [],
+});
 
+/**
+ * @param {FOLD} graph a FOLD object
+ */
 const updateMetadata = (graph) => {
 	if (!graph.edges_foldAngle || !graph.edges_foldAngle.length) { return; }
 	let is2D = true;
@@ -54,9 +58,15 @@ const updateMetadata = (graph) => {
 	graph.frame_attributes.push(is2D ? "2D" : "3D");
 };
 
+/**
+ * @param {any[]} list an array of any type.
+ */
 const pairify = (list) => list
 	.map((val, i, arr) => [val, arr[(i + 1) % arr.length]]);
 
+/**
+ * @param {FOLD} graph a FOLD object
+ */
 const makeEdgesVertices = ({ faces_vertices }) => {
 	const edgeExists = {};
 	const edges_vertices = [];
@@ -71,13 +81,22 @@ const makeEdgesVertices = ({ faces_vertices }) => {
 	return edges_vertices;
 };
 
+/**
+ * @param {string[]} face
+ * @returns {number[]} face as a list of vertex indices
+ */
 const parseFace = (face) => face
 	.slice(1)
 	.map(str => parseInt(str, 10) - 1);
 
-const parseVertex = (vertex) => vertex
-	.slice(1)
-	.map(str => parseFloat(str));
+/**
+ * @param {string[]} vertex
+ * @returns {[number, number, number]}
+ */
+const parseVertex = (vertex) => {
+	const [a, b, c] = vertex.slice(1).map(str => parseFloat(str));
+	return [a || 0, b || 0, c || 0];
+};
 
 /**
  * @description Convert an OBJ mesh file into a FOLD object. The conversion

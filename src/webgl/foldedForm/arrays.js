@@ -5,8 +5,15 @@ import {
 	makeFacesVertexData,
 	makeThickEdgesVertexData,
 } from "./data.js";
-import { makeFacesEdgesFromVertices } from "../../graph/make/facesEdges.js";
+import {
+	makeFacesEdgesFromVertices,
+} from "../../graph/make/facesEdges.js";
 
+/**
+ * @param {object} gl WebGL context
+ * @param {object} program
+ * @param {FOLD} graph a FOLD object
+ */
 export const makeFoldedVertexArrays = (gl, program, {
 	vertices_coords, edges_vertices, edges_assignment,
 	faces_vertices, faces_edges, faces_normal,
@@ -78,6 +85,10 @@ export const makeThickEdgesVertexArrays = (gl, program, graph, options = {}) => 
 		verticesEdgesVector,
 		vertices_vector,
 	} = makeThickEdgesVertexData(graph, options.assignment_color);
+
+	// todo: better
+	if (!vertices_coords) { return []; }
+
 	return [{
 		location: gl.getAttribLocation(program, "v_position"),
 		buffer: gl.createBuffer(),

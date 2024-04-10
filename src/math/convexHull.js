@@ -158,7 +158,8 @@ export const convexHull = (points = [], includeCollinear = false, epsilon = EPSI
 		const prev = stack[stack.length - 2];
 		const curr = stack[stack.length - 1];
 		const next = order[i];
-		const turn = threePointTurnDirection(...[prev, curr, next].map(j => points[j]), epsilon);
+		const pts = [prev, curr, next].map(j => points[j]);
+		const turn = threePointTurnDirection(pts[0], pts[1], pts[2], epsilon);
 		funcs[turn](next);
 	}
 	stack.pop();

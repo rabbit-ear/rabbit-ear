@@ -14,7 +14,6 @@ import {
  * intersection of all three faces.
  * @param {FOLD} graph a FOLD object
  * @param {number[][]} facesFacesOverlap an overlap-relationship between every face
- * @param {boolean[]} faces_winding a boolean for each face, true for counter-clockwise.
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {TransitivityConstraint[]} list of arrays containing three face indices.
  */
@@ -57,7 +56,10 @@ export const makeTransitivity = (
 					faces_polygon[k],
 					epsilon,
 				);
-				if (polygon) { trios.push([i, j, k].sort((a, b) => a - b)); }
+				if (polygon) {
+					const [t, u, v] = [i, j, k].sort((a, b) => a - b);
+					trios.push([t, u, v]);
+				}
 			}
 		}
 	}

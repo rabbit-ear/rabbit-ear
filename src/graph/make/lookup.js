@@ -8,9 +8,11 @@
  * that relates these pairs as a space-separated string to the index in the
  * top level array in which this pair resides.
  * @param {number[][]} array
+ * @param {number[]} subsetIndices
  * @returns {{[key: string]: number}}
  */
 const makePairsMap = (array, subsetIndices) => {
+	/** @type {{ [key: string]: number }} */
 	const map = {};
 	const indices = !subsetIndices
 		? array.map((_, i) => i)

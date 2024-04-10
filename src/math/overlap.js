@@ -20,7 +20,7 @@ import {
  * @description check if a point lies collinear along a line,
  * and specify if the line is a line/ray/segment and test whether
  * the point lies within endpoint(s).
- * @param {VecLine} line a line in "vector" "origin" form
+ * @param {VecLine2} line a line in "vector" "origin" form
  * @param {[number, number]} point one 2D point
  * @parma {function} [lineDomain=includeL] the domain of the line
  * @param {number} [epsilon=1e-6] an optional epsilon
@@ -39,15 +39,17 @@ export const overlapLinePoint = (
 	const lineMag = Math.sqrt(lineMagSq);
 	// the line is degenerate
 	if (lineMag < epsilon) { return false; }
-	const cross = cross2(p2p, vector.map(n => n / lineMag));
+	/** @type {[number, number]} */
+	const vecScaled = [vector[0] / lineMag, vector[1] / lineMag];
+	const cross = cross2(p2p, vecScaled);
 	const proj = dot2(p2p, vector) / lineMagSq;
 	return Math.abs(cross) < epsilon && lineDomain(proj, epsilon / lineMag);
 };
 
 /**
  * @description Test if a point is inside a convex polygon.
- * @param {number[][]} polygon a polygon in array of array form
- * @param {number[]} point a point in array form
+ * @param {[number, number][]} polygon a polygon in array of array form
+ * @param {[number, number]} point a point in array form
  * @param {function} polyDomain determines if the polygon boundary
  * is inclusive or exclusive
  * @param {number} [epsilon=1e-6] an optional epsilon
@@ -82,8 +84,8 @@ export const overlapConvexPolygonPoint = (
  * This method is hard-coded to be exclusive, if two otherwise non-overlapping
  * polygons share an overlapping edge, the method will still count the
  * two polygons as not overlapping.
- * @param {number[][]} poly1 a polygon as an array of points
- * @param {number[][]} poly2 a polygon as an array of points
+ * @param {[number, number][]} poly1 a polygon as an array of points
+ * @param {[number, number][]} poly2 a polygon as an array of points
  * @param {number} [epsilon=1e-6] an optional epsilon
  */
 export const overlapConvexPolygons = (poly1, poly2, epsilon = EPSILON) => {

@@ -22,7 +22,7 @@ import draw from "./draw/index.js";
  * some default values for rendering
  */
 const DEFAULT_CIRCLE_RADIUS = 1 / 50;
-const unitBounds = { min: [0, 0], span: [1, 1] };
+const unitBounds = { min: [0, 0], max: [1, 1], span: [1, 1] };
 const groupNames = ["boundaries", "faces", "edges", "vertices"];
 
 /**
@@ -138,7 +138,7 @@ const applyTopLevelOptions = (element, groups, graph, options) => {
  * each group is given a descriptive class name.
  * If the options objects specifies an element to be not drawn, this will
  * still return an empty <g> group element in its place.
- * @param {object} FOLD object
+ * @param {FOLD} graph a FOLD object
  * @param {object} options (optional)
  * @returns {SVGElement[]} An array of four <g> elements: boundaries, faces,
  * edges, vertices, each of the graph components drawn into an SVG group.

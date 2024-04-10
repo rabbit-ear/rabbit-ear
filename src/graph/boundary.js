@@ -36,9 +36,9 @@ import {
  * inclusive / exclusive by adding padding on all sides, or inset in the case
  * of negative number. (positive=inclusive boundary, negative=exclusive boundary)
  * @param {FOLD} graph a FOLD object
- * @param {number?} padding an optional padding around the vertices
+ * @param {number} [padding] an optional padding around the vertices
  * to be included in the bounding box.
- * @returns {BoundingBox?} dimensions stored as "span" "min" and "max".
+ * @returns {Box?} dimensions stored as "span" "min" and "max".
  * "undefined" if no vertices exist in the graph.
  */
 export const boundingBox = ({ vertices_coords }, padding) => (

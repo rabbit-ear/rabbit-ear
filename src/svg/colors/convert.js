@@ -2,7 +2,12 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+
+/**
+ * @param {number} n
+ */
 const roundF = n => Math.round(n * 100) / 100;
+
 /**
  * @description Convert hue-saturation-lightness values into
  * three RGB values, each between 0 and 1 (not 0-255).
@@ -12,12 +17,15 @@ const roundF = n => Math.round(n * 100) / 100;
  * @param {number | undefined} alpha the alpha component from 0 to 1
  * @returns {number[]} three values between 0 and 255, or four
  * if an alpha value is provided, where the fourth is between 0 and 1.
+ * @linkcode Origami ./src/convert/svgParsers/colors/hexToRGB.js 10
  */
 const hslToRgb = (hue, saturation, lightness, alpha) => {
 	const s = saturation / 100;
 	const l = lightness / 100;
+	/** @param {number} n */
 	const k = n => (n + hue / 30) % 12;
 	const a = s * Math.min(l, 1 - l);
+	/** @param {number} n */
 	const f = n => (
 		l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)))
 	);
@@ -25,6 +33,7 @@ const hslToRgb = (hue, saturation, lightness, alpha) => {
 		? [f(0) * 255, f(8) * 255, f(4) * 255]
 		: [f(0) * 255, f(8) * 255, f(4) * 255, alpha];
 };
+
 /**
  *
  */
@@ -37,12 +46,14 @@ const mapHexNumbers = (numbers, map) => {
 		? map.map(i => chars[i]).join("")
 		: chars.join("");
 };
+
 /**
  * @description Convert a hex string into an array of
  * three numbers, the rgb values (between 0 and 1).
  * This ignores any alpha values.
- * @param {string} value a hex color code as a string
+ * @param {string} string a hex color code as a string
  * @returns {number[]} three values between 0 and 255
+ * @linkcode Origami ./src/convert/svgParsers/colors/hexToRGB.js 10
  */
 const hexToRgb = (string) => {
 	const numbers = string.replace(/#(?=\S)/g, "");
@@ -55,6 +66,7 @@ const hexToRgb = (string) => {
 		? [(c >> 24) & 255, (c >> 16) & 255, (c >> 8) & 255, roundF((c & 255) / 256)]
 		: [(c >> 16) & 255, (c >> 8) & 255, c & 255];
 };
+
 /**
  * @param {number} red the red component from 0 to 255
  * @param {number} green the green component from 0 to 255
@@ -63,6 +75,7 @@ const hexToRgb = (string) => {
  * @returns {string} hex string, with our without alpha.
  */
 const rgbToHex = (red, green, blue, alpha) => {
+	/** @param {number} n */
 	const to16 = n => `00${Math.max(0, Math.min(Math.round(n), 255)).toString(16)}`
 		.slice(-2);
 	const hex = `#${[red, green, blue].map(to16).join("")}`;

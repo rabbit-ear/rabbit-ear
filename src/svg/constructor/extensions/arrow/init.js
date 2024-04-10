@@ -1,7 +1,7 @@
 /* svg (c) Kraft, MIT License */
 import { str_class, str_arrow, str_tail, str_head, str_path, str_style, str_stroke, str_none, str_object } from '../../../environment/strings.js';
 import NS from '../../../spec/namespace.js';
-import SVGWindow from '../../../environment/window.js';
+import RabbitEarWindow from '../../../environment/window.js';
 import ArrowMethods from './methods.js';
 import { makeArrowOptions } from './options.js';
 
@@ -26,10 +26,10 @@ const matchingOptions = (...args) => {
 };
 
 const init = function (...args) {
-	const element = SVGWindow().document.createElementNS(NS, "g");
+	const element = RabbitEarWindow().document.createElementNS(NS, "g");
 	element.setAttribute(str_class, str_arrow);
 	const paths = ["line", str_tail, str_head].map(key => {
-		const path = SVGWindow().document.createElementNS(NS, str_path);
+		const path = RabbitEarWindow().document.createElementNS(NS, str_path);
 		path.setAttribute(str_class, `${str_arrow}-${key}`);
 		element.appendChild(path);
 		return path;

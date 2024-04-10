@@ -22,7 +22,7 @@ export const cpFacesV1 = (gl, graph = {}, options = undefined) => {
 	const program = createProgram(gl, cp_100_vert, cp_100_frag);
 	return {
 		program,
-		vertexArrays: makeCPFacesVertexArrays(gl, program, graph, options),
+		vertexArrays: makeCPFacesVertexArrays(gl, program, graph), // , options),
 		elementArrays: makeCPFacesElementArrays(gl, 1, graph),
 		flags: [],
 		makeUniforms,
@@ -44,7 +44,7 @@ export const cpFacesV2 = (gl, graph = {}, options = undefined) => {
 	const program = createProgram(gl, cp_300_vert, cp_300_frag);
 	return {
 		program,
-		vertexArrays: makeCPFacesVertexArrays(gl, program, graph, options),
+		vertexArrays: makeCPFacesVertexArrays(gl, program, graph), // , options),
 		elementArrays: makeCPFacesElementArrays(gl, 2, graph),
 		flags: [],
 		makeUniforms,

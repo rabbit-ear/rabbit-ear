@@ -10,9 +10,22 @@ const ends = [str_tail, str_head];
 const stringifyPoint = p => p.join(",");
 const pointsToPath = (points) => "M" + points.map(pt => pt.join(",")).join("L") + "Z";
 
-const makeArrowPaths = function (options) {
+/**
+ * @description
+ * @param {{
+ *   points: [number, number, number, number],
+ *   padding: number,
+ *   bend: number,
+ *   pinch: number,
+ * }} options
+ */
+const makeArrowPaths = (options) => {
 	// throughout, tail is 0, head is 1
-	let pts = [[0,1], [2,3]].map(pt => pt.map(i => options.points[i] || 0));
+	/** @type {[[number, number], [number, number]]} */
+	let pts = [
+		[options.points[0] || 0, options.points[1] || 0],
+		[options.points[2] || 0, options.points[3] || 0],
+	];
 	let vector = svg_sub2(pts[1], pts[0]);
 	let midpoint = svg_add2(pts[0], svg_scale2(vector, 0.5));
 	// make sure arrow isn't too small
@@ -24,23 +37,33 @@ const makeArrowPaths = function (options) {
 		.reduce((a, b) => a + b, 0);
 	if (len < minLength) {
 		// check len === exactly 0. don't compare to epsilon here
+		/** @type {[number, number]} */
 		const minVec = len === 0 ? [minLength, 0] : svg_scale2(vector, minLength / len);
-		pts = [svg_sub2, svg_add2].map(f => f(midpoint, svg_scale2(minVec, 0.5)));
+		// pts = [svg_sub2, svg_add2].map(f => f(midpoint, svg_scale2(minVec, 0.5)));
+		pts = [
+			svg_sub2(midpoint, svg_scale2(minVec, 0.5)),
+			svg_add2(midpoint, svg_scale2(minVec, 0.5)),
+		];
 		vector = svg_sub2(pts[1], pts[0]);
 	}
+	/** @type {[number, number]} */
 	let perpendicular = [vector[1], -vector[0]];
 	let bezPoint = svg_add2(midpoint, svg_scale2(perpendicular, options.bend));
 	const bezs = pts.map(pt => svg_sub2(bezPoint, pt));
 	const bezsLen = bezs.map(v => svg_magnitude2(v));
-	const bezsNorm = bezs.map((bez, i) => bezsLen[i] === 0
+	const bezsNorm = bezs.map((bez, i) => (bezsLen[i] === 0
 		? bez
-		: svg_scale2(bez, 1 / bezsLen[i]));
+		: svg_scale2(bez, 1 / bezsLen[i])));
 	const vectors = bezsNorm.map(norm => svg_scale2(norm, -1));
-	const normals = vectors.map(vec => [vec[1], -vec[0]]);
+	/** @type {[[number, number], [number, number]]} */
+	const normals = [
+		[vectors[0][1], -vectors[0][0]],
+		[vectors[1][1], -vectors[1][0]],
+	];
 	// get padding from either head/tail options or root of options
-	const pad = ends.map((s, i) => options[s].padding
+	const pad = ends.map((s, i) => (options[s].padding
 		? options[s].padding
-		: (options.padding ? options.padding : 0.0));
+		: (options.padding ? options.padding : 0.0)));
 	const scales = ends
 		.map((s, i) => options[s].height * (options[s].visible ? 1 : 0))
 		.map((n, i) => n + pad[i]);

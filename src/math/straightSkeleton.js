@@ -5,9 +5,9 @@ import {
 	excludeR,
 } from "./compare.js";
 import {
-	subtract,
+	subtract2,
 	distance,
-	flip,
+	flip2,
 } from "./vector.js";
 import {
 	clockwiseBisect2,
@@ -90,7 +90,7 @@ const recurseSkeleton = (points, lines, bisectors) => {
 	// first, flip the first vector so that both of the vectors originate at the
 	// center point, and extend towards the neighbors.
 	const newVector = clockwiseBisect2(
-		flip(lines[(shortest + lines.length - 1) % lines.length].vector),
+		flip2(lines[(shortest + lines.length - 1) % lines.length].vector),
 		lines[(shortest + 1) % lines.length].vector,
 	);
 	// delete 2 entries from "points" and "bisectors" and add each array's new element.
@@ -114,7 +114,7 @@ const recurseSkeleton = (points, lines, bisectors) => {
 
 /**
  * @description create a straight skeleton inside of a convex polygon
- * @param {number[][]} points counter-clockwise polygon as an array of points
+ * @param {[number, number][]} points counter-clockwise polygon as an array of points
  * (which are arrays of numbers)
  * @returns {object[]} list of objects containing "points" {number[][]}: two points
  * defining a line segment, and "type" {string}: either "skeleton" or "perpendicular"
@@ -129,7 +129,7 @@ export const straightSkeleton = (points) => {
 	const lines = points
 		.map((p, i, arr) => [p, arr[(i + 1) % arr.length]])
 		// .map(side => math.line.fromPoints(...side));
-		.map(side => ({ vector: subtract(side[1], side[0]), origin: side[0] }));
+		.map(side => ({ vector: subtract2(side[1], side[0]), origin: side[0] }));
 	// get the interior angle bisectors for every corner of the polygon
 	// index map match to "points"
 	const bisectors = points
@@ -137,11 +137,11 @@ export const straightSkeleton = (points) => {
 		.map((_, i, ar) => [(i - 1 + ar.length) % ar.length, i, (i + 1) % ar.length]
 			.map(j => ar[j]))
 		// make 2 vectors, from current point to previous/next neighbors
-		.map(p => [subtract(p[0], p[1]), subtract(p[2], p[1])])
+		.map(p => [subtract2(p[0], p[1]), subtract2(p[2], p[1])])
 		// it is a little counter-intuitive but the interior angle between three
 		// consecutive points in a counter-clockwise wound polygon is measured
 		// in the clockwise direction
-		.map(v => clockwiseBisect2(...v));
+		.map(([a, b]) => clockwiseBisect2(a, b));
 	// points is modified in place. create a copy
 	// const points_clone = JSON.parse(JSON.stringify(points));
 	// console.log("ss points", points_clone, points);

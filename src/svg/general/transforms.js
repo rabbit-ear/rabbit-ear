@@ -4,13 +4,18 @@ import { svg_multiplyMatrices2 } from './algebra.js';
 /**
  * SVG (c) Kraft
  */
+
 /** SVG transforms are in DEGREES ! */
+
 /**
- * parse the value of a SVG transform attribute
- * @param {string} transform, like "translate(20 30) rotate(30) skewY(10)"
- * @returns {object[]} array of objects, {transform:__, parameters:__}
+ * @description parse the value of a SVG transform attribute
+ * @param {string} transform a CSS/SVG transform, for example
+ * "translate(20 30) rotate(30) skewY(10)"
+ * @returns {{ transform: string, parameters: number[] }[]} array of objects
+ * representing method calls where the "transform" is the transform name and
+ * the "parameters" is a list of floats.
  */
-const parseTransform = function (transform) {
+const parseTransform = (transform) => {
 	const parsed = transform.match(/(\w+\((\-?\d+\.?\d*e?\-?\d*,?\s*)+\))+/g);
 	if (!parsed) { return []; }
 	const listForm = parsed.map(a => a.match(/[\w\.\-]+/g));
@@ -21,7 +26,8 @@ const parseTransform = function (transform) {
 };
 
 /**
- * convert the arguments of each SVG affine transform type into matrix form
+ * @description convert the arguments of each SVG affine transform type
+ * into matrix form.
  */
 const matrixFormTranslate = function (params) {
 	switch (params.length) {

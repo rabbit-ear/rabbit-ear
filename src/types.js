@@ -16,24 +16,31 @@
  *   edges_faces?: (number | null | undefined)[][],
  *   edges_assignment?: string[],
  *   edges_foldAngle?: number[],
+ *   edges_length?: number[],
  *   faces_vertices?: number[][],
  *   faces_edges?: number[][],
  *   faces_faces?: (number | null | undefined)[][],
+ *   faceOrders?: [number, number, number][],
+ *   edgeOrders?: [number, number, number][],
  *   file_frames?: FOLD[],
  *   file_spec?: number,
  *   file_creator?: string,
  *   file_author?: string,
  *   file_title?: string,
  *   file_description?: string,
- *   file_classes?: string,
+ *   file_classes?: string[],
  *   frame_author?: string,
  *   frame_title?: string,
  *   frame_description?: string,
- *   frame_classes?: string,
- *   frame_attributes?: string,
+ *   frame_classes?: string[],
+ *   frame_attributes?: string[],
  *   frame_unit?: string,
  *   frame_parent?: number,
  *   frame_inherit?: boolean,
+ *   faces_center?: number[][],
+ *   faces_normal?: number[][],
+ *   edges_vector?: number[][],
+ *   faces_polygon?: number[][][],
  * }}
  * @description A Javascript object representation of a FOLD file which follows the FOLD
  * specification in that it contains any number of the geometry arrays.
@@ -64,6 +71,10 @@
  * @property {string} [frame_unit] metadata
  * @property {number} [frame_parent] metadata
  * @property {boolean} [frame_inherit] metadata
+ * @property {number[][]} [faces_center] out-of-spec data
+ * @property {number[][]} [faces_normal] out-of-spec data
+ * @property {number[][]} [edges_vector] out-of-spec data
+ * @property {number[][][]} [faces_polygon] out-of-spec data
  * @example
  * {
  *   vertices_coords: [[0, 0], [1, 0], [1, 1], [0, 1]],

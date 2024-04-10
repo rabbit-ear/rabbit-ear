@@ -11,11 +11,13 @@ import {
 /**
  * @description We ignore any segment lengths which are smaller than 1e-4,
  * assuming that these are errors, circular edges, etc...
+ * @param {FOLD} graph a FOLD object
+ * @returns {number} the length of the shortest edge in the graph
  */
 export const shortestEdgeLength = ({ vertices_coords, edges_vertices }) => {
 	const lengths = edges_vertices
 		.map(ev => ev.map(v => vertices_coords[v]))
-		.map(segment => distance(...segment))
+		.map(([a, b]) => distance(a, b))
 		.filter(len => len > 1e-4);
 	const minLen = lengths
 		.reduce((a, b) => Math.min(a, b), Infinity);
@@ -26,6 +28,8 @@ export const shortestEdgeLength = ({ vertices_coords, edges_vertices }) => {
  * @description Epsilon will be based on a factor of the edge lengths
  * and a factor of the size of the total crease pattern, whichever is
  * smaller
+ * @param {FOLD} graph a FOLD object
+ * @returns {number} a suitable epsilon
  */
 export const getEpsilon = ({ vertices_coords, edges_vertices }) => {
 	const shortest = shortestEdgeLength({ vertices_coords, edges_vertices });

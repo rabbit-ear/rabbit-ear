@@ -8,8 +8,16 @@ const make2D = (coords) => coords
 	.map(coord => [0, 1]
 		.map(i => coord[i] || 0));
 
+/**
+ * @returns {{
+ *   vertices_coords: any,
+ *   vertices_color: any,
+ *   verticesEdgesVector: any,
+ *   vertices_vector: any,
+ * }}
+ */
 export const makeCPEdgesVertexData = (graph, options) => {
-	if (!graph || !graph.vertices_coords || !graph.edges_vertices) { return []; }
+	if (!graph || !graph.vertices_coords || !graph.edges_vertices) { return undefined; }
 	const assignmentColors = options && options.dark ? dark : light;
 	const assignment_color = {
 		...assignmentColors,

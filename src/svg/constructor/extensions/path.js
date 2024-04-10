@@ -8,7 +8,7 @@ import * as dom from './shared/dom.js';
  * SVG (c) Kraft
  */
 /**
- * @param {SVGElement} one svg element, intended to be a <path> element
+ * @param {SVGElement} el one svg element, intended to be a <path> element
  * @returns {string} the "d" attribute, or if unset, returns an empty string "".
  */
 const getD = (el) => {

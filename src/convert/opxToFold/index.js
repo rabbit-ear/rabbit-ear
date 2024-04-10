@@ -12,6 +12,9 @@ import {
 /**
  * @description given a parsed xml object, get the branch which
  * contains a node which has some node containing the value specified.
+ * @param {Element|null} oripa
+ * @param {string} value a value to match
+ * @returns {Element} a child branch which contains this value
  */
 const getContainingValue = (oripa, value) => (oripa == null
 	? null
@@ -26,6 +29,9 @@ const getContainingValue = (oripa, value) => (oripa == null
  * @description There are top level nodes which contain metadata,
  * I'm not sure how many there are, but at least I've seen:
  * memo, originalAuthorName, title
+ * @param {Element|null} oripa
+ * @param {string} value
+ * @returns {string|null} the contents of the value
  */
 const getMetadataValue = (oripa, value) => {
 	const parentNode = getContainingValue(oripa, value);
@@ -34,18 +40,21 @@ const getMetadataValue = (oripa, value) => {
 		: null;
 	return node
 		? node.textContent
-		: undefined;
+		: null;
 };
 
 /**
  * @description Get all line elements from the OPX file.
+ * @param {Element|null} oripa
  */
 const getLines = (oripa) => {
 	const linesParent = getContainingValue(oripa, "lines");
 	const linesNode = linesParent
 		? Array.from(linesParent.childNodes)
 			.filter(el => el.getAttribute)
-			.filter(el => el.getAttribute("class").split(" ").includes("oripa.OriLineProxy"))
+			.filter(el => el.getAttribute("class")
+				.split(" ")
+				.includes("oripa.OriLineProxy"))
 			.shift()
 		: undefined;
 	return linesNode ? Array.from(linesNode.childNodes) : [];
@@ -70,7 +79,9 @@ const parseLines = (lines) => lines
 		.map(children => children
 			.filter(child => child.nodeName === "double" || child.nodeName === "int")
 			.shift())
-		.map(node => (node && node.childNodes[0] ? node.childNodes[0].data : "0"))
+		.map(node => (node && node.childNodes[0] && "data" in node.childNodes[0]
+			? node.childNodes[0].data
+			: "0"))
 		.map(parseFloat));
 
 /**

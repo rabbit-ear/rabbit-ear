@@ -76,12 +76,14 @@ export const pleat = (
 			// we can create a valid segment.
 			const min = Math.min(...dots);
 			const max = Math.max(...dots);
-			return Math.abs(max - min) < epsilon
+			/** @type {[[number, number], [number, number]]} */
+			const segment = Math.abs(max - min) < epsilon
 				? undefined
 				: [
 					add2(line.origin, scale2(line.vector, min)),
 					add2(line.origin, scale2(line.vector, max)),
 				];
+			return segment;
 		}).filter(a => a !== undefined));
 };
 

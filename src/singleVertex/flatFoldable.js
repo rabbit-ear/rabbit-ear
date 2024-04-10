@@ -5,6 +5,9 @@ import {
 	EPSILON,
 } from "../math/constant.js";
 import {
+	resize2,
+} from "../math/vector.js";
+import {
 	counterClockwiseSectors2,
 } from "../math/radial.js";
 import {
@@ -106,6 +109,7 @@ export const verticesFlatFoldabilityKawasaki = ({
 		.map((vectors, v) => vectors.filter((_, i) => (
 			assignmentCanBeFolded[edges_assignment[vertices_edges[v][i]]]
 		)))
+		.map(vectors => vectors.map(resize2))
 		.map(vectors => (vectors.length > 1
 			? counterClockwiseSectors2(vectors)
 			: [0, 0]))

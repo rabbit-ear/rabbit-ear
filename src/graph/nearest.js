@@ -71,7 +71,7 @@ export const nearestEdge = ({ vertices_coords, edges_vertices }, point) => {
  * @description Iterate through all faces in a graph and find one nearest to a point.
  * This method assumes the graph is in 2D, it ignores any z components.
  * @param {FOLD} graph a FOLD object
- * @param {number[]} point the point to find the nearest face
+ * @param {[number, number]} point the point to find the nearest face
  * @returns {number|undefined} the index of the face, or undefined if edges_faces is not defined.
  * @todo make this work if edges_faces is not defined (not hard)
  */

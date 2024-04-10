@@ -41,6 +41,7 @@ const fixNegatives = function (arr) {
  * @param {number} width the length along the x dimension
  * @param {number} height the length along the y dimension
  * @returns {Element} an SVG node element
+ * @linkcode SVG ./src/nodes/spec/rect.js 40
  */
 const rectDef = {
 	rect: {

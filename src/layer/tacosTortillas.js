@@ -74,7 +74,7 @@ const classifyEdgePair = (edgePairFacesSide) => {
  * faces indices, the adjacent faces to the two edges involved.
  * @param {number} classification the class id number that is
  * the result of calling classifyEdgePair()
- * @returns {TacoTortillaConstraint}
+ * @returns {TacoTortillaConstraint?}
  */
 const formatTacoTortilla = ([faces0, faces1], classification) => {
 	switch (classification) {
@@ -84,7 +84,7 @@ const formatTacoTortilla = ([faces0, faces1], classification) => {
 	// taco: faces1
 	case 6: return [faces1[0], faces0[0], faces1[1]];
 	case 7: return [faces1[0], faces0[1], faces1[1]];
-	default: return [];
+	default: return undefined;
 	}
 };
 
@@ -93,7 +93,7 @@ const formatTacoTortilla = ([faces0, faces1], classification) => {
 * faces indices, the adjacent faces to the two edges involved.
 * @param {number} classification the class id number that is
 * the result of calling classifyEdgePair()
-* @returns {TortillaTortillaConstraint} four face indices involved in a
+* @returns {TortillaTortillaConstraint?} four face indices involved in a
 * tortilla-tortilla where [0] is above/below [2] and [1] is above/below [3]
 */
 const formatTortillaTortilla = ([faces0, faces1], classification) => {
@@ -101,7 +101,7 @@ const formatTortillaTortilla = ([faces0, faces1], classification) => {
 	case 2: return [...faces0, ...faces1];
 	// [0] from one is above [1] in the other, we need to flip one of them.
 	case 3: return [...faces0, faces1[1], faces1[0]];
-	default: return [];
+	default: return undefined;
 	}
 };
 

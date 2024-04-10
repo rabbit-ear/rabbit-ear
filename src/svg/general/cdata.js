@@ -1,9 +1,10 @@
 /* svg (c) Kraft, MIT License */
-import SVGWindow from '../environment/window.js';
+import RabbitEarWindow from '../environment/window.js';
 
 /**
  * SVG (c) Kraft
  */
+
 /**
  * @description Create a CDATASection containing text from the method
  * parameter. The CDATA is useful to wrap text which may contain
@@ -11,8 +12,8 @@ import SVGWindow from '../environment/window.js';
  * @param {string} text the text content to be placed inside the CData
  * @returns {CDATASection} a CDATA containing the given text.
  */
-const makeCDATASection = (text) => (new (SVGWindow()).DOMParser())
+const makeCDATASection = (text) => (new (RabbitEarWindow()).DOMParser())
 	.parseFromString("<root></root>", "text/xml")
 	.createCDATASection(text);
 
-export { makeCDATASection as default };
+export { makeCDATASection };

@@ -3,12 +3,13 @@
  */
 import {
 	distance2,
+	resize2,
 } from "../math/vector.js";
 import {
 	isCollinear,
 } from "../math/line.js";
 import {
-	trilateration,
+	trilateration2,
 } from "../math/triangle.js";
 
 /**
@@ -19,8 +20,8 @@ import {
  * @param {FOLD} from a fold graph which the point now lies inside
  * @param {FOLD} to a fold graph we want to move the point into
  * @param {number} face the index of the face which contains this point
- * @param {number[]} point the point, as it exists inside the "from" graph
- * @returns {number[]} a new point
+ * @param {[number, number]} point the point, as it exists inside the "from" graph
+ * @returns {[number, number]} a new point
  */
 export const transferPointInFaceBetweenGraphs = (from, to, face, point) => {
 	// Assuming the graphs are isomorphic except for the vertices_coords,
@@ -42,17 +43,26 @@ export const transferPointInFaceBetweenGraphs = (from, to, face, point) => {
 			|| isCollinear(...verts.map(v => to.vertices_coords[v]))));
 
 	// we want only vertices which are not collinear
-	const faceVertices = faceVerticesInitial
+	const faceVertsValid = faceVerticesInitial
 		.filter((_, i) => !faceVertsInitialCollinear[i]);
 
-	if (faceVertices.length < 3) { return undefined; }
+	if (faceVertsValid.length < 3) { return undefined; }
+	// const faceVertices = resize3(faceVertsValid);
+	const [a, b, c] = faceVertsValid;
 
-	const fromPoly = faceVertices.map(v => from.vertices_coords[v]);
-	const toPoly = faceVertices.map(v => to.vertices_coords[v]);
+	/** @type {[[number, number], [number, number], [number, number]]} */
+	const toPoly = [
+		resize2(to.vertices_coords[a]),
+		resize2(to.vertices_coords[b]),
+		resize2(to.vertices_coords[c]),
+	];
 
-	// compute the distances from the input point to the first 3 polygon points.
-	// the trilateration method only looks at the first 3 points.
-	const distances = Array.from(Array(3))
-		.map((_, i) => distance2(fromPoly[i], point));
-	return trilateration(toPoly, distances);
+	/** @type {[number, number, number]} */
+	const distances = [
+		distance2(from.vertices_coords[a], point),
+		distance2(from.vertices_coords[b], point),
+		distance2(from.vertices_coords[c], point),
+	];
+
+	return trilateration2(toPoly, distances);
 };

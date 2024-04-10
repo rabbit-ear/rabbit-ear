@@ -6,7 +6,7 @@ import { filterKeysWithSuffix } from "../fold/spec.js";
 /**
  * @description Search inside arrays inside arrays inside arrays
  * and return the largest number.
- * @param {number[][]} an array of arrays of numbers
+ * @param {number[][][]} arrays an array of arrays of numbers
  * @returns {number} largest number in array in arrays.
  */
 const maxValueInArrayInArray = (arrays) => {
@@ -25,6 +25,7 @@ const maxValueInArrayInArray = (arrays) => {
  * @description Search inside arrays inside arrays and return
  * the largest number by only checking indices 0 and 1 in the
  * inner arrays; meant for faceOrders or edgeOrders.
+ * @param {number[][]} array a faceOrders or edgeOrders array
  * @returns {number} largest number in indices 0 or 1 of array in arrays.
  */
 const maxValueInOrders = (array) => {
@@ -62,9 +63,22 @@ const countImplied = (graph, key) => Math.max(
 		: -1,
 ) + 1;
 
-// standard graph components names
+/**
+ * @param {FOLD} graph a FOLD object
+ * @returns {number} the number of components
+ */
 countImplied.vertices = graph => countImplied(graph, "vertices");
+
+/**
+ * @param {FOLD} graph a FOLD object
+ * @returns {number} the number of components
+ */
 countImplied.edges = graph => countImplied(graph, "edges");
+
+/**
+ * @param {FOLD} graph a FOLD object
+ * @returns {number} the number of components
+ */
 countImplied.faces = graph => countImplied(graph, "faces");
 
 export default countImplied;

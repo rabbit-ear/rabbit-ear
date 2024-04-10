@@ -21,7 +21,7 @@ const compileShader = (gl, shaderSource, shaderType) => {
 };
 /**
  * @description Creates a program from 2 shaders.
- * @param {!WebGLRenderingContext) gl The WebGL context.
+ * @param {!WebGLRenderingContext} gl The WebGL context.
  * @param {!WebGLShader} vertexShader A vertex shader.
  * @param {!WebGLShader} fragmentShader A fragment shader.
  * @returns {!WebGLProgram} A program.

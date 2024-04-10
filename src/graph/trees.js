@@ -3,8 +3,8 @@
  */
 
 /**
- * @typedef TreeNode
- * @type {{ index: number, parent: number }}
+ * @typedef BreadthFirstTreeNode
+ * @type {{ index: number, parent?: number }}
  * @description A node in a tree specifically intended to map edge-
  * connected faces.
  * @property {number} index - the index of this index
@@ -22,8 +22,8 @@
  * @param {number[]} [rootIndices=[]] the indices of faces to become
  * root nodes. In the case of a disjoint graph and multiple trees,
  * the indices at the beginning of the list will be prioritized.
- * @returns {TreeNode[][][]} an array of trees, where each tree is
- * an array of array of TreeNode. Each tree is organized into depths,
+ * @returns {BreadthFirstTreeNode[][][]} an array of trees, where each tree is
+ * an array of array of BreadthFirstTreeNode. Each tree is organized into depths,
  * where each array contains an array of tree nodes at that depth.
  */
 export const minimumSpanningTrees = (array_array = [], rootIndices = []) => {

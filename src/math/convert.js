@@ -5,6 +5,7 @@ import {
 	magnitude,
 	dot,
 	scale,
+	scale2,
 	subtract,
 	rotate90,
 	rotate270,
@@ -43,13 +44,13 @@ export const pointsToLine = (origin, point2) => ({
  * normal-distance form where distance the shortest length from the
  * origin to a point on the line.
  * @param {VecLine} line a line in vector origin form
- * @param {UniqueLine} line a line in normal distance form
+ * @returns {UniqueLine} line a line in normal distance form
  */
 export const vecLineToUniqueLine = ({ vector, origin }) => {
 	const mag = magnitude(vector);
-	const normal = rotate90(vector);
+	const normal = rotate90([vector[0], vector[1]]);
 	const distance = dot(origin, normal) / mag;
-	return { normal: scale(normal, 1 / mag), distance };
+	return { normal: scale2(normal, 1 / mag), distance };
 };
 
 /**

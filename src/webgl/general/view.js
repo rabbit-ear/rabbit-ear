@@ -16,7 +16,7 @@ import { boundingBox } from "../../graph/boundary.js";
  * @description Initialize a viewport for a WebGL context
  * based on the dimensions of the canvas.
  * @param {object} gl a WebGL instance
- * @param {object} canvas an HTML canvas
+ * @param {HTMLCanvasElement} canvas an HTML canvas
  */
 export const rebuildViewport = (gl, canvas) => {
 	if (!gl) { return; }
