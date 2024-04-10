@@ -16,7 +16,7 @@ import {
  * to choose one solution, among other available options.
  * @param {FOLD} graph a FOLD object with folded vertices in 2D
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {LayerPrototype} a layer solution object
+ * @returns {typeof LayerPrototype} a layer solution object
  */
 export const layer = (graph, epsilon) => Object.assign(
 	Object.create(LayerPrototype),

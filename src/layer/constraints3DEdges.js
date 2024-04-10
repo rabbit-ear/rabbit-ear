@@ -14,7 +14,7 @@ import {
 	invertFlatToArrayMap,
 } from "../graph/maps.js";
 import {
-	joinObjectsWithoutOverlap,
+	mergeWithoutOverwrite,
 } from "./general.js";
 import {
 	getEdgesEdgesCollinearOverlap,
@@ -25,10 +25,11 @@ import {
  * @description There are two kinds of arrangements of edges/faces that
  * don't generate solver conditions, instead, they solve relationships
  * between pairs of faces.
- * @param {number[][]} edges_clusters remember this only contains definitions
- * for edges which are members of 2 sets. anything made from this will
- * automatically have a non-flat edges_foldAngle.
- * @returns {{ [key: string]: number }} solutions to face-pair layer orders
+ * @param {FOLD} graph a FOLD object
+ * @param {{ clusters_graph: FOLD[], faces_plane: number[] }} clusterInfo,
+ * the result of calling constraints3DFaceClusters()
+ * @returns {{ edge: number, tortilla: number, coplanar: number, angled: number}[]}
+ * solutions to face-pair layer orders
  */
 export const getOverlapFacesWith3DEdge = (
 	{ edges_faces },
@@ -128,17 +129,18 @@ export const solveOverlapFacesWith3DEdge = (
 	// then the bend direction should be inverted. valley = false, M = true.
 	// This amounts to the XNOR between bend-dir and winding
 	const facePairGlobalBendDirection = facePairLocalBendDirection
-		// .map((dir, i) => (facePairsAligned[i] ? dir : !dir));
-		.map((dir, i) => !(dir ^ facePairsAligned[i]));
+		// .map((dir, i) => !(dir ^ facePairsAligned[i]));
+		.map((dir, i) => !(dir !== facePairsAligned[i]));
 
 	// solver notation, where 1 means A is above B. 2 means B is above A.
 	// also, if we flipped the order of the faces for the solution key,
 	const facePairSolution = facePairGlobalBendDirection
+		.map(bool => (bool ? 1 : 0))
 		.map((result, i) => (facePairsCorrectOrder[i] ? result : 1 - result))
 		.map(result => result + 1);
 
 	// a dictionary with keys: face pairs ("5 23"), and values: 1 or 2.
-	return joinObjectsWithoutOverlap(facePairKeys
+	return mergeWithoutOverwrite(facePairKeys
 		.map((key, i) => ({ [key]: facePairSolution[i] })));
 };
 
@@ -153,6 +155,7 @@ export const solveOverlapFacesWith3DEdge = (
  * a FOLD object with faces_winding
  * @param {number[]} edges
  * @param {number[]} faces
+ * @returns {{ [key: string]: number }} face pair order solution
  */
 export const solveFacePair3D = ({ edges_foldAngle, faces_winding }, edges, faces) => {
 	// so the idea is, if we align the faces within the plane, meaning that if
@@ -167,7 +170,8 @@ export const solveFacePair3D = ({ edges_foldAngle, faces_winding }, edges, faces
 	const indicesInOrder = edgesFoldAngleAligned[0] > edgesFoldAngleAligned[1];
 	const facesInOrder = faces[0] < faces[1];
 	// 0 becomes 1, 1 becomes 2.
-	const orderValue = (indicesInOrder ^ facesInOrder) + 1;
+	// const orderValue = (indicesInOrder ^ facesInOrder) + 1;
+	const orderValue = (indicesInOrder !== facesInOrder) ? 2 : 1;
 	const faceKey = (facesInOrder
 		? faces.join(" ")
 		: [faces[1], faces[0]].join(" "));
@@ -175,12 +179,18 @@ export const solveFacePair3D = ({ edges_foldAngle, faces_winding }, edges, faces
 };
 
 /**
+ * @param {{
+ *   edges_faces: number[][],
+ *   faces_plane: number[],
+ *   facesFacesLookup: boolean[][],
+ * }} info
  * - 0: bent (3D)
  * - 1: tortilla
  * - 2: taco
  * @returns {number[]} a classification for edges
  */
 const getEdgesAngleClass = ({ edges_faces, faces_plane, facesFacesLookup }) => {
+	/** @type {number[]} for every edge, a 0, 1, or 2 */
 	const edges_angleClass = [];
 
 	// filter only edges with two adjacent faces
@@ -289,18 +299,20 @@ const classifyEdgePair = ({ faces, planes, angleClasses }, facesFacesLookup) => 
 /**
  * @description Given a FOLD graph in 3D, find all overlapping edge pairs
  * which create solvable face-pairs between faces adjacent to the edges.
+ * Important: ensure that all edgePairs are edges which have been
+ * pre-established to be edges which have two adjacent faces (no boundary edges)
  * @param {{
  *   edges_faces: number[][],
  *   edgePairs: [number, number][],
  *   faces_plane: number[],
  *   facesFacesLookup: boolean[][],
- * }}
+ * }} edgeAndFaceInfo
  * @returns {{
- *   tJunctions: {number},
- *   yJunctions: {number},
- *   bentFlatTortillas: {number},
- *   bentTortillas: {number},
- *   bentTortillasFlatTaco: {number},
+ *   tJunctions: number[],
+ *   yJunctions: number[],
+ *   bentFlatTortillas: number[],
+ *   bentTortillas: number[],
+ *   bentTortillasFlatTaco: number[],
  * }} for each class, a list of edgePairs indices which fit under this class.
  */
 export const getSolvable3DEdgePairs = ({
@@ -314,10 +326,23 @@ export const getSolvable3DEdgePairs = ({
 	});
 
 	// gather info regarding each edgePair to pass off to the classification
+	// edge pairs has been
+	/**
+	 * @type {{
+	 *   faces: [number, number, number, number],
+	 *   planes: [number, number, number, number],
+	 *   angleClasses: [number, number],
+	 * }[]}
+	 * the second map function is there to satisfy the typescript linter
+	 */
 	const edgePairsClassInfo = edgePairs.map(edges => ({
 		faces: edges.flatMap(e => edges_faces[e]),
 		planes: edges.flatMap(e => edges_faces[e].map(face => faces_plane[face])),
 		angleClasses: edges.map(edge => edges_angleClass[edge]),
+	})).map(({ faces, planes, angleClasses }) => ({
+		faces: [faces[0], faces[1], faces[2], faces[3]],
+		planes: [planes[0], planes[1], planes[2], planes[3]],
+		angleClasses: [angleClasses[0], angleClasses[1]],
 	}));
 
 	// each edgePair gets one of these assignments.
@@ -391,11 +416,14 @@ export const constraints3DEdges = ({
 		.filter(e => edges_faces[e].length !== 2)
 		.forEach(e => delete edges_vertices2[e]);
 
+	// all edge-edge overlap between pairs of edges, only including edges
+	// which have two adjacent faces.
 	const edgesEdgesOverlap = getEdgesEdgesCollinearOverlap({
 		vertices_coords, edges_vertices: edges_vertices2,
 	}, epsilon);
 
-	// all pairings of overlapping edges, including pairs of edges which
+	// all pairings of overlapping edges, only including edges which have
+	// two adjacent faces. otherwise, this including pairs of edges which
 	// hold no value to us at this stage
 	const edgePairs = connectedComponentsPairs(edgesEdgesOverlap);
 
@@ -448,9 +476,10 @@ export const constraints3DEdges = ({
 		// every permutation of 3 faces (the fourth face is ignored in the overlap)
 		// the order of the 3 faces is already in TacoTortillaConstraint form, where
 		// the first and last are connected (taco) and the middle face is the tortilla
-		return [[f0, f2, f1], [f2, f1, f3], [f2, f0, f3], [f0, f3, f1]]
+		const result = [[f0, f2, f1], [f2, f1, f3], [f2, f0, f3], [f0, f3, f1]]
 			.filter(([a, b, c]) => facesFacesLookup[a][b] && facesFacesLookup[a][c])
 			.shift();
+		return result ? [result[0], result[1], result[2]] : undefined;
 	};
 
 	/**
@@ -460,8 +489,9 @@ export const constraints3DEdges = ({
 	 * @returns {TortillaTortillaConstraint}
 	 */
 	const makeBentTortillas = (edges) => {
+		const faces = edges.flatMap(edge => edges_faces[edge]);
 		/** @type {[number, number, number, number]} */
-		const tortillas = edges.flatMap(edge => edges_faces[edge]);
+		const tortillas = [faces[0], faces[1], faces[2], faces[3]];
 
 		// we now have a tortilla-tortilla pair in the form of [A, B, X, Y]
 		// where A-B are connected, and X-Y are connected, now we need to make sure
@@ -506,7 +536,7 @@ export const constraints3DEdges = ({
 		.map(i => edgePairs[i])
 		.map(solveYTJunction);
 
-	const orders = joinObjectsWithoutOverlap(arrayOfOrders);
+	const orders = mergeWithoutOverwrite(arrayOfOrders);
 
 	return {
 		orders,

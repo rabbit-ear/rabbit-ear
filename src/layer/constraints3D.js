@@ -30,7 +30,7 @@ import {
 	solveFlatAdjacentEdges,
 } from "./initialSolutionsFlat.js";
 import {
-	joinObjectsWithoutOverlap,
+	mergeWithoutOverwrite,
 } from "./general.js";
 
 /**
@@ -192,7 +192,7 @@ export const makeSolverConstraints3D = ({
 
 	let orders;
 	try {
-		orders = joinObjectsWithoutOverlap([
+		orders = mergeWithoutOverwrite([
 			orders3D,
 			adjacentOrders,
 			orders3DEdgeFace,

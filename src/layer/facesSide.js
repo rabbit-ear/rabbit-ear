@@ -41,7 +41,7 @@ export const makeEdgesFacesSide = ({
 	// convert edges into a line form with a vector and origin
 	const edgesLine = edges_vertices
 		.map(verts => verts.map(v => vertices_coords[v]))
-		.map(points => pointsToLine(...points));
+		.map(([a, b]) => pointsToLine(a, b));
 
 	// for each edge, for each of it's adjacent faces (either 1 or 2),
 	// which side of the edge's vector does that face lie on?
@@ -87,7 +87,8 @@ export const makeEdgePairsFacesSide = (
 					subtract2(center, edgePairsLine[i].origin),
 					edgePairsLine[i].vector,
 				))
-				.map(Math.sign)));
+				.map(Math.sign)))
+		.map(arr => [[arr[0][0], arr[0][1]], [arr[1][0], arr[1][1]]]);
 };
 
 /**

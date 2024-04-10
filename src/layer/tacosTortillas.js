@@ -112,8 +112,8 @@ const formatTortillaTortilla = ([faces0, faces1], classification) => {
  * each other, crossing each other, but are not collinear.
  * This method generates all tortillas from the second set.
  * @param {number[][]} edges_faces the array from the FOLD graph
- * @param {[[number, number], [number, number]]} edgesFacesSide for each
- * edge's pair of faces, which side of the edge does this face lie? (+1 or -1)
+ * @param {number[][]} edgesFacesSide for each edge's pair of faces,
+ * which side of the edge does this face lie? (+1 or -1)
  * @param {number[][]} edgesFacesOverlap for every edge, a list of faces
  * which overlap this edge.
  * @returns {TortillaTortillaConstraint[]} array of tortilla-tortilla conditions
@@ -130,13 +130,18 @@ export const makeTortillaTortillaFacesCrossing = (
 		.map((isTortilla, i) => (isTortilla ? i : undefined))
 		.filter(a => a !== undefined);
 
+	/** @type {number[][]} */
 	const tortillas_faces_crossing = [];
 	tortilla_edge_indices.forEach(edge => {
 		tortillas_faces_crossing[edge] = edgesFacesOverlap[edge];
 	});
+
+	/** @type {TortillaTortillaConstraint[]} */
 	return tortillas_faces_crossing
 		.flatMap((faces, e) => faces
-			.map(face => [...edges_faces[e], face, face]));
+			.map(face => [...edges_faces[e], face, face]))
+		.filter(arr => arr.length === 4)
+		.map(arr => [arr[0], arr[1], arr[2], arr[3]]);
 };
 
 /**
@@ -200,9 +205,16 @@ export const makeTacosAndTortillas = ({
 		edgesFacesOverlap,
 	);
 
+	/** @type {[[number, number], [number, number]][]} */
+	const edgePairsFaces = edgePairs.map(edgePair => [
+		[edges_faces[edgePair[0]][0], edges_faces[edgePair[0]][1]],
+		[edges_faces[edgePair[1]][0], edges_faces[edgePair[1]][1]],
+	]);
+
 	// taco-tortilla has both (1) those tacos which are edge-aligned with another
 	// tortilla-tortilla (this will come from edgePairs), and (2) those tacos
 	// which simply cross through the middle of a face (below).
+	/** @type {TacoTortillaConstraint[]} */
 	const tacoTortillaCrossing = edgesFacesOverlap
 		.map((faces, e) => (edgesFacesSide[e].length > 1
 			&& edgesFacesSide[e][0] === edgesFacesSide[e][1]
@@ -211,10 +223,12 @@ export const makeTacosAndTortillas = ({
 		.map((tortillas, edge) => ({ taco: edges_faces[edge], tortillas }))
 		.filter(({ tortillas }) => tortillas.length)
 		.flatMap(({ taco: [a, b], tortillas }) => tortillas
-			.map(tortilla => [a, tortilla, b]));
+			.map(tortilla => [a, tortilla, b]))
+		.map(arr => [arr[0], arr[1], arr[2]]);
 
 	// taco-taco
 	// map faces [[a, b], [c, d]] into [a, c, b, d]
+	/** @type {TacoTacoConstraint[]} */
 	const taco_taco = edgePairsFacesType
 		.map((n, i) => (n === 1 ? i : undefined))
 		.filter(a => a !== undefined)
@@ -223,26 +237,22 @@ export const makeTacosAndTortillas = ({
 
 	// taco-tortilla
 	// map faces { taco: [a, b], tortilla: c } into [a, c, b]
+	/** @type {TacoTortillaConstraint[]} */
 	const taco_tortilla = edgePairsFacesType
 		.map((n, i) => (n > 3 ? i : undefined))
 		.filter(a => a !== undefined)
-		.map(i => formatTacoTortilla(
-			edgePairs[i].map(edge => edges_faces[edge]),
-			edgePairsFacesType[i],
-		))
+		.map(i => formatTacoTortilla(edgePairsFaces[i], edgePairsFacesType[i]))
 		.concat(tacoTortillaCrossing);
 
 	// tortilla-tortilla
 	// tortilla-tortilla contains one additional required ordering:
 	// [a, b], [c, d] means a and b are connected, and c and d are connected,
 	// additionally, a is above/below c and b is above/below d.
+	/** @type {TortillaTortillaConstraint[]} */
 	const tortilla_tortilla = edgePairsFacesType
 		.map((n, i) => (n === 2 || n === 3 ? i : undefined))
 		.filter(a => a !== undefined)
-		.map(i => formatTortillaTortilla(
-			edgePairs[i].map(edge => edges_faces[edge]),
-			edgePairsFacesType[i],
-		))
+		.map(i => formatTortillaTortilla(edgePairsFaces[i], edgePairsFacesType[i]))
 		.concat(tortillaTortillaCrossing);
 
 	return {

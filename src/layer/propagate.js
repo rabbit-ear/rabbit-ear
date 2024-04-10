@@ -7,6 +7,7 @@ import {
 import {
 	constraintToFacePairs,
 	tacoTypeNames,
+	emptyCategoryObject,
 } from "./general.js";
 import {
 	uniqueElements,
@@ -25,7 +26,7 @@ import {
  * @param {...{[key: string]: number}} orders an array of solutions to
  * facePair orders. each taking the form of facePair keys,
  * and orders (0,1,2) values.
- * @returns {(boolean | [number, number])} true if valid, false if invalid,
+ * @returns {(boolean | [string, number])} true if valid, false if invalid,
  * and in the case of an implied change, return an array where the
  * first item is a facePair ("3 5"), and the second is the order (like 1 or 2).
  */
@@ -34,6 +35,7 @@ const buildRuleAndLookup = (type, constraint, ...orders) => {
 	const flipFacePairOrder = { 0: 0, 1: 2, 2: 1 };
 	// regroup the N faces into an array of pairs, giving us the
 	// facePair ("3 5") and booleans stating if the order was flipped.
+	/** @type {[number, number]} */
 	const facePairsArray = constraintToFacePairs[type](constraint);
 	// are the two faces in each pair out of order (not sorted),
 	// meaning taht when we apply the order, we need to flip it first.
@@ -45,16 +47,6 @@ const buildRuleAndLookup = (type, constraint, ...orders) => {
 	// the facePair. for each facePair get the first solution found, and
 	// in the case of no solution, that facePair will be 0 (unknown).
 	// join this together into a string, (eg: "010021")
-	// const key = facePairs.map((facePair, i) => {
-	// 	for (let o = 0; o < orders.length; o += 1) {
-	// 		if (orders[o][facePair]) {
-	// 			return flipped[i]
-	// 				? flipFacePairOrder[orders[o][facePair]]
-	// 				: orders[o][facePair];
-	// 		}
-	// 	}
-	// 	return 0;
-	// }).join("");
 
 	// for each facePair, get the first available entry in orders, or 0 if none.
 	const key = facePairs
@@ -67,14 +59,18 @@ const buildRuleAndLookup = (type, constraint, ...orders) => {
 	if (table[type][key] === true || table[type][key] === false) {
 		return table[type][key];
 	}
+
+	// now, we know the table value is an array (not a boolean).
 	// the table is giving us an implied state. return the implication's
 	// facePair and order as an array. make sure to flip the order if necessary.
-	const implication = table[type][key];
-	const implicationFacePair = facePairs[implication[0]];
-	const implicationOrder = flipped[implication[0]]
-		? flipFacePairOrder[implication[1]]
-		: implication[1];
-	return [implicationFacePair, implicationOrder];
+	/** @type {[number, number]} */
+	const [pairIndex, suggestedOrder] = table[type][key];
+	const facePair = facePairs[pairIndex];
+	/** @type {number} */
+	const order = flipped[pairIndex]
+		? flipFacePairOrder[suggestedOrder]
+		: suggestedOrder;
+	return [facePair, order];
 };
 
 // const getFacesWithUnknownOrdersArray = (...orders) => {
@@ -152,7 +148,15 @@ const getConstraintIndicesFromFacePairs = (
 	lookup,
 	facePairsSubsetArray,
 ) => {
-	const constraintIndices = {};
+	/**
+	 * @type {{
+	 *   taco_taco: number[],
+	 *   taco_tortilla: number[],
+	 *   tortilla_tortilla: number[],
+	 *   transitivity: number[],
+	 * }}
+	 */
+	const constraintIndices = emptyCategoryObject();
 	tacoTypeNames.forEach(type => {
 		// given the array of modified facePairs since last round, get all
 		// the indices in the constraints array in which these facePairs exist.

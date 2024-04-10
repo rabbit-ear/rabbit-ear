@@ -1,0 +1,32 @@
+declare const _default: {
+    validateAxiom1: (boundary: number[][], solutions: VecLine[], point1: number[], point2: number[]) => boolean[];
+    validateAxiom2: (boundary: number[][], solutions: VecLine[], point1: number[], point2: number[]) => boolean[];
+    validateAxiom3: (boundary: number[][], solutions: VecLine[], line1: VecLine, line2: VecLine) => boolean[];
+    validateAxiom4: (boundary: number[][], solutions: VecLine[], line: VecLine, point: number[]) => boolean[];
+    validateAxiom5: (boundary: number[][], solutions: VecLine[], line: VecLine, point1: number[], point2: number[]) => boolean[];
+    validateAxiom6: (boundary: number[][], solutions: VecLine[], line1: VecLine, line2: VecLine, point1: number[], point2: number[]) => boolean[];
+    validateAxiom7: (boundary: number[][], solutions: VecLine[], line1: VecLine, line2: VecLine, point: number[]) => boolean[];
+    validateAxiom: (number: number, boundary: number[][], solutions: VecLine[], ...args: any[]) => boolean | boolean[];
+    axiomWithBoundary: (number: number, boundary: number[][], ...args: any[][][]) => VecLine[];
+    normalAxiomWithBoundary: (number: number, boundary: number[][], ...args: any[][][]) => UniqueLine[];
+    axiom1: (point1: any, point2: any) => {
+        vector: [number, number];
+        origin: any;
+    }[];
+    normalAxiom1: (point1: [number, number], point2: [number, number]) => [UniqueLine];
+    axiom2: (point1: [number, number], point2: [number, number]) => [VecLine];
+    normalAxiom2: (point1: [number, number], point2: [number, number]) => [UniqueLine];
+    axiom3: (line1: VecLine, line2: VecLine) => [VecLine?, VecLine?];
+    normalAxiom3: (line1: UniqueLine, line2: UniqueLine) => [UniqueLine?, UniqueLine?];
+    axiom4: ({ vector }: VecLine, point: [number, number]) => [VecLine];
+    normalAxiom4: (line: UniqueLine, point: number[]) => [UniqueLine];
+    axiom5: (line: VecLine, point1: number[], point2: number[]) => [VecLine, VecLine?];
+    normalAxiom5: (line: UniqueLine, point1: number[], point2: number[]) => [UniqueLine?, UniqueLine?];
+    axiom6: (line1: VecLine, line2: VecLine, point1: number[], point2: number[]) => [VecLine?, VecLine?, VecLine?];
+    normalAxiom6: (line1: UniqueLine, line2: UniqueLine, point1: number[], point2: number[]) => [UniqueLine?, UniqueLine?, UniqueLine?];
+    axiom7: (line1: VecLine, line2: VecLine, point: number[]) => [VecLine?];
+    normalAxiom7: (line1: UniqueLine, line2: UniqueLine, point: number[]) => [UniqueLine?];
+    axiom: (number: number, ...args: any[]) => VecLine[];
+    normalAxiom: (number: number, ...args: any[]) => UniqueLine[];
+};
+export default _default;

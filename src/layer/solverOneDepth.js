@@ -154,7 +154,7 @@ export const solver = ({ constraints, lookup, facePairs, orders }) => {
 	// faces. Whatever this input set is, we use it as the seed for the
 	// first run through propagate which will stop the moment that it finds
 	// a branch. The result is a set of orders which are true for all cases.
-	/** @type { [key: string]: number } */
+	/** @type {{ [key: string]: number }} */
 	let initialResult;
 	try {
 		initialResult = propagate(constraints, lookup, Object.keys(orders), orders);

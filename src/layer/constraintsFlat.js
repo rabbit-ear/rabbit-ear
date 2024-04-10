@@ -20,6 +20,7 @@ import {
 	solveFlatAdjacentEdges,
 } from "./initialSolutionsFlat.js";
 import {
+	emptyCategoryObject,
 	constraintToFacePairsStrings,
 } from "./general.js";
 import {
@@ -46,7 +47,7 @@ import {
  * taco/tortilla/transitivity types, needed to be solved.
  */
 export const makeConstraintsLookup = (constraints) => {
-	const lookup = {};
+	const lookup = emptyCategoryObject();
 	// fill the top layer with "taco / tortilla" category names
 	Object.keys(constraints).forEach(key => { lookup[key] = {}; });
 

@@ -94,7 +94,7 @@ export const getTransitivityTriosFromTacos = ({ taco_taco, taco_tortilla }) => {
 		]);
 
 	const tacoTortillaTrios = taco_tortilla
-		.map(arr => arr.slice().sort((a, b) => a - b))
+		.map(arr => arr.slice().sort((a, b) => a - b));
 
 	// will contain taco-taco and taco-tortilla events encoded as all
 	// permutations of 3 faces involved in each event.

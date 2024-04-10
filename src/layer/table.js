@@ -140,7 +140,7 @@ const setState = (states, t, key) => {
  * - (Array): two numbers, [index, value], modify the current layer by
  *   changing the number at index to the value.
  * @param {string[]} valid_states, one of the 3 set of valid states above
- * @returns {{[key: string]: (boolean | [number, number])}} an object that
+ * @returns {{[key: string]: Readonly<(boolean | [number, number])>}} an object that
  * maps a state key to a result.
  */
 // const flip = { 0:0, 1:2, 2:1 };
@@ -185,6 +185,7 @@ const makeLookupEntry = (valid_states) => {
 			.forEach(key => setState(states, t, key)));
 
 	// gather all solutions together into one object.
+	/** @type {{[key: string]: Readonly<(boolean | [number, number])>}} */
 	const lookup = states.reduce((a, b) => ({ ...a, ...b }));
 
 	// recursively freeze result, this is intended to be an immutable reference
@@ -199,10 +200,10 @@ const makeLookupEntry = (valid_states) => {
  * @memberof layer
  * @constant
  * @type {{
- *   taco_taco: {[key:string]: (boolean | [number, number])},
- *   taco_tortilla: {[key:string]: (boolean | [number, number])},
- *   tortilla_tortilla: {[key:string]: (boolean | [number, number])},
- *   transitivity: {[key:string]: (boolean | [number, number])},
+ *   taco_taco: {[key:string]: Readonly<(boolean | [number, number])>},
+ *   taco_tortilla: {[key:string]: Readonly<(boolean | [number, number])>},
+ *   tortilla_tortilla: {[key:string]: Readonly<(boolean | [number, number])>},
+ *   transitivity: {[key:string]: Readonly<(boolean | [number, number])>},
  * }}
  * @description This lookup table encodes all possible taco-taco,
  * taco-tortilla, tortilla-tortilla, and transitivity constraints between
@@ -214,7 +215,6 @@ const makeLookupEntry = (valid_states) => {
  * relationship which can be inferred from the current state.
  * This is an implementation of an algorithm designed by [Jason Ku](//jasonku.mit.edu).
  */
-
 export const table = {
 	taco_taco: makeLookupEntry(taco_taco_valid_states),
 	taco_tortilla: makeLookupEntry(taco_tortilla_valid_states),

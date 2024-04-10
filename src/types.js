@@ -37,7 +37,7 @@
  *   frame_unit?: string,
  *   frame_parent?: number,
  *   frame_inherit?: boolean,
- *   faces_center?: number[][],
+ *   faces_center?: ([number, number] | [number, number, number])[],
  *   faces_normal?: number[][],
  *   edges_vector?: number[][],
  *   faces_polygon?: number[][][],
@@ -123,12 +123,15 @@
 
 /**
  * @typedef VecLine
- * @type {{ vector: number[], origin: number[] }}
+ * @type {{
+ *   vector: [number, number]|[number, number, number],
+ *   origin: [number, number]|[number, number, number],
+ * }}
  * @description a line defined by a vector and a point along the line,
  * capable of representing a line in any dimension.
- * @property {number[]} vector
+ * @property {[number, number]|[number, number, number]} vector
  * a vector describing the direction of the line
- * @property {number[]} origin
+ * @property {[number, number]|[number, number, number]} origin
  * a point which the line passes through
  */
 

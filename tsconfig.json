@@ -1,10 +1,9 @@
 {
 	"include": ["src/**/*"],
 	"compilerOptions": {
-		// not sure if these should be here
-		// "target": "ES2015",
+		"target": "ES2022", // "target": "ES2015",
 		// "module": "es2015",
-		"lib": ["es2015", "DOM"],
+		"lib": ["ES2022", "DOM"], // "lib": ["es2015", "DOM"],
 		// Tells TypeScript to read JS files, as
 		// normally they are ignored as source files
 		"allowJs": true,

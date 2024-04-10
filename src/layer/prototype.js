@@ -53,7 +53,7 @@ export const compile = ({ orders, branches }, pattern) => (
 );
 
 /**
- * @param {{ orders: {[key:string]: number}, branches?: LayerBranch[] } branch
+ * @param {{ orders: {[key:string]: number}, branches?: LayerBranch[] }} solution
  * @returns {{[key:string]: number}[][]}
  */
 export const gatherAll = ({ orders, branches }) => {

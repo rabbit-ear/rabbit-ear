@@ -37,7 +37,10 @@ import {
  * @param {...{[key: string]: number}} orders any number of facePairsOrder
  * solutions which relate facePairs (key) like "3 5" to an order,
  * either 0, 1, or 2.
- * @returns {{[key: string]: number}[][]} an array of arrays of solution
+ * @returns {{
+ *   orders: {[key: string]: number},
+ *   branches: any,
+ * }} an array of arrays of solution
  * objects, where each top level array entry is a "branch" and inside each
  * branch is an array of solution objects when taken together compose
  * a complete solution.
@@ -136,8 +139,8 @@ const solveBranch = (
  *   with solutions in 1,2 value encoding. Useful for any pre-calculations,
  *   for example, pre-calculating edge-adjacent face pairs with known assignments.
  * @returns {{
- *   root: {[key:string]: number},
- *   branches: {[key: string]: number}[][],
+ *   orders: {[key:string]: number},
+ *   branches?: {[key: string]: number}[][],
  * }} a set of solutions where keys are space-separated face pair strings,
  * and values are 1 or 2 describing the relationship of the two faces.
  * Results are stored in "root" and "branches", to compile a complete solution,
@@ -149,7 +152,7 @@ export const solver = ({ constraints, lookup, facePairs, orders }) => {
 	// faces. Whatever this input set is, we use it as the seed for the
 	// first run through propagate which will stop the moment that it finds
 	// a branch. The result is a set of orders which are true for all cases.
-	/** @type { [key: string]: number } */
+	/** @type {{ [key: string]: number }} */
 	let initialResult;
 	try {
 		initialResult = propagate(constraints, lookup, Object.keys(orders), orders);

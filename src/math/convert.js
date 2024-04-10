@@ -29,8 +29,10 @@ export const angleToVector = (a) => [Math.cos(a), Math.sin(a)];
  * @description Given two points, create a vector-origin line representation
  * of a line that passes through both points. This will work in n-dimensions.
  * If there are more than two points, the rest will be ignored.
- * @param {number[]} origin one point, itself an array of numbers
- * @param {number[]} point2 one point, itself an array of numbers
+ * @param {[number, number]|[number, number, number]} origin
+ * one point, itself an array of numbers
+ * @param {[number, number]|[number, number, number]} point2
+ * one point, itself an array of numbers
  * @returns {VecLine} an object with "vector" and "origin".
  */
 export const pointsToLine = (origin, point2) => ({

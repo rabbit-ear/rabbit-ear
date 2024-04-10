@@ -39,6 +39,8 @@ import {
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {{
+ *   planes_transform: number[][],
+ *   faces_plane: number[],
  *   faces_cluster: number[],
  *   faces_winding: boolean[],
  *   faces_polygon: [number, number][][],

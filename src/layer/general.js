@@ -13,12 +13,24 @@ export const tacoTypeNames = [
 	"transitivity"
 ];
 
+export const emptyCategoryObject = () => ({
+	taco_taco: undefined,
+	taco_tortilla: undefined,
+	tortilla_tortilla: undefined,
+	transitivity: undefined,
+});
+
 /**
  * @description Convert an array of faces which are involved in one
  * taco/tortilla/transitivity condition into an array of arrays where
  * each face is paired with the others in the precise combination that
  * the solver is expecting for this particular condition.
- * @param {number[]} an array of the faces involved in this particular condition.
+ * @type {{
+ *   taco_taco: (f: TacoTacoConstraint) => [number, number][],
+ *   taco_tortilla: (f: TacoTortillaConstraint) => [number, number][],
+ *   tortilla_tortilla: (f: TortillaTortillaConstraint) => [number, number][],
+ *   transitivity: (f: TransitivityConstraint) => [number, number][],
+ * }}
  */
 export const constraintToFacePairs = ({
 	// taco_taco (A,C) (B,D) (B,C) (A,D) (A,B) (C,D)
@@ -41,6 +53,8 @@ export const constraintToFacePairs = ({
 /**
  * @description Given an array of a pair of integers, sort the smallest
  * to be first, and format them into a space-separated string.
+ * @param {[number, number]} pair a pair of face indices
+ * @returns {string} a space-separated string encoding of the face pair
  */
 const sortedPairString = pair => (pair[0] < pair[1]
 	? `${pair[0]} ${pair[1]}`
@@ -51,7 +65,12 @@ const sortedPairString = pair => (pair[0] < pair[1]
  * taco/tortilla/transitivity condition into an array of arrays where
  * each face is paired with the others in the precise combination that
  * the solver is expecting for this particular condition.
- * @param {number[]} an array of the faces involved in this particular condition.
+ * @type {{
+ *   taco_taco: (f: TacoTacoConstraint) => string[],
+ *   taco_tortilla: (f: TacoTortillaConstraint) => string[],
+ *   tortilla_tortilla: (f: TortillaTortillaConstraint) => string[],
+ *   transitivity: (f: TransitivityConstraint) => string[],
+ * }}
  */
 export const constraintToFacePairsStrings = ({
 	// taco_taco (A,C) (B,D) (B,C) (A,D) (A,B) (C,D)
@@ -127,8 +146,10 @@ export const solverSolutionToFaceOrders = (facePairOrders, faces_winding) => {
  * different values.
  * @param {{ [key: string]: number }[]} orders an array of face-pair orders
  * where
+ * @returns {{ [key: string]: number }} a single object merge of all input params
  */
-export const joinObjectsWithoutOverlap = (orders) => {
+export const mergeWithoutOverwrite = (orders) => {
+	/** @type {{ [key: string]: number }} */
 	const result = {};
 	// iterate through the objects
 	orders.forEach(order => Object.keys(order).forEach(key => {

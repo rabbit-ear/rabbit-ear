@@ -43,9 +43,9 @@ import {
  * @param {FOLD} graph a FOLD object with folded vertices in 2D
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {{
- *   root: {[key:string]: number},
+ *   orders: {[key:string]: number},
  *   branches: {[key:string]: number}[][],
- *   faces_winding: number[],
+ *   faces_winding: boolean[],
  * }} an object that describes all layer orderings, where the "root" orders
  * are true for all solutions, and each object in "branches" can be appended
  * to the root object to create a complete solution.
@@ -195,9 +195,9 @@ export const solveLayerOrdersSingleBranches = ({
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {{
- *   root: {[key:string]: number},
+ *   orders: {[key:string]: number},
  *   branches: {[key:string]: number}[][],
- *   faces_winding: number[],
+ *   faces_winding: boolean[],
  * }} an object that describes all layer orderings, where the "root" orders
  * are true for all solutions, and each object in "branches" can be appended
  * to the root object to create a complete solution.
