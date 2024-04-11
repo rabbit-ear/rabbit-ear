@@ -3,6 +3,7 @@
  */
 import { EPSILON } from "../../math/constant.js";
 import { average } from "../../math/vector.js";
+import { getDimensionQuick } from "../../fold/spec.js";
 import { getVerticesClusters } from "./clusters.js";
 import replace from "../replace.js";
 
@@ -60,6 +61,8 @@ export const removeDuplicateVertices = (graph, epsilon = EPSILON, makeAverage = 
 		}
 	});
 
+	const dimensions = getDimensionQuick(graph);
+
 	// for each cluster, average all vertices-to-merge to get their new point.
 	// set the vertex at the index[0] (the index to keep) to the new point.
 	// otherwise, this will use the value of the lowest index vertex.
@@ -67,7 +70,11 @@ export const removeDuplicateVertices = (graph, epsilon = EPSILON, makeAverage = 
 		clusters
 			.map(arr => arr.map(i => graph.vertices_coords[i]))
 			.map(arr => average(...arr))
-			.forEach((point, i) => { graph.vertices_coords[clusters[i][0]] = point; });
+			.forEach(([a, b, c], i) => {
+				/** @type {[number, number]|[number, number, number]} */
+				const point = (dimensions === 2 ? [a, b] : [a, b, c]);
+				graph.vertices_coords[clusters[i][0]] = point;
+			});
 	}
 	return {
 		map: replace(graph, "vertices", replace_indices),

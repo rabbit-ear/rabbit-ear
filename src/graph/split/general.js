@@ -8,6 +8,7 @@ import {
 /**
  * @description create a vertices_faces entry for a single vertex by
  * matching the winding order with vertices_vertices.
+ * @param {FOLD} graph a FOLD object
  */
 export const makeVerticesFacesFromVerticesVerticesForVertex = (
 	{ vertices_vertices },
@@ -20,6 +21,7 @@ export const makeVerticesFacesFromVerticesVerticesForVertex = (
 /**
  * @description For a single vertex, rebuild its vertices_faces entry,
  * having already
+ * @param {FOLD} graph a FOLD object
  */
 export const makeVerticesFacesFromVerticesEdgesForVertex = (
 	{ edges_vertices, vertices_edges },
@@ -34,6 +36,7 @@ export const makeVerticesFacesFromVerticesEdgesForVertex = (
 
 /**
  * @description For a
+ * @param {FOLD} graph a FOLD object
  */
 export const makeFacesEdgesFromFacesVerticesForVertex = (
 	{ faces_vertices },

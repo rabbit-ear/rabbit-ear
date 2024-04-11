@@ -15,7 +15,7 @@ import {
 	subtract2,
 	distance2,
 	midpoint2,
-	flip,
+	flip2,
 	rotate90,
 } from "../math/vector.js";
 import {
@@ -39,8 +39,8 @@ import {
  * create an arrow definition which includes the segment, as well as
  * some additional details like the size of the arrow head and
  * the direction of the bend in the path.
- * @param {number[][]} segment an array of two points, each an array of numbers
- * @param {number[][]} polygon an array of points, each an array of numbers
+ * @param {[number, number][]} segment an array of two points, each an array of numbers
+ * @param {[number, number][]} polygon an array of points, each an array of numbers
  * @returns {object} an arrow definition including: segment, head, bend
  */
 export const segmentToArrow = (segment, polygon, options = {}) => {
@@ -80,16 +80,16 @@ export const segmentToArrow = (segment, polygon, options = {}) => {
 /**
  * @description Given a polygon and a line, clip the line and return the
  * midpoint of the resulting segment.
- * @param {number[][]} polygon a convex polygon as an array of 2D points,
+ * @param {[number, number][]} polygon a convex polygon as an array of 2D points,
  * each point an array of numbers
- * @param {VecLine} line a line in the form of a vector and origin
- * @returns {number[][]} a segment as an array of two points
+ * @param {VecLine2} line a line in the form of a vector and origin
+ * @returns {[number, number]} a 2D point
  */
 const getLineMidpointInPolygon = (polygon, line) => {
 	const segment = clipLineConvexPolygon(polygon, line);
 	return segment === undefined
 		? undefined
-		: midpoint2(...segment);
+		: midpoint2(segment[0], segment[1]);
 };
 
 /**
@@ -112,12 +112,12 @@ export const diagramReflectPoint = ({ vector, origin }, point) => (
  * By default the midpoint of the line (the line's segment inside the polygon)
  * will be chosen to build the perpendicular line through,
  * if you like, you can specify this point.
- * @param {number[][]} polygon a convex polygon as an array of 2D points,
+ * @param {[number, number][]} polygon a convex polygon as an array of 2D points,
  * each point an array of numbers
- * @param {VecLine} line a line in the form of a vector and origin
- * @param {number[]?} point an optional point along the line
+ * @param {VecLine2} line a line in the form of a vector and origin
+ * @param {[number, number]} [point] an optional point along the line
  * through which the perpendicular line will pass.
- * @returns {number[][]} a segment as an array of two points.
+ * @returns {[number, number][]} a segment as an array of two points.
  */
 export const perpendicularBalancedSegment = (polygon, line, point) => {
 	// if provided, use the point as the origin, otherwise use the line midpoint
@@ -142,7 +142,7 @@ export const perpendicularBalancedSegment = (polygon, line, point) => {
 	// our segment stretches in both directions from the origin
 	// by an equal amount
 	return [
-		add2(origin, flip(scaled)),
+		add2(origin, flip2(scaled)),
 		add2(origin, scaled),
 	];
 };
@@ -151,9 +151,9 @@ export const perpendicularBalancedSegment = (polygon, line, point) => {
  * like in axiom 3 when two segments don't intersect and the fold
  * line lies exactly between them
  * In this case, the segments are parallel, and the fold line sits
- * @param {VecLine} foldLine the fold line, the (single) result of axiom 3
- * @param {number[][][]} two lines, the inputs to axiom 3
- * @param {number[][][]} two segments the visible portion of the input lines
+ * @param {VecLine2} foldLine the fold line, the (single) result of axiom 3
+ * @param {VecLine2[]} lines two lines, the inputs to axiom 3
+ * @param {[number, number][][]} segments two segments the visible portion of the input lines
  */
 export const betweenTwoSegments = (foldLine, lines, segments) => {
 	// two midpoints, the midpoint of each of the two segments
@@ -164,11 +164,11 @@ export const betweenTwoSegments = (foldLine, lines, segments) => {
 
 	// find the place... this is not needed. just get the midpoint
 	// const origin = intersectLineLine(foldLine, midpointLine).point;
-	const origin = midpoint2(...midpoints);
+	const origin = midpoint2(midpoints[0], midpoints[1]);
 
 	// perpendicular to the fold line, passing through
 	// the midpoint between the two segment's midpoints.
-	const perpendicular = { vector: foldLine.vector.rotate90(), origin };
+	const perpendicular = { vector: rotate90(foldLine.vector), origin };
 
 	return lines.map(line => intersectLineLine(line, perpendicular).point);
 };
@@ -179,7 +179,7 @@ export const betweenTwoSegments = (foldLine, lines, segments) => {
 export const betweenTwoIntersectingSegments = (lines, intersect, foldLine, boundary) => {
 	// the input lines as vectors, and the same vectors flipped around
 	const paramVectors = lines.map(l => l.vector);
-	const flippedVectors = paramVectors.map(flip);
+	const flippedVectors = paramVectors.map(flip2);
 
 	// four rays, extending outwards from the intersection point,
 	// tracing the path of each of the two input lines.

@@ -6,7 +6,7 @@ import {
 } from "../math/constant.js";
 import {
 	average2,
-	resize,
+	resize3,
 } from "../math/vector.js";
 import {
 	multiplyMatrix4Vector3,
@@ -94,7 +94,7 @@ export const constraints3DFaceClusters = ({
 
 	// ensure all vertices_coords are 3D (make a copy array here) for use in
 	// multiplyMatrix4Vector3, which requires points to be in 3D.
-	const vertices_coords3D = vertices_coords.map(coord => resize(3, coord));
+	const vertices_coords3D = vertices_coords.map(resize3);
 
 	// transform all vertices_coords by the inverse transform
 	// to bring them all into the XY plane. convert back into a 2D point.

@@ -7,6 +7,7 @@ import {
 	scale,
 	scale2,
 	subtract,
+	subtract2,
 	rotate90,
 	rotate270,
 } from "./vector.js";
@@ -41,6 +42,21 @@ export const pointsToLine = (origin, point2) => ({
 });
 
 /**
+ * @description Given two points, create a vector-origin line representation
+ * of a line that passes through both points. This will work in n-dimensions.
+ * If there are more than two points, the rest will be ignored.
+ * @param {[number, number]} origin
+ * one point, itself an array of numbers
+ * @param {[number, number]} point2
+ * one point, itself an array of numbers
+ * @returns {VecLine2} an object with "vector" and "origin".
+ */
+export const pointsToLine2 = (origin, point2) => ({
+	vector: subtract2(point2, origin),
+	origin,
+});
+
+/**
  * @description Convert a line from one parameterization into another.
  * Convert vector-origin where origin is a point on the line into
  * normal-distance form where distance the shortest length from the
@@ -61,9 +77,9 @@ export const vecLineToUniqueLine = ({ vector, origin }) => {
  * from the origin to a point on the line, to vector-origin where origin
  * is a point on the line.
  * @param {UniqueLine} line a line in normal distance form
- * @returns {VecLine} line a line in vector origin form
+ * @returns {VecLine2} line a line in vector origin form
  */
 export const uniqueLineToVecLine = ({ normal, distance }) => ({
 	vector: rotate270(normal),
-	origin: scale(normal, distance),
+	origin: scale2(normal, distance),
 });

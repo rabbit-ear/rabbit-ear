@@ -17,12 +17,11 @@ import {
  * The windings may be flipped if faces are non-convex, otherwise
  * they will still be correct.
  * @param {FOLD} graph a FOLD object
- * @returns {number[][]} an array of 3D vectors, one for every face
+ * @returns {[number, number, number][]} an array of 3D vectors, one for every face
  */
 export const makeFacesNormal = ({ vertices_coords, faces_vertices }) => {
 	// ensure that all points are in 3D
-	const vertices_coords3D = vertices_coords
-		.map(coord => resize3(coord));
+	const vertices_coords3D = vertices_coords.map(resize3);
 
 	return faces_vertices
 		.map(vertices => vertices

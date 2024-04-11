@@ -43,9 +43,9 @@ export const isVertexCollinear = ({
 	// case where the two edges are on top of one another with
 	// a leaf-like vertex.
 	const vertices = getOtherVerticesInEdges({ edges_vertices }, vertex, edges);
-	const points = [vertices[0], vertex, vertices[1]]
+	const [a, b, c] = [vertices[0], vertex, vertices[1]]
 		.map(v => vertices_coords[v]);
-	return collinearBetween(...points, false, epsilon);
+	return collinearBetween(a, b, c, false, epsilon);
 };
 
 /**

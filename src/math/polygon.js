@@ -10,6 +10,7 @@ import {
 	scale2,
 	add2,
 	subtract,
+	subtract3,
 	parallel,
 } from "./vector.js";
 
@@ -105,6 +106,28 @@ export const makePolygonNonCollinear = (polygon, epsilon = EPSILON) => {
 	const edges_vector = polygon
 		.map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
 		.map(pair => subtract(pair[1], pair[0]));
+	// the vertex to be removed. true=valid, false=collinear.
+	// ask if an edge is parallel to its predecessor, this way,
+	// the edge index will match to the collinear vertex.
+	const vertex_collinear = edges_vector
+		.map((vector, i, arr) => [vector, arr[(i + arr.length - 1) % arr.length]])
+		.map(pair => !parallel(pair[1], pair[0], epsilon));
+	return polygon.filter((_, v) => vertex_collinear[v]);
+};
+
+/**
+ * @description Remove any collinear vertices from a n-dimensional polygon.
+ * @param {[number, number, number][]} polygon a polygon
+ * as an array of ordered points in array form
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {[number, number, number][]} a copy of
+ * the polygon with collinear points removed
+ */
+export const makePolygonNonCollinear3 = (polygon, epsilon = EPSILON) => {
+	// index map [i] to [i, i+1]
+	const edges_vector = polygon
+		.map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
+		.map(pair => subtract3(pair[1], pair[0]));
 	// the vertex to be removed. true=valid, false=collinear.
 	// ask if an edge is parallel to its predecessor, this way,
 	// the edge index will match to the collinear vertex.

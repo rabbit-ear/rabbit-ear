@@ -1,5 +1,5 @@
 type FOLD = {
-    vertices_coords?: ([number, number] | [number, number, number])[];
+    vertices_coords?: [number, number][] | [number, number, number][];
     vertices_vertices?: number[][];
     vertices_edges?: number[][];
     vertices_faces?: (number | null | undefined)[][];
@@ -29,9 +29,11 @@ type FOLD = {
     frame_parent?: number;
     frame_inherit?: boolean;
     faces_center?: ([number, number] | [number, number, number])[];
-    faces_normal?: number[][];
+    faces_normal?: ([number, number] | [number, number, number])[];
     edges_vector?: number[][];
-    faces_polygon?: number[][][];
+    faces_polygon?: ([number, number] | [number, number, number])[][];
+    faces_matrix?: number[][];
+    vertices_sectors?: number[][];
 };
 type VecLine2 = {
     vector: [number, number];

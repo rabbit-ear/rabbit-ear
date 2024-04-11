@@ -35,9 +35,9 @@ declare const _default: {
     makeEdgesEdges: ({ edges_vertices, vertices_edges }: FOLD) => number[][];
     makeEdgesAssignmentSimple: ({ edges_foldAngle }: FOLD) => string[];
     makeEdgesAssignment: ({ edges_vertices, edges_foldAngle, edges_faces, faces_vertices, faces_edges, }: FOLD) => string[];
-    makeEdgesCoords: ({ vertices_coords, edges_vertices }: FOLD) => number[][][];
+    makeEdgesCoords: ({ vertices_coords, edges_vertices }: FOLD) => [[number, number] | [number, number, number], [number, number] | [number, number, number]][];
     makeEdgesVector: ({ vertices_coords, edges_vertices }: FOLD) => number[][];
     makeEdgesLength: ({ vertices_coords, edges_vertices }: FOLD) => number[];
-    makeEdgesBoundingBox: ({ vertices_coords, edges_vertices, edges_coords, }: FOLD, epsilon?: number) => Box[];
+    makeEdgesBoundingBox: ({ vertices_coords, edges_vertices, }: FOLD, epsilon?: number) => Box[];
 };
 export default _default;

@@ -42,7 +42,8 @@ const edgeifyFaces = ({ vertices_coords, faces_vertices }, axis = 0) => (
  * @param {FOLD} graph a FOLD object
  * @param {number} [axis=0] which axis to sweep along
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {object[]} an array of event objects, each event contains:
+ * @returns {{ t: number, vertices: number[] }[]} an array of event objects,
+ * each event contains:
  * - t: the position along the axis
  * - vertices: the vertices (one or more) at this event along the axis
  */
@@ -154,7 +155,7 @@ export const sweepEdges = (
  * @param {FOLD} graph a FOLD object
  * @param {number} [axis=0] which axis to sweep along
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {object[]} an array of event objects, each event contains:
+ * @returns {SweepEvent[]} an array of event objects, each event contains:
  * - t: the position along the axis
  * - vertices: the vertices (one or more) at this event along the axis
  * - start: the faces which begin at this event in the sweep
@@ -183,7 +184,12 @@ export const sweepFaces = (
  * @param {FOLD} graph a FOLD object
  * @param {number} [axis=0] which axis to sweep along
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {object[]} an array of event objects, each event contains:
+ * @returns {{
+ *   vertices: number[],
+ *   t: number,
+ *   edges: { start: number[], end: number[] },
+ *   faces: { start: number[], end: number[] },
+ * }[]} an array of event objects, each event contains:
  * - t: the position along the axis
  * - vertices: the vertices (one or more) at this event along the axis
  * - edges, faces: where each contains:

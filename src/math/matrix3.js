@@ -44,8 +44,8 @@ export const isIdentity3x4 = m => identity3x4
 /**
  * @description multiply one 3D vector by a 3x4 matrix
  * @param {number[]} m one matrix in array form
- * @param {number[]} vector in array form
- * @returns {number[]} the transformed vector
+ * @param {[number, number, number]} vector in array form
+ * @returns {[number, number, number]} the transformed vector
  */
 export const multiplyMatrix3Vector3 = (m, vector) => [
 	m[0] * vector[0] + m[3] * vector[1] + m[6] * vector[2] + m[9],
@@ -56,8 +56,8 @@ export const multiplyMatrix3Vector3 = (m, vector) => [
 /**
  * @description multiply one 3D line by a 3x4 matrix
  * @param {number[]} m one matrix in array form
- * @param {number[]} vector the vector of the line
- * @param {number[]} origin the origin of the line
+ * @param {[number, number, number]} vector the vector of the line
+ * @param {[number, number, number]} origin the origin of the line
  * @returns {VecLine} the transformed line in vector-origin form
  */
 export const multiplyMatrix3Line3 = (m, vector, origin) => ({
@@ -170,7 +170,7 @@ const singleAxisRotate = (angle, origin, i0, i1, sgn) => {
  * @description make a 3x4 matrix representing a rotation in 3D around the x-axis
  * (allowing you to specify the center of rotation if needed).
  * @param {number} angle the angle of rotation in radians
- * @param {number[]} [origin=[0,0,0]] the center of rotation
+ * @param {[number, number, number]} [origin=[0,0,0]] the center of rotation
  * @returns {number[]} one 3x4 matrix
  */
 export const makeMatrix3RotateX = (angle, origin = [0, 0, 0]) => (
@@ -180,7 +180,7 @@ export const makeMatrix3RotateX = (angle, origin = [0, 0, 0]) => (
  * @description make a 3x4 matrix representing a rotation in 3D around the y-axis
  * (allowing you to specify the center of rotation if needed).
  * @param {number} angle the angle of rotation in radians
- * @param {number[]} [origin=[0,0,0]] the center of rotation
+ * @param {[number, number, number]} [origin=[0,0,0]] the center of rotation
  * @returns {number[]} one 3x4 matrix
  */
 export const makeMatrix3RotateY = (angle, origin = [0, 0, 0]) => (
@@ -190,7 +190,7 @@ export const makeMatrix3RotateY = (angle, origin = [0, 0, 0]) => (
  * @description make a 3x4 matrix representing a rotation in 3D around the z-axis
  * (allowing you to specify the center of rotation if needed).
  * @param {number} angle the angle of rotation in radians
- * @param {number[]} [origin=[0,0,0]] the center of rotation
+ * @param {[number, number, number]} [origin=[0,0,0]] the center of rotation
  * @returns {number[]} one 3x4 matrix
  */
 export const makeMatrix3RotateZ = (angle, origin = [0, 0, 0]) => (
@@ -200,8 +200,8 @@ export const makeMatrix3RotateZ = (angle, origin = [0, 0, 0]) => (
  * @description make a 3x4 matrix representing a rotation in 3D
  * around a given vector and around a given center of rotation.
  * @param {number} angle the angle of rotation in radians
- * @param {number[]} [vector=[0,0,1]] the axis of rotation
- * @param {number[]} [origin=[0,0,0]] the center of rotation
+ * @param {[number, number, number]} [vector=[0,0,1]] the axis of rotation
+ * @param {[number, number, number]} [origin=[0,0,0]] the center of rotation
  * @returns {number[]} one 3x4 matrix
  */
 export const makeMatrix3Rotate = (angle, vector = [0, 0, 1], origin = [0, 0, 0]) => {
@@ -247,8 +247,8 @@ export const makeMatrix3Rotate = (angle, vector = [0, 0, 1], origin = [0, 0, 0])
 
 /**
  * @description make a 3x4 matrix representing a non-uniform scale.
- * @param {number[]} [scale=[1,1,1]] non-uniform scaling vector
- * @param {number[]} [origin=[0,0,0]] the center of transformation
+ * @param {[number, number, number]} [scale=[1,1,1]] non-uniform scaling vector
+ * @param {[number, number, number]} [origin=[0,0,0]] the center of transformation
  * @returns {number[]} one 3x4 matrix
  */
 export const makeMatrix3Scale = (scale = [1, 1, 1], origin = [0, 0, 0]) => [
@@ -263,7 +263,7 @@ export const makeMatrix3Scale = (scale = [1, 1, 1], origin = [0, 0, 0]) => [
 /**
  * @description make a 3x4 matrix representing a uniform scale.
  * @param {number} [scale=1] the uniform scale factor
- * @param {number[]} [origin=[0,0,0]] the center of transformation
+ * @param {[number, number, number]} [origin=[0,0,0]] the center of transformation
  * @returns {number[]} one 3x4 matrix
  */
 export const makeMatrix3UniformScale = (scale = 1, origin = [0, 0, 0]) => (
@@ -273,8 +273,8 @@ export const makeMatrix3UniformScale = (scale = 1, origin = [0, 0, 0]) => (
 /**
  * @description make a 3x4 representing a reflection across a line in the XY plane
  * This is a 2D operation, assumes everything is in the XY plane.
- * @param {number[]} vector one 2D vector specifying the reflection axis
- * @param {number[]} [origin=[0,0]] a 2D origin specifying a point of reflection
+ * @param {[number, number]} vector one 2D vector specifying the reflection axis
+ * @param {[number, number]} [origin=[0,0]] a 2D origin specifying a point of reflection
  * @returns {number[]} one 3x4 matrix
  */
 export const makeMatrix3ReflectZ = (vector, origin = [0, 0]) => {

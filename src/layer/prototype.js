@@ -25,6 +25,9 @@ const makePermutations = (...counts) => {
 			.map((c, j) => Math.floor(i / maxPlace[j]) % c));
 };
 
+/**
+ * @param {LayerSolverSolution} solution
+ */
 const getBranchCount = ({ branches }) => {
 	if (!branches) { return "leaf"; }
 	return branches.map(choices => ({
@@ -33,27 +36,41 @@ const getBranchCount = ({ branches }) => {
 	}));
 };
 
+/**
+ * @param {LayerSolverSolution} solution
+ */
 export const getBranchStructure = ({ branches }) => {
 	if (branches === undefined) { return []; }
 	return branches.map(branch => branch.map(getBranchStructure));
 };
 
+/**
+ * @param {LayerSolverSolution} solution
+ */
 const getBranchLeafStructure = ({ branches }) => {
 	if (branches === undefined) { return "leaf"; }
 	return branches.map(branch => branch.map(getBranchLeafStructure));
 };
 
+/**
+ * @param {LayerSolverSolution} solution
+ * @param {number[]} [pattern]
+ */
 export const gather = ({ orders, branches }, pattern = []) => [
 	orders,
 	...(branches || []).flatMap(branch => gather(branch[pattern.shift() || 0], pattern)),
 ];
 
+/**
+ * @param {LayerSolverSolution} solution
+ * @param {number[]} [pattern]
+ */
 export const compile = ({ orders, branches }, pattern) => (
 	gather({ orders, branches }, pattern).flat()
 );
 
 /**
- * @param {{ orders: {[key:string]: number}, branches?: LayerBranch[] }} solution
+ * @param {LayerSolverSolution} solution
  * @returns {{[key:string]: number}[][]}
  */
 export const gatherAll = ({ orders, branches }) => {
@@ -74,6 +91,9 @@ export const gatherAll = ({ orders, branches }) => {
 		.map(solution => [orders, ...solution]);
 };
 
+/**
+ * @param {LayerSolverSolution} solution
+ */
 export const compileAll = ({ orders, branches }) => (
 	gatherAll({ orders, branches }).map(arr => arr.flat())
 );
@@ -121,34 +141,61 @@ export const compileAll = ({ orders, branches }) => (
 // };
 
 export const LayerPrototype = {
+	/**
+	 * @this {LayerSolverSolution}
+	 */
 	count: function () {
 		return getBranchCount(this);
 	},
 
+	/**
+	 * @this {LayerSolverSolution}
+	 */
 	structure: function () {
 		return getBranchStructure(this);
 	},
 
+	/**
+	 * @this {LayerSolverSolution}
+	 */
 	leaves: function () {
 		return getBranchLeafStructure(this);
 	},
 
+	/**
+	 * @this {LayerSolverSolution}
+	 * @param {number[]} pattern
+	 */
 	gather: function (...pattern) {
 		return gather(this, pattern);
 	},
 
+	/**
+	 * @this {LayerSolverSolution}
+	 */
 	gatherAll: function () {
 		return gatherAll(this);
 	},
 
+	/**
+	 * @this {LayerSolverSolution}
+	 * @param {number[]} pattern
+	 */
 	compile: function (...pattern) {
 		return compile(this, pattern);
 	},
 
+	/**
+	 * @this {LayerSolverSolution}
+	 */
 	compileAll: function () {
 		return compileAll(this);
 	},
 
+	/**
+	 * @this {LayerSolverSolution}
+	 * @param {number[]} pattern
+	 */
 	faceOrders: function (...pattern) {
 		return compile(this, pattern);
 	},

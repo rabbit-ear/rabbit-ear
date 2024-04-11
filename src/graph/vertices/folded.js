@@ -13,7 +13,7 @@ import {
 	subtract2,
 	rotate270,
 	rotate90,
-	resize,
+	resize3,
 } from "../../math/vector.js";
 import {
 	identity2x3,
@@ -67,10 +67,10 @@ export const makeVerticesCoords3DFolded = ({
 	const vertices_matrix = vertices_faces
 		.map(faces => faces.find(f => f != null))
 		.map(face => (face === undefined
-			? identity3x4
+			? [...identity3x4]
 			: faces_matrix[face]));
 	return vertices_coords
-		.map(coord => resize(3, coord))
+		.map(resize3)
 		.map((coord, i) => multiplyMatrix3Vector3(vertices_matrix[i], coord));
 };
 
@@ -81,7 +81,7 @@ export const makeVerticesCoords3DFolded = ({
  * Finally, if no edge foldAngle or assignments exist, this method will
  * assume all edges are flat-folded (except boundary) and will fold everything.
  * @param {FOLD} graph a FOLD object
- * @param {number} [rootFaces=[]] the index of the face that will remain in place
+ * @param {number[]} [rootFaces=[]] the index of the face that will remain in place
  * @returns {number[][]} a new set of `vertices_coords` with the new positions.
  */
 export const makeVerticesCoordsFlatFolded = (
@@ -184,7 +184,7 @@ export const makeVerticesCoordsFolded = (graph, rootFaces) => (
 /**
  * @description Given a FOLD object and a set of 2x3 matrices, one per face,
  * "fold" the vertices by finding one matrix per vertex and multiplying them.
- * @param {object} FOLD graph with vertices_coords, faces_vertices, and
+ * @param {FOLD} graph a FOLD graph with vertices_coords, faces_vertices, and
  * if vertices_faces does not exist it will be built.
  * @param {number[][]} faces_matrix an array of 2x3 matrices. one per face.
  * @returns {number[][]} a new set of vertices_coords, transformed.
@@ -208,5 +208,5 @@ export const makeVerticesCoordsFoldedFromMatrix2 = ({
 			: faces_matrix[face]));
 
 	return vertices_coords
-		.map((coord, i) => multiplyMatrix2Vector2(vertices_matrix[i], coord));
+		.map(([x, y], i) => multiplyMatrix2Vector2(vertices_matrix[i], [x, y]));
 };

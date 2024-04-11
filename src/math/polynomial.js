@@ -20,7 +20,8 @@ const cubeRootSigned = (n) => (n < 0
  * To solve a cubic: supply [a, b, c, d], where a is the x^3 coeff.
  * @param {number[]} coefficients a list of coefficients to the polynomial,
  * including the constant (at the end).
- * @returns {number[]} an array of solutions.
+ * @returns {[]|[number]|[number,number]|[number,number,number]}
+ * a solution array with either zero, one, two, or three numbers.
  */
 export const polynomialSolver = (coefficients) => {
 	const [a, b, c, d] = coefficients;

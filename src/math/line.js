@@ -95,11 +95,11 @@ export const collinearBetween = (p0, p1, p2, inclusive = false, epsilon = EPSILO
  * @param {number} t one scalar between 0 and 1 (not clamped)
  * @returns {VecLine} one line
  */
-export const lerpLines = (a, b, t) => {
-	const vector = lerp(a.vector, b.vector, t);
-	const origin = lerp(a.origin, b.origin, t);
-	return { vector, origin };
-};
+// export const lerpLines = (a, b, t) => {
+// 	const vector = lerp(a.vector, b.vector, t);
+// 	const origin = lerp(a.origin, b.origin, t);
+// 	return { vector, origin };
+// };
 
 /**
  * @description a subroutine of pleat(), if we identify that

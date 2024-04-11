@@ -14,6 +14,8 @@ import {
 	magnitude,
 	normalize,
 	subtract,
+	subtract2,
+	subtract3,
 	dot,
 } from "../../math/vector.js";
 import {
@@ -39,11 +41,31 @@ import {
 	radialSortVectors3,
 } from "../../general/sort.js";
 import {
+	getDimensionQuick,
+} from "../../fold/spec.js";
+import {
 	makeEdgesCoords,
 } from "../make/edges.js";
 import {
 	invertArrayToFlatMap,
 } from "../maps.js";
+
+/**
+ * @description convert an edge to a vector-origin line.
+ * @param {FOLD} graph a FOLD object
+ * @param {number} edge the index of the edge
+ * @returns {VecLine2} a line form of the edge
+ */
+export const edgeToLine2 = ({ vertices_coords, edges_vertices }, edge) => ({
+	vector: [
+		vertices_coords[edges_vertices[edge][1]][0] - vertices_coords[edges_vertices[edge][0]][0],
+		vertices_coords[edges_vertices[edge][1]][1] - vertices_coords[edges_vertices[edge][0]][1],
+	],
+	origin: [
+		vertices_coords[edges_vertices[edge][0]][0],
+		vertices_coords[edges_vertices[edge][0]][1],
+	],
+});
 
 /**
  * @description convert an edge to a vector-origin line.
@@ -56,9 +78,31 @@ export const edgeToLine = ({ vertices_coords, edges_vertices }, edge) => (
 		vertices_coords[edges_vertices[edge][0]],
 		vertices_coords[edges_vertices[edge][1]],
 	));
-// export const edgeToLine = ({ vertices_coords, edges_vertices }, edge) => (
-// 	pointsToLine(...edges_vertices[edge].map(v => vertices_coords[v]))
-// );
+
+/**
+ * @description convert an edge to a vector-origin line.
+ * @param {FOLD} graph a FOLD object
+ * @returns {VecLine2[]} a line form of the edge
+ */
+export const edgesToLines2 = ({ vertices_coords, edges_vertices }) => (
+	makeEdgesCoords({ vertices_coords, edges_vertices })
+		.map(([a, b]) => ({ origin: [a[0], a[1]], vector: subtract2(b, a) })));
+
+/**
+ * @description convert an edge to a vector-origin line.
+ * @param {FOLD} graph a FOLD object
+ * @returns {(VecLine2|VecLine3)[]} a line form of the edge
+ */
+export const edgesToLines = ({ vertices_coords, edges_vertices }) => {
+	const coords = makeEdgesCoords({ vertices_coords, edges_vertices });
+	const dimensions = getDimensionQuick({ vertices_coords });
+	return dimensions === 2
+		? coords.map(([a, b]) => ({ origin: [a[0], a[1]], vector: subtract2(b, a) }))
+		: coords.map(([a, b]) => ({
+			origin: [a[0], a[1], a[2]],
+			vector: [b[0] - a[0], b[1] - a[1], b[2] - a[2]],
+		}))
+};
 
 /**
  * @description Most origami models have many edges which lie along

@@ -1,5 +1,14 @@
 declare const _default: {
-    layer3D: (graph: any, epsilon: any) => any;
+    layer3D: (graph: FOLD, epsilon?: number) => {
+        count: () => any;
+        structure: () => any;
+        leaves: () => any;
+        gather: (...pattern: any[]) => any;
+        gatherAll: () => any;
+        compile: (...pattern: any[]) => any;
+        compileAll: () => any;
+        faceOrders: (...pattern: any[]) => any;
+    };
     makeTransitivity: ({ faces_polygon }: FOLD, facesFacesOverlap: number[][], epsilon?: number) => TransitivityConstraint[];
     getTransitivityTriosFromTacos: ({ taco_taco, taco_tortilla }: {
         taco_taco: TacoTacoConstraint[];

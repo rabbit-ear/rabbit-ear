@@ -17,13 +17,13 @@ export const identity2x2: number[];
  * @default
  */
 export const identity2x3: number[];
-export function multiplyMatrix2Vector2(matrix: number[], vector: number[]): number[];
-export function multiplyMatrix2Line2(matrix: number[], vector: number[], origin: number[]): VecLine;
+export function multiplyMatrix2Vector2(matrix: number[], vector: [number, number]): [number, number];
+export function multiplyMatrix2Line2(matrix: number[], vector: [number, number], origin: [number, number]): VecLine;
 export function multiplyMatrices2(m1: number[], m2: number[]): number[];
 export function determinant2(m: number[]): number;
 export function invertMatrix2(m: number[]): number[] | undefined;
 export function makeMatrix2Translate(x?: number, y?: number): number[];
-export function makeMatrix2Scale(scale?: number[], origin?: number[]): number[];
-export function makeMatrix2UniformScale(scale?: number, origin?: number[]): number[];
-export function makeMatrix2Rotate(angle: number, origin?: number[]): number[];
-export function makeMatrix2Reflect(vector: number[], origin?: number[]): number[];
+export function makeMatrix2Scale(scale?: [number, number], origin?: [number, number]): number[];
+export function makeMatrix2UniformScale(scale?: number, origin?: [number, number]): number[];
+export function makeMatrix2Rotate(angle: number, origin?: [number, number]): number[];
+export function makeMatrix2Reflect(vector: [number, number], origin?: [number, number]): number[];

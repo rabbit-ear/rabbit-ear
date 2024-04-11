@@ -63,19 +63,19 @@ test("pleats, opposite vector", () => {
 	});
 });
 
-test("lerp lines, opposite vectors", () => {
-	const a = { vector: [1, 0], origin: [0, 0] };
-	const b = { vector: [-1, 0], origin: [1, 0] };
-	expect(ear.math.lerpLines(a, b, 0.25).origin[0]).toBeCloseTo(0.25);
-	expect(ear.math.lerpLines(a, b, 0.5).origin[0]).toBeCloseTo(0.5);
-	expect(ear.math.lerpLines(a, b, 0.75).origin[0]).toBeCloseTo(0.75);
-	expect(ear.math.lerpLines(a, b, 0.25).origin[1]).toBeCloseTo(0);
-	expect(ear.math.lerpLines(a, b, 0.5).origin[1]).toBeCloseTo(0);
-	expect(ear.math.lerpLines(a, b, 0.75).origin[1]).toBeCloseTo(0);
-	expect(ear.math.lerpLines(a, b, 0.25).vector[0]).toBeCloseTo(0.5);
-	expect(ear.math.lerpLines(a, b, 0.5).vector[0]).toBeCloseTo(0);
-	expect(ear.math.lerpLines(a, b, 0.75).vector[0]).toBeCloseTo(-0.5);
-	expect(ear.math.lerpLines(a, b, 0.25).vector[1]).toBeCloseTo(0);
-	expect(ear.math.lerpLines(a, b, 0.5).vector[1]).toBeCloseTo(0);
-	expect(ear.math.lerpLines(a, b, 0.75).vector[1]).toBeCloseTo(0);
-});
+// test("lerp lines, opposite vectors", () => {
+// 	const a = { vector: [1, 0], origin: [0, 0] };
+// 	const b = { vector: [-1, 0], origin: [1, 0] };
+// 	expect(ear.math.lerpLines(a, b, 0.25).origin[0]).toBeCloseTo(0.25);
+// 	expect(ear.math.lerpLines(a, b, 0.5).origin[0]).toBeCloseTo(0.5);
+// 	expect(ear.math.lerpLines(a, b, 0.75).origin[0]).toBeCloseTo(0.75);
+// 	expect(ear.math.lerpLines(a, b, 0.25).origin[1]).toBeCloseTo(0);
+// 	expect(ear.math.lerpLines(a, b, 0.5).origin[1]).toBeCloseTo(0);
+// 	expect(ear.math.lerpLines(a, b, 0.75).origin[1]).toBeCloseTo(0);
+// 	expect(ear.math.lerpLines(a, b, 0.25).vector[0]).toBeCloseTo(0.5);
+// 	expect(ear.math.lerpLines(a, b, 0.5).vector[0]).toBeCloseTo(0);
+// 	expect(ear.math.lerpLines(a, b, 0.75).vector[0]).toBeCloseTo(-0.5);
+// 	expect(ear.math.lerpLines(a, b, 0.25).vector[1]).toBeCloseTo(0);
+// 	expect(ear.math.lerpLines(a, b, 0.5).vector[1]).toBeCloseTo(0);
+// 	expect(ear.math.lerpLines(a, b, 0.75).vector[1]).toBeCloseTo(0);
+// });

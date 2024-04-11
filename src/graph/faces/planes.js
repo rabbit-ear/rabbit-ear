@@ -8,12 +8,13 @@ import {
 	dot,
 	dot3,
 	scale3,
-	resize,
-	flip,
+	resize2,
+	resize3,
+	flip3,
 	parallelNormalized,
 } from "../../math/vector.js";
 import {
-	makePolygonNonCollinear,
+	makePolygonNonCollinear3,
 } from "../../math/polygon.js";
 import {
 	multiplyMatrix4Vector3,
@@ -103,6 +104,7 @@ export const getFacesPlane = (
 	// for each face, is this face's normal aligned (true) with the cluster's
 	// normal, or is it 180deg flipped (false).
 	// "faces_winding" can be a flat array as faces are only in one plane.
+	/** @type {boolean[]} */
 	const faces_winding = [];
 	normalClustersFaces.forEach((faces, i) => faces.forEach(f => {
 		faces_winding[f] = dot3(faces_normal[f], normalClustersNormal[i]) > 0;
@@ -112,7 +114,7 @@ export const getFacesPlane = (
 	// for each face. make facesOneVertex always 3D.
 	const facesOneVertex = faces_vertices
 		.map(fv => vertices_coords[fv[0]])
-		.map(point => resize(3, point));
+		.map(resize3);
 	const normalClustersFacesDot = normalClustersFaces
 		.map((faces, i) => faces
 			.map(f => dot3(normalClustersNormal[i], facesOneVertex[f])));
@@ -128,9 +130,11 @@ export const getFacesPlane = (
 	// before flattening, create a matching array of normals.
 	const planes_faces = clustersClusters.flat();
 
+	// use "resize3" to create a clone of every vector. no overlapping pointers
 	const planes_normal = clustersClusters
 		.flatMap((cluster, i) => cluster
-			.map(() => [...normalClustersNormal[i]]));
+			.map(() => normalClustersNormal[i]))
+		.map(resize3);
 
 	// the plane's origin will be the point in the plane
 	// nearest to the world origin.
@@ -151,6 +155,7 @@ export const getFacesPlane = (
 	// all polygon sets will be planar to each other, however the polygon-polygon
 	// intersection algorithm is 2D only, so we just need to create a transform
 	// for each cluster which rotates this cluster's plane into the XY plane.
+	/** @type {[number, number, number]} */
 	const targetVector = [0, 0, 1];
 
 	// if dot is -1, this plane is already in the XY plane, but the plane's
@@ -169,7 +174,7 @@ export const getFacesPlane = (
 	// entire translation matrix then computing the matrix product with: Mr * Mt.
 	// this approach just cuts down on the number of operations.
 	planes.forEach(({ origin }, p) => {
-		const translation = multiplyMatrix4Vector3(planes_transform[p], flip(origin));
+		const translation = multiplyMatrix4Vector3(planes_transform[p], flip3(origin));
 		planes_transform[p][12] = translation[0];
 		planes_transform[p][13] = translation[1];
 		planes_transform[p][14] = translation[2];
@@ -237,17 +242,17 @@ export const getCoplanarAdjacentOverlappingFaces = (
 	);
 
 	// make sure we are using 3D points for this next part
-	const vertices_coords3D = vertices_coords.map(coord => resize(3, coord));
+	const vertices_coords3D = vertices_coords.map(resize3);
 
 	// if the face's winding is flipped from its plane's normal,
 	// reverse the winding order, much easier than transforming a 180 rotation.
 	const faces_polygon = faces_vertices
 		.map((verts, f) => (faces_winding[f] ? verts : verts.slice().reverse()))
 		.map(verts => verts.map(v => vertices_coords3D[v]))
-		.map(polygon => makePolygonNonCollinear(polygon, epsilon))
+		.map(polygon => makePolygonNonCollinear3(polygon, epsilon))
 		.map((polygon, f) => polygon
 			.map(point => multiplyMatrix4Vector3(planes_transform[faces_plane[f]], point))
-			.map(point => [point[0], point[1]]));
+			.map(resize2));
 
 	// for each plane group, create a faces_faces which only includes
 	// those faces inside each group, these faces_faces arrays have holes.

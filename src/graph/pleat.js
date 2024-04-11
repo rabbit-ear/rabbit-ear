@@ -19,11 +19,9 @@ import {
 	scale2,
 } from "../math/vector.js";
 import {
-	edgeToLine,
+	edgeToLine2,
+	edgesToLines2,
 } from "./edges/lines.js";
-import {
-	makeEdgesVector,
-} from "./make/edges.js";
 
 /**
  * @description Create a series of pleat lines as segments, using two
@@ -47,11 +45,7 @@ export const pleat = (
 	count,
 	epsilon = EPSILON,
 ) => {
-	const edges_lines = makeEdgesVector({ vertices_coords, edges_vertices })
-		.map((vector, i) => ({
-			vector,
-			origin: vertices_coords[edges_vertices[i][0]],
-		}));
+	const edges_lines = edgesToLines2({ vertices_coords, edges_vertices });
 
 	// the pleat() method returns two lists of lines (or one if parallel)
 	// convert these two lists of lines into two lists of segments.
@@ -107,7 +101,7 @@ export const pleatEdges = (
 	count,
 	epsilon = EPSILON,
 ) => {
-	const lineA = edgeToLine({ vertices_coords, edges_vertices }, edgeA);
-	const lineB = edgeToLine({ vertices_coords, edges_vertices }, edgeB);
+	const lineA = edgeToLine2({ vertices_coords, edges_vertices }, edgeA);
+	const lineB = edgeToLine2({ vertices_coords, edges_vertices }, edgeB);
 	return pleat({ vertices_coords, edges_vertices }, lineA, lineB, count, epsilon);
 };

@@ -23,9 +23,11 @@ import {
  * @description this recursive algorithm works outwards-to-inwards, each repeat
  * decreases the size of the polygon by one point/side. (removes 2, adds 1)
  * and repeating the algorithm on the smaller polygon.
- * @param {number[][]} points array of point objects (arrays of numbers, [x, y]).
+ * @param {[number, number][]} points array of point objects (arrays of numbers, [x, y]).
  * the counter-clockwise sorted points of the polygon. as we recurse this
  * list shrinks by removing the points that are "finished".
+ * @param {VecLine2[]} lines
+ * @param {[number, number][]} bisectors 2D vectors
  * @returns {object[]} array of line segments as objects with keys:
  * "points": array of 2 points in array form [ [x, y], [x, y] ]
  * "type": "skeleton" or "kawasaki", the latter being the projected
@@ -49,9 +51,10 @@ const recurseSkeleton = (points, lines, bisectors) => {
 		).point);
 	// project each intersection point down perpendicular to the edge of the polygon
 	// const projections = lines.map((line, i) => line.nearestPoint(intersects[i]));
+	/** @type {[number, number][]} */
 	const projections = lines.map((line, i) => (
-		nearestPointOnLine(line, intersects[i], a => a)
-	));
+		nearestPointOnLine(line, intersects[i])
+	)).map(([a, b]) => [a, b]);
 	// when we reach only 3 points remaining, we are at the end. we can return early
 	// and skip unnecessary calculations, all 3 projection lengths will be the same.
 	if (points.length === 3) {

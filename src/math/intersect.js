@@ -28,11 +28,11 @@ import {
  * @param {function} [bDomain=includeL] the domain of the second line
  * @param {number} [epsilon=1e-6] optional epsilon
  * @returns {{
- *   point: (number[] | undefined)
+ *   point: ([number, number] | undefined)
  *   a: (number | undefined)
  *   b: (number | undefined)
  * }} object with properties:
- * - point: {number[]|undefined} one 2D point or undefined
+ * - point: {[number, number]|undefined} one 2D point or undefined
  * - a: {number|undefined} the intersection parameter along the first line
  * - b: {number|undefined} the intersection parameter along the second line
 */
@@ -74,6 +74,7 @@ export const intersectLineLine = (
  * @param {function} [lineDomain=includeL] set the line/ray/segment
  * and inclusive/exclusive
  * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {[number, number][]} a list of 2D points
  */
 export const intersectCircleLine = (
 	circle,
@@ -90,10 +91,13 @@ export const intersectCircleLine = (
 	const det = cross2(bvec, norm);
 	if (Math.abs(det) > circle.radius + epsilon) { return undefined; }
 	const side = Math.sqrt((circle.radius ** 2) - (det ** 2));
+	/** @param {number} s @param {number} i */
 	const f = (s, i) => circle.origin[i] - rot90[i] * det + norm[i] * s;
-	const results = Math.abs(circle.radius - Math.abs(det)) < epsilon
-		? [side].map((s) => [s, s].map(f)) // tangent to circle
-		: [-side, side].map((s) => [s, s].map(f));
+	const isDegenerate = Math.abs(circle.radius - Math.abs(det)) < epsilon;
+	/** @type {[number, number][]} */
+	const results = isDegenerate
+		? [side].map((s, i) => [f(s, i), f(s, i)]) // tangent to circle
+		: [-side, side].map((s, i) => [f(s, i), f(s, i)]);
 	const ts = results.map(res => res.map((n, i) => n - line.origin[i]))
 		.map(v => v[0] * line.vector[0] + line.vector[1] * v[1])
 		.map(d => d / magSq);

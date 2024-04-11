@@ -5,6 +5,10 @@
 // import { identity2x3 } from "../algebra/matrix2.js";
 // import { identity3x4 } from "../algebra/matrix3.js";
 
+/**
+ * @param {object} obj
+ * @returns {boolean}
+ */
 const isIterable = (obj) => obj != null
 	&& typeof obj[Symbol.iterator] === "function";
 
@@ -31,8 +35,8 @@ const semiFlattenArrays = function () {
 
 /**
  * @description Totally flatten, recursive
- * @param {array[][]} args any array, intended to contain arrays of arrays.
- * @returns {array[]} fully, recursively flattened array
+ * @param {any[][]} args any array, intended to contain arrays of arrays.
+ * @returns {any[]} fully, recursively flattened array
  */
 const flattenArrays = function () {
 	switch (arguments.length) {
@@ -48,67 +52,67 @@ const flattenArrays = function () {
 	}
 };
 
-/**
- * @description Coerce the function arguments into a vector.
- * This will object notation {x:, y:}, or array [number, number, ...]
- * and work for n-dimensions.
- * @param {any[]} ...args an argument list that contains at least one
- * object with {x: y:} or a list of numbers to become the vector.
- * @returns {number[]} vector in array form, or empty array for bad inputs
-*/
-export const getVector = function () {
-	let list = flattenArrays(arguments);
-	// if the arguments's first element is an object with an "x" property
-	const a = list[0];
-	if (typeof a === "object" && a !== null && !Number.isNaN(a.x)) {
-		list = ["x", "y", "z"].map(c => a[c]).filter(b => b !== undefined);
-	}
-	return list.filter(n => typeof n === "number");
-};
+// /**
+//  * @description Coerce the function arguments into a vector.
+//  * This will object notation {x:, y:}, or array [number, number, ...]
+//  * and work for n-dimensions.
+//  * @param {any[]} ...args an argument list that contains at least one
+//  * object with {x: y:} or a list of numbers to become the vector.
+//  * @returns {number[]} vector in array form, or empty array for bad inputs
+// */
+// export const getVector = function () {
+// 	let list = flattenArrays(arguments);
+// 	// if the arguments's first element is an object with an "x" property
+// 	const a = list[0];
+// 	if (typeof a === "object" && a !== null && !Number.isNaN(a.x)) {
+// 		list = ["x", "y", "z"].map(c => a[c]).filter(b => b !== undefined);
+// 	}
+// 	return list.filter(n => typeof n === "number");
+// };
 
-/**
- * @description Coerce the function arguments into an array of vectors.
- * @param {any[][]} ...args an argument list that contains any number of
- * objects with {x: y:} or a list of list of numbers to become vectors.
- * @returns {number[][]} vectors in array form, or empty array.
-*/
-export const getArrayOfVectors = function () {
-	return semiFlattenArrays(arguments).map(el => getVector(el));
-};
+// /**
+//  * @description Coerce the function arguments into an array of vectors.
+//  * @param {any[][]} ...args an argument list that contains any number of
+//  * objects with {x: y:} or a list of list of numbers to become vectors.
+//  * @returns {number[][]} vectors in array form, or empty array.
+// */
+// export const getArrayOfVectors = function () {
+// 	return semiFlattenArrays(arguments).map(el => getVector(el));
+// };
 
-/**
- * @description Coerce the function arguments into a segment (a pair of points)
- * @param {any[]} ...args an argument list that contains a pair of
- * objects with {x: y:} or a list of list of numbers to become endpoints.
- * @returns {number[][]} segment in array form [[a1, a2], [b1, b2]]
-*/
-export const getSegment = function () {
-	const args = semiFlattenArrays(arguments);
-	return args.length === 4
-		? [[0, 1], [2, 3]].map(s => s.map(i => args[i]))
-		: args.map(el => getVector(el));
-};
+// /**
+//  * @description Coerce the function arguments into a segment (a pair of points)
+//  * @param {any[]} ...args an argument list that contains a pair of
+//  * objects with {x: y:} or a list of list of numbers to become endpoints.
+//  * @returns {number[][]} segment in array form [[a1, a2], [b1, b2]]
+// */
+// export const getSegment = function () {
+// 	const args = semiFlattenArrays(arguments);
+// 	return args.length === 4
+// 		? [[0, 1], [2, 3]].map(s => s.map(i => args[i]))
+// 		: args.map(el => getVector(el));
+// };
 
-// store two parameters in an object under the keys "vector" and "object"
-const vectorOriginForm = (vector, origin = []) => ({ vector, origin });
-// 	{ vector: vector || [], origin: origin || [] });
+// // store two parameters in an object under the keys "vector" and "object"
+// const vectorOriginForm = (vector, origin = []) => ({ vector, origin });
+// // 	{ vector: vector || [], origin: origin || [] });
 
-/**
- * @description Coerce the function arguments into a line.
- * @param {any[]} ...args an argument list that contains an object with
- * {vector: origin:} or a list of list of numbers.
- * @returns {VecLine} a line in "vector" "origin" form.
- */
-export const getLine = function () {
-	const args = semiFlattenArrays(arguments);
-	if (args.length === 0 || args[0] == null) { return vectorOriginForm([], []); }
-	if (args[0].constructor === Object && args[0].vector !== undefined) {
-		return vectorOriginForm(args[0].vector, args[0].origin || []);
-	}
-	return typeof args[0] === "number"
-		? vectorOriginForm(getVector(args))
-		: vectorOriginForm(...args.map(a => getVector(a)));
-};
+// /**
+//  * @description Coerce the function arguments into a line.
+//  * @param {any[]} ...args an argument list that contains an object with
+//  * {vector: origin:} or a list of list of numbers.
+//  * @returns {VecLine} a line in "vector" "origin" form.
+//  */
+// export const getLine = function () {
+// 	const args = semiFlattenArrays(arguments);
+// 	if (args.length === 0 || args[0] == null) { return vectorOriginForm([], []); }
+// 	if (args[0].constructor === Object && args[0].vector !== undefined) {
+// 		return vectorOriginForm(args[0].vector, args[0].origin || []);
+// 	}
+// 	return typeof args[0] === "number"
+// 		? vectorOriginForm(getVector(args))
+// 		: vectorOriginForm(...args.map(a => getVector(a)));
+// };
 
 // /**
 //  * a matrix2 is a 2x3 matrix, 2x2 with a column to represent translation

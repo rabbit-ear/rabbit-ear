@@ -168,8 +168,8 @@ const updateEdgesFaces = ({ edges_faces }, newEdges, faces) => {
  * in each of the faces. Find the location of the two vertices and
  * splice in the new vertex.
  * @param {FOLD} graph a FOLD object, modified in place
- * @param {number[]} newVertex indices of two faces to be rebuilt
- * @param {number} incidentVertices new vertex index
+ * @param {number} newVertex index of the new vertex
+ * @param {number[]} incidentVertices neighbor vertices
  * @param {number[]} faces the two vertices of the old edge
  */
 const updateFacesVertices = ({ faces_vertices }, newVertex, incidentVertices, faces) => {
@@ -232,7 +232,9 @@ const updateFacesEdges = (
 };
 
 /**
- *
+ * @param {FOLD} graph a FOLD object
+ * @param {number} vertex
+ * @param {number[]} faces
  */
 const updateFacesFaces = ({ faces_vertices, faces_faces }, vertex, faces) => {
 	const facesSpliceIndex = faces
@@ -267,9 +269,7 @@ const updateFacesFaces = ({ faces_vertices, faces_faces }, vertex, faces) => {
  * @param {number} oldEdge index of old edge to be split
  * @param {number[]} [coords=undefined] coordinates of the new vertex to be
  * added, if omitted, a vertex will be generated at the edge's midpoint.
- * @param {number} [epsilon=1e-6] if an incident vertex is within this distance
- * the function will not split the edge, simply return this vertex.
- * @returns {object} a summary of the changes with keys "vertex", "edges"
+d * @returns {object} a summary of the changes with keys "vertex", "edges"
  * "vertex" is the index of the new vertex (or old index, if similar)
  * "edge" is a summary of changes to edges, with "map" and "remove",
  * where "map" is a nextmap (I believe)
@@ -286,12 +286,18 @@ export const splitEdge = (
 	// if the user did not supply any coordinate parameter,
 	// as a convenience, select the the midpoint of the two points
 	if (!coords) {
-		coords = midpoint(...incidentVertices.map(v => graph.vertices_coords[v]));
+		// coords = midpoint(...incidentVertices.map(v => graph.vertices_coords[v]));
+		coords = midpoint(
+			graph.vertices_coords[incidentVertices[0]],
+			graph.vertices_coords[incidentVertices[1]],
+		);
 	}
 
 	// the index of the new vertex, added to the end of the existing vertex list
 	const vertex = graph.vertices_coords.length;
-	graph.vertices_coords[vertex] = coords;
+	graph.vertices_coords[vertex] = coords.length === 3
+		? [coords[0], coords[1], coords[2]]
+		: [coords[0], coords[1]];
 
 	// the new edge indices, they will be added to the end of the edges_ arrays.
 	// "newEdges" and "incidentVertices" are aligned in their indices 0 and 1,
@@ -339,13 +345,15 @@ export const splitEdge = (
 	// we had to run "remove" with the new edges added, but the edgeMap should
 	// relate to the graph before any changes. remove those new edge entries,
 	// and set them to be the new edges under the "oldEdge" index.
-	edgeMap.splice(-2);
-	edgeMap[oldEdge] = newEdges;
+	/** @type {(number|number[])[]} */
+	const edgesMap = edgeMap.slice();
+	edgesMap.splice(-2);
+	edgesMap[oldEdge] = newEdges;
 
 	return {
 		vertex,
 		edges: {
-			map: edgeMap,
+			map: edgesMap,
 			add: newEdges,
 			remove: oldEdge,
 		},

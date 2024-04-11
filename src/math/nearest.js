@@ -16,10 +16,13 @@ import {
 	distance,
 	distance2,
 	add,
+	add2,
 	subtract,
-	normalize,
+	subtract2,
+	normalize2,
 	dot,
 	scale,
+	scale2,
 	resize,
 } from "./vector.js";
 
@@ -51,11 +54,11 @@ export const nearestPoint = (points, point) => {
 /**
  * @description find the nearest point on a line, ray, or segment.
  * @param {VecLine} line a line with a vector and origin
- * @param {number[]} point the point to test nearness to
+ * @param {[number, number]|[number, number, number]} point the point to test nearness to
  * @param {function} clampFunc a clamp function to bound a calculation between 0 and 1
  * for segments, greater than 0 for rays, or unbounded for lines.
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {number[]} a point
+ * @returns {[number, number]|[number, number, number]} a point
  */
 export const nearestPointOnLine = (
 	{ vector, origin },
@@ -63,15 +66,16 @@ export const nearestPointOnLine = (
 	clampFunc = clampLine,
 	epsilon = EPSILON,
 ) => {
-	origin = resize(vector.length, origin);
-	point = resize(vector.length, point);
+	const originN = resize(vector.length, origin);
+	const pointN = resize(vector.length, point);
 	const magSq = magSquared(vector);
-	const vectorToPoint = subtract(point, origin);
+	const vectorToPoint = subtract(pointN, originN);
 	const dotProd = dot(vector, vectorToPoint);
 	const dist = dotProd / magSq;
 	// clamp depending on line, ray, segment
 	const d = clampFunc(dist, epsilon);
-	return add(origin, scale(vector, d));
+	const [a, b, c] = add(originN, scale(vector, d));
+	return vector.length === 2 ? [a, b] : [a, b, c];
 };
 
 /**
@@ -84,10 +88,10 @@ export const nearestPointOnLine = (
  * edge index matches vertices such that edge(N) = [vert(N), vert(N + 1)]
  */
 export const nearestPointOnPolygon = (polygon, point) => polygon
-	.map((p, i, arr) => subtract(arr[(i + 1) % arr.length], p))
+	.map((p, i, arr) => subtract2(arr[(i + 1) % arr.length], p))
 	.map((vector, i) => ({ vector, origin: polygon[i] }))
 	.map(line => nearestPointOnLine(line, point, clampSegment))
-	.map((p, edge) => ({ point: p, edge, distance: distance(p, point) }))
+	.map((p, edge) => ({ point: p, edge, distance: distance2(p, point) }))
 	.sort((a, b) => a.distance - b.distance)
 	.shift();
 
@@ -95,11 +99,11 @@ export const nearestPointOnPolygon = (polygon, point) => polygon
  * @description find the nearest point on the boundary of a circle to another point
  * that is closest to the provided point.
  * @param {Circle} circle object with "radius" (number) and "origin" (number[])
- * @param {number[]} point the point to test nearness to
- * @returns {number[]} a point
+ * @param {[number, number]} point the point to test nearness to
+ * @returns {[number, number]} a point
  */
 export const nearestPointOnCircle = ({ radius, origin }, point) => (
-	add(origin, scale(normalize(subtract(point, origin)), radius))
+	add2(origin, scale2(normalize2(subtract2(point, origin)), radius))
 );
 
 // todo

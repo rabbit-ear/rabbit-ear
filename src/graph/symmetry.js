@@ -8,7 +8,8 @@ import {
 	vecLineToUniqueLine,
 } from "../math/convert.js";
 import {
-	flip,
+	flip2,
+	resize2,
 } from "../math/vector.js";
 import {
 	multiplyMatrix2Line2,
@@ -29,7 +30,7 @@ import {
  * @returns {UniqueLine} a line in normal-distance parameterization
  */
 const fixLineDirection = ({ normal, distance }) => (distance < 0
-	? ({ normal: flip(normal), distance: -distance })
+	? ({ normal: flip2(normal), distance: -distance })
 	: ({ normal, distance }));
 
 /**
@@ -43,11 +44,15 @@ const fixLineDirection = ({ normal, distance }) => (distance < 0
  * (not boundary edges, lines which have an edge that is boundary to cut down),
  * This would solve the issue in all cases that I can imagine.
  * @param {FOLD} graph a FOLD object with 2D vertices
- * @returns {VecLine[]} array of symmetry lines
+ * @returns {{ line: VecLine2, error: number }[]} array of symmetry lines
  */
 export const findSymmetryLines = (graph, epsilon = EPSILON) => {
 	// get a list of lines that cover all edges of the graph
-	const { lines } = getEdgesLine(graph, epsilon);
+	/** @type {VecLine2[]} */
+	const lines = getEdgesLine(graph, epsilon).lines.map(({ vector, origin }) => ({
+		vector: resize2(vector),
+		origin: resize2(origin),
+	}));
 
 	// convert the lines into normal-distance parameterization,
 	// where the distance value is always positive. this will be used when
@@ -68,7 +73,7 @@ export const findSymmetryLines = (graph, epsilon = EPSILON) => {
 	// lines that cover the non-transformed set of edges.
 	const reflectionsUniqueLines = reflectionsLines
 		.map(group => group.map(line => (line.vector[0] < 0
-			? ({ vector: flip(line.vector), origin: line.origin })
+			? ({ vector: flip2(line.vector), origin: line.origin })
 			: line)))
 		.map(group => group.map(vecLineToUniqueLine).map(fixLineDirection))
 		.map(group => group.concat(uniqueLines));
@@ -128,10 +133,10 @@ export const findSymmetryLines = (graph, epsilon = EPSILON) => {
  * This searches by checking the edges in the graph to find a line,
  * if an edge doesn't exist along the line of symmetry, this will fail.
  * @param {FOLD} graph a FOLD object with 2D vertices
- * @returns {VecLine[]} array of symmetry lines
+ * @returns {VecLine2} symmetry lines
  */
 export const findSymmetryLine = (graph, epsilon = EPSILON) => (
-	findSymmetryLines(graph, epsilon)[0]
+	(findSymmetryLines(graph, epsilon)[0] || {}).line
 );
 
 // const bucketVertices = ({ vertices_coords }) => {

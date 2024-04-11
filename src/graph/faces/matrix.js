@@ -5,9 +5,10 @@ import {
 	makeEdgesIsFolded,
 } from "../../fold/spec.js";
 import {
-	subtract,
 	subtract2,
-	resizeUp,
+	subtract3,
+	resize2,
+	resize3,
 } from "../../math/vector.js";
 import {
 	identity2x3,
@@ -95,7 +96,7 @@ export const makeFacesMatrix = (
 		faces_faces = makeFacesFaces({ faces_vertices });
 	}
 	const edge_map = makeVerticesToEdge({ edges_vertices });
-	const faces_matrix = faces_vertices.map(() => identity3x4);
+	const faces_matrix = faces_vertices.map(() => [...identity3x4]);
 	minimumSpanningTrees(faces_faces, rootFaces)
 		.forEach(tree => tree
 			.slice(1) // remove the first level, it has no parent face
@@ -105,7 +106,9 @@ export const makeFacesMatrix = (
 						faces_vertices[entry.index],
 						faces_vertices[entry.parent],
 					).shift();
-					const coords = edge_vertices.map(v => vertices_coords[v]);
+					const coords = edge_vertices
+						.map(v => vertices_coords[v])
+						.map(resize3);
 					const edgeKey = edge_vertices.join(" ");
 					const edge = edge_map[edgeKey];
 					// if the assignment is unassigned, assume it is a flat fold.
@@ -114,7 +117,7 @@ export const makeFacesMatrix = (
 						: (edges_foldAngle[edge] * Math.PI) / 180;
 					const local_matrix = makeMatrix3Rotate(
 						foldAngle, // rotation angle
-						subtract(...resizeUp(coords[1], coords[0])), // line-vector
+						subtract3(coords[1], coords[0]), // line-vector
 						coords[0], // line-origin
 					);
 					faces_matrix[entry.index] = multiplyMatrices3(faces_matrix[entry.parent], local_matrix);
@@ -180,7 +183,7 @@ export const makeFacesMatrix2 = (
 					const edgeKey = edge_vertices.join(" ");
 					const edge = edge_map[edgeKey];
 					const reflect_vector = subtract2(coords[1], coords[0]);
-					const reflect_origin = coords[0];
+					const reflect_origin = resize2(coords[0]);
 					const local_matrix = edges_is_folded[edge]
 						? makeMatrix2Reflect(reflect_vector, reflect_origin)
 						: identity2x3;

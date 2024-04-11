@@ -4,7 +4,7 @@
 import {
 	cross2,
 	subtract2,
-	resize,
+	resize3,
 } from "../math/vector.js";
 import {
 	multiplyMatrix4Vector3,
@@ -167,8 +167,8 @@ export const makeEdgesFacesSide3D = (
 
 	// ensure lines's vectors and origins are in 3D.
 	const lines3D = lines.map(({ vector, origin }) => ({
-		vector: resize(3, vector),
-		origin: resize(3, origin),
+		vector: resize3(vector),
+		origin: resize3(origin),
 	}));
 
 	// fill lines planes

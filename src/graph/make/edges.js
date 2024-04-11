@@ -14,22 +14,25 @@ import {
  * is an edge array where each edge contains its two points. Each point being
  * the 2D or 3D coordinate as an array of numbers.
  * @param {FOLD} graph a FOLD graph with vertices and edges
- * @returns {number[][][]} an array of array of points (which are arrays of numbers)
+ * @returns {[([number, number]|[number, number, number]),
+ * ([number, number]|[number, number, number])][]} an array
+ * of array of points
+ * (which are arrays of numbers)
  */
 export const makeEdgesCoords = ({ vertices_coords, edges_vertices }) => (
-	edges_vertices.map(ev => ev.map(v => vertices_coords[v]))
+	edges_vertices.map(ev => [vertices_coords[ev[0]], vertices_coords[ev[1]]])
 );
 
 /**
  * @description Turn every edge into a vector, basing the direction on the order of
  * the pair of vertices in each edges_vertices entry.
  * @param {FOLD} graph a FOLD graph, with vertices_coords, edges_vertices
- * @returns {number[][]} each entry relates to an edge, each array contains a 2D vector
+ * @returns {number[][]} each entry
+ * relates to an edge, each array contains a 2D vector
  */
 export const makeEdgesVector = ({ vertices_coords, edges_vertices }) => (
-	makeEdgesCoords({
-		vertices_coords, edges_vertices,
-	}).map(verts => subtract(verts[1], verts[0]))
+	makeEdgesCoords({ vertices_coords, edges_vertices })
+		.map(([a, b]) => subtract(b, a))
 );
 
 /**
@@ -50,10 +53,8 @@ export const makeEdgesLength = ({ vertices_coords, edges_vertices }) => (
  * @returns {Box[]} an array of boxes, length matching the number of edges
  */
 export const makeEdgesBoundingBox = ({
-	vertices_coords, edges_vertices, edges_coords,
-}, epsilon) => {
-	if (!edges_coords) {
-		edges_coords = makeEdgesCoords({ vertices_coords, edges_vertices });
-	}
-	return edges_coords.map(coords => boundingBox(coords, epsilon));
-};
+	vertices_coords, edges_vertices,
+}, epsilon) => (
+	makeEdgesCoords({ vertices_coords, edges_vertices })
+		.map(coords => boundingBox(coords, epsilon))
+);

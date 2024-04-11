@@ -94,7 +94,8 @@ export const makeFacesPolygon = ({ vertices_coords, faces_vertices }, epsilon) =
  * turning each face into an array of points. "Quick" meaning collinear vertices
  * are not removed, which in some cases, this will be the preferred method.
  * @param {FOLD} graph a FOLD graph, with vertices_coords, faces_vertices
- * @returns {number[][][]} array of array of points, where each point is an array of numbers
+ * @returns {([number, number] | [number, number, number])[][]} an
+ * array of array of points, where each point is an array of numbers
  */
 export const makeFacesPolygonQuick = ({ vertices_coords, faces_vertices }) => (
 	faces_vertices.map(verts => verts.map(v => vertices_coords[v]))

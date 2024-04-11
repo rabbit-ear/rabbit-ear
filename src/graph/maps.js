@@ -92,8 +92,7 @@ export const mergeNextmaps = (...maps) => {
 		solution.forEach((s, i) => s
 			.forEach((indx, j) => { solution[i][j] = map[indx]; }));
 		solution.forEach((arr, i) => {
-			solution[i] = arr
-				.reduce((a, b) => a.concat(b), [])
+			solution[i] = arr.flat()
 				.filter(a => a !== undefined);
 		});
 	});

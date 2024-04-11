@@ -4,11 +4,12 @@
 
 // todo: FOLD definition should contain a better recursive definition,
 // the inner frames cannot contain FILE information
+//*   vertices_coords?: ([number, number] | [number, number, number])[],
 
 /**
  * @typedef FOLD
  * @type {{
- *   vertices_coords?: ([number, number] | [number, number, number])[],
+ *   vertices_coords?: [number, number][]|[number, number, number][],
  *   vertices_vertices?: number[][],
  *   vertices_edges?: number[][],
  *   vertices_faces?: (number | null | undefined)[][],
@@ -38,9 +39,11 @@
  *   frame_parent?: number,
  *   frame_inherit?: boolean,
  *   faces_center?: ([number, number] | [number, number, number])[],
- *   faces_normal?: number[][],
+ *   faces_normal?: ([number, number] | [number, number, number])[],
  *   edges_vector?: number[][],
- *   faces_polygon?: number[][][],
+ *   faces_polygon?: ([number, number] | [number, number, number])[][],
+ *   faces_matrix?: number[][],
+ *   vertices_sectors?: number[][],
  * }}
  * @description A Javascript object representation of a FOLD file which follows the FOLD
  * specification in that it contains any number of the geometry arrays.
@@ -75,6 +78,8 @@
  * @property {number[][]} [faces_normal] out-of-spec data
  * @property {number[][]} [edges_vector] out-of-spec data
  * @property {number[][][]} [faces_polygon] out-of-spec data
+ * @property {number[][]} [faces_matrix] out-of-spec data
+ * @property {number[][]} [vertices_sectors] out-of-spec data
  * @example
  * {
  *   vertices_coords: [[0, 0], [1, 0], [1, 1], [0, 1]],
@@ -86,19 +91,10 @@
  * }
  */
 
-
 // /**
-//  * @typedef VecLine
-//  * @type {{
-//  *   vector: [number, number] | [number, number, number],
-//  *   origin: [number, number] | [number, number, number],
-//  * }}
-//  * @description a line defined by a vector and a point along the line,
-//  * capable of representing a line in any dimension.
-//  * @property {[number, number] | [number, number, number]} vector
-//  * a vector describing the direction of the line
-//  * @property {[number, number] | [number, number, number]} origin
-//  * a point which the line passes through
+//  * @typedef Coord
+//  * @type {[number, number]|[number, number, number]}
+//  * @description a 2D or 3D point or vector
 //  */
 
 /**

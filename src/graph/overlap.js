@@ -10,6 +10,7 @@ import {
 } from "../math/compare.js";
 import {
 	dot,
+	resize2,
 } from "../math/vector.js";
 import {
 	boundingBox,
@@ -66,7 +67,8 @@ export const getFacesFacesOverlap = ({
 	vertices_coords, faces_vertices,
 }, epsilon = EPSILON) => {
 	// these polygons have no collinear vertices
-	const facesPolygon = makeFacesPolygon({ vertices_coords, faces_vertices });
+	const facesPolygon = makeFacesPolygon({ vertices_coords, faces_vertices })
+		.map(poly => poly.map(resize2));
 	const facesBounds = facesPolygon.map(polygon => boundingBox(polygon));
 
 	/** @type {number[][]} */

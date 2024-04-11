@@ -20,6 +20,7 @@ import {
 	solveFlatAdjacentEdges,
 } from "./initialSolutionsFlat.js";
 import {
+	tacoTypeNames,
 	emptyCategoryObject,
 	constraintToFacePairsStrings,
 } from "./general.js";
@@ -49,16 +50,16 @@ import {
 export const makeConstraintsLookup = (constraints) => {
 	const lookup = emptyCategoryObject();
 	// fill the top layer with "taco / tortilla" category names
-	Object.keys(constraints).forEach(key => { lookup[key] = {}; });
+	tacoTypeNames.forEach(key => { lookup[key] = {}; });
 
 	// fill every entry with an empty array
-	Object.keys(constraints)
+	tacoTypeNames
 		.forEach(type => constraints[type]
 			.forEach(constraint => constraintToFacePairsStrings[type](constraint)
 				.forEach(key => { lookup[type][key] = []; })));
 
 	// populate arrays
-	Object.keys(constraints)
+	tacoTypeNames
 		.forEach(type => constraints[type]
 			.forEach((constraint, i) => constraintToFacePairsStrings[type](constraint)
 				.forEach(key => lookup[type][key].push(i))));

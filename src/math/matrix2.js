@@ -22,9 +22,9 @@ export const identity2x2 = [1, 0, 0, 1];
 export const identity2x3 = identity2x2.concat(0, 0);
 
 /**
- * @param {number[]} vector, in array form
+ * @param {[number, number]} vector, in array form
  * @param {number[]} matrix, in array form
- * @returns {number[]} vector, the input vector transformed by the matrix
+ * @returns {[number, number]} vector, the input vector transformed by the matrix
  */
 export const multiplyMatrix2Vector2 = (matrix, vector) => [
 	matrix[0] * vector[0] + matrix[2] * vector[1] + matrix[4],
@@ -33,8 +33,8 @@ export const multiplyMatrix2Vector2 = (matrix, vector) => [
 
 /**
  * @param {number[]} matrix, in array form
- * @param {number[]} vector of the line
- * @param {number[]} origin of the line
+ * @param {[number, number]} vector of the line
+ * @param {[number, number]} origin of the line
  * @returns {VecLine} the transformed line in vector-origin form
  */
 export const multiplyMatrix2Line2 = (matrix, vector, origin) => ({
@@ -103,8 +103,8 @@ export const invertMatrix2 = (m) => {
 export const makeMatrix2Translate = (x = 0, y = 0) => identity2x2.concat(x, y);
 
 /**
- * @param {number[]} scale non-uniform scaling vector for each axis
- * @param {number[]} origin homothetic center of the scale, default [0, 0]
+ * @param {[number, number]} scale non-uniform scaling vector for each axis
+ * @param {[number, number]} origin homothetic center of the scale, default [0, 0]
  * @returns {number[]} matrix
  */
 export const makeMatrix2Scale = (scale = [1, 1], origin = [0, 0]) => [
@@ -118,7 +118,7 @@ export const makeMatrix2Scale = (scale = [1, 1], origin = [0, 0]) => [
 
 /**
  * @param {number} scale scale factor
- * @param {number[]} origin homothetic center of the scale, default [0, 0]
+ * @param {[number, number]} origin homothetic center of the scale, default [0, 0]
  * @returns {number[]} matrix
  */
 export const makeMatrix2UniformScale = (scale = 1, origin = [0, 0]) => (
@@ -127,6 +127,7 @@ export const makeMatrix2UniformScale = (scale = 1, origin = [0, 0]) => (
 
 /**
  * @param {number} angle the angle of rotation, origin of transformation
+ * @param {[number, number]} [origin=[0, 0]] optional origin of rotation
  * @returns {number[]} matrix
  */
 export const makeMatrix2Rotate = (angle, origin = [0, 0]) => {
@@ -145,8 +146,8 @@ export const makeMatrix2Rotate = (angle, origin = [0, 0]) => {
 /**
  * remember vector comes before origin. origin comes last, so that it's easy
  * to leave it empty and make a reflection through the origin.
- * @param {number[]} vector one 2D vector specifying the reflection axis
- * @param {number[]} [origin=[0,0]] a 2D origin specifying a point of reflection
+ * @param {[number, number]} vector one 2D vector specifying the reflection axis
+ * @param {[number, number]} [origin=[0,0]] a 2D origin specifying a point of reflection
  * @returns {number[]} matrix
  */
 export const makeMatrix2Reflect = (vector, origin = [0, 0]) => {

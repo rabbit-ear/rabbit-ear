@@ -73,7 +73,7 @@ Object.entries({
 	...validate,
 }).forEach(([key, value]) => {
 	Graph.prototype[key] = function () {
-		return value(this, ...arguments);
+		return value.apply(this, arguments);
 	};
 });
 

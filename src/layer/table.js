@@ -126,7 +126,7 @@ const setState = (states, t, key) => {
 	// if found, the result will be the (first) modification instruction.
 	// it doesn't matter which one, we just need one.
 	if (modifications.length) {
-		states[t][key] = modifications[0];
+		states[t][key] = [modifications[0][0], modifications[0][1]];
 	}
 };
 
