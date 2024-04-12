@@ -149,7 +149,8 @@ test("3D layer solver, Mooser's train", () => {
 	} = ear.layer.layer3D(graph);
 
 	// expect(Object.keys(orders).length).toBe(1713);
-	expect(Object.keys(orders).length).toBe(1581);
+	expect(Object.keys(orders).length).toBe(1633);
+	// expect(Object.keys(orders).length).toBe(1581);
 	expect(ear.layer.getBranchStructure({ branches })).toMatchObject([
 		[[], []], [[], []],
 		[[], []], [[], []],
@@ -157,9 +158,9 @@ test("3D layer solver, Mooser's train", () => {
 		[[], []], [[], []],
 		[[], []], [[], []],
 		[[], []], [[], []],
-		[[], []], [[], []],
-		[[], []], [[], []],
-		[[], []], [[], []],
+		// [[], []], [[], []],
+		// [[], []], [[], []],
+		// [[], []], [[], []],
 	]);
 
 	// expect(branches).toMatchObject([

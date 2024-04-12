@@ -401,6 +401,7 @@ export const getDimension = ({ vertices_coords }, epsilon = EPSILON) => {
  * undefined if no vertices exist. number should be 2 or 3 in most cases.
  */
 export const getDimensionQuick = ({ vertices_coords }) => {
+	if (!vertices_coords.length) { return undefined; }
 	// return length of first vertex, if it exists
 	if (vertices_coords[0] !== undefined) {
 		return vertices_coords[0].length;

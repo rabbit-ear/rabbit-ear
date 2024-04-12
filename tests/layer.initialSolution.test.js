@@ -275,10 +275,10 @@ test("solveFlatAdjacentEdges, 3D cube-octagon", () => {
 	expect(planes).toMatchObject([
 		{ normal: [0, 1, 0], origin: [0, 2, 0] },
 		{ normal: [0, 1, 0], origin: [0, 3, 0] },
-		{ normal: [-0, -0, -1], origin: [0, 0, 0] },
-		{ normal: [-0, -0, -1], origin: [-0, -0, -1] },
-		{ normal: [1, 0, -0], origin: [2, 0, -0] },
-		{ normal: [1, 0, -0], origin: [3, 0, -0] },
+		{ normal: [0, 0, -1], origin: [0, 0, -0] },
+		{ normal: [0, 0, -1], origin: [0, 0, -1] },
+		{ normal: [1, 0, 0], origin: [2, 0, 0] },
+		{ normal: [1, 0, 0], origin: [3, 0, 0] },
 	]);
 
 	// ensure faces_winding is correct within its plane.

@@ -76,30 +76,57 @@ export const intersectLineLine = (
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {[number, number][]} a list of 2D points
  */
+// export const intersectCircleLine = (
+// 	circle,
+// 	line,
+// 	_ = include,
+// 	lineDomain = includeL,
+// 	epsilon = EPSILON,
+// ) => {
+// 	const magSq = line.vector[0] ** 2 + line.vector[1] ** 2;
+// 	const mag = Math.sqrt(magSq);
+// 	const norm = mag === 0 ? line.vector : scale2(line.vector, 1 / mag);
+// 	const rot90 = rotate90(norm);
+// 	const bvec = subtract2(line.origin, circle.origin);
+// 	const det = cross2(bvec, norm);
+// 	if (Math.abs(det) > circle.radius + epsilon) { return undefined; }
+// 	const side = Math.sqrt((circle.radius ** 2) - (det ** 2));
+// 	/** @param {number} s @param {number} i */
+// 	const f = (s, i) => circle.origin[i] - rot90[i] * det + norm[i] * s;
+// 	const isDegenerate = Math.abs(circle.radius - Math.abs(det)) < epsilon;
+// 	/** @type {[number, number][]} */
+// 	const results = isDegenerate
+// 		? [side].map(s => s.map(f)) // tangent to circle
+// 		: [-side, side].map(s => s.map(f));
+// 	// ? [side].map((s, i) => [f(s, i), f(s, i)]) // tangent to circle
+// 	// : [-side, side].map((s, i) => [f(s, i), f(s, i)]);
+// 	const ts = results
+// 		.map(res => res.map((n, i) => n - line.origin[i]))
+// 		.map(v => v[0] * line.vector[0] + v[1] * line.vector[1])
+// 		.map(d => d / magSq);
+// 	return results.filter((__, i) => lineDomain(ts[i], epsilon));
+// };
 export const intersectCircleLine = (
 	circle,
 	line,
-	_ = include,
+	circleDomain = include,
 	lineDomain = includeL,
 	epsilon = EPSILON,
 ) => {
 	const magSq = line.vector[0] ** 2 + line.vector[1] ** 2;
 	const mag = Math.sqrt(magSq);
-	const norm = mag === 0 ? line.vector : scale2(line.vector, 1 / mag);
+	const norm = mag === 0 ? line.vector : line.vector.map(c => c / mag);
 	const rot90 = rotate90(norm);
 	const bvec = subtract2(line.origin, circle.origin);
 	const det = cross2(bvec, norm);
 	if (Math.abs(det) > circle.radius + epsilon) { return undefined; }
 	const side = Math.sqrt((circle.radius ** 2) - (det ** 2));
-	/** @param {number} s @param {number} i */
 	const f = (s, i) => circle.origin[i] - rot90[i] * det + norm[i] * s;
-	const isDegenerate = Math.abs(circle.radius - Math.abs(det)) < epsilon;
-	/** @type {[number, number][]} */
-	const results = isDegenerate
-		? [side].map((s, i) => [f(s, i), f(s, i)]) // tangent to circle
-		: [-side, side].map((s, i) => [f(s, i), f(s, i)]);
+	const results = Math.abs(circle.radius - Math.abs(det)) < epsilon
+		? [side].map((s) => [s, s].map(f)) // tangent to circle
+		: [-side, side].map((s) => [s, s].map(f));
 	const ts = results.map(res => res.map((n, i) => n - line.origin[i]))
 		.map(v => v[0] * line.vector[0] + line.vector[1] * v[1])
 		.map(d => d / magSq);
-	return results.filter((__, i) => lineDomain(ts[i], epsilon));
+	return results.filter((_, i) => lineDomain(ts[i], epsilon));
 };

@@ -6,7 +6,7 @@ declare const _default: {
         a: number;
         b: number;
     };
-    intersectCircleLine: (circle: Circle, line: VecLine2, _?: Function, lineDomain?: Function, epsilon?: number) => [number, number][];
+    intersectCircleLine: (circle: Circle, line: VecLine2, circleDomain?: (n: number, epsilon?: number) => boolean, lineDomain?: Function, epsilon?: number) => [number, number][];
     overlapLinePoint: ({ vector, origin }: VecLine2, point: [number, number], lineDomain?: (_: number, __?: number) => boolean, epsilon?: number) => boolean;
     overlapConvexPolygonPoint: (polygon: [number, number][], point: [number, number], polyDomain?: Function, epsilon?: number) => {
         overlap: boolean;
@@ -58,6 +58,8 @@ declare const _default: {
     clampLine: (dist: number) => number;
     clampRay: (dist: number) => number;
     clampSegment: (dist: number) => number;
+    resizeLine2: ({ vector, origin }: VecLine) => VecLine2;
+    resizeLine3: ({ vector, origin }: VecLine) => VecLine3;
     isCollinear: (p0: number[], p1: number[], p2: number[], epsilon?: number) => boolean;
     collinearBetween: (p0: number[], p1: number[], p2: number[], inclusive?: boolean, epsilon?: number) => boolean;
     pleat: (a: VecLine2, b: VecLine2, count: number, epsilon?: number) => [VecLine2[], VecLine2[]];
@@ -123,6 +125,9 @@ declare const _default: {
     scale: (v: number[], s: number) => number[];
     scale2: (v: [number, number] | [number, number, number], s: number) => [number, number];
     scale3: (v: [number, number, number], s: number) => [number, number, number];
+    scaleNonUniform: (v: number[], s: number[]) => number[];
+    scaleNonUniform2: (v: [number, number] | [number, number, number], s: [number, number] | [number, number, number]) => [number, number];
+    scaleNonUniform3: (v: [number, number, number], s: [number, number, number]) => [number, number, number];
     add: (v: number[], u: number[]) => number[];
     add2: (v: [number, number] | [number, number, number], u: [number, number] | [number, number, number]) => [number, number];
     add3: (v: [number, number, number], u: [number, number, number]) => [number, number, number];

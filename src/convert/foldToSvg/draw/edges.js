@@ -226,7 +226,11 @@ export const edgesPaths = (graph, options = {}) => {
 	return group;
 };
 
-const angleToOpacity = (foldAngle) => (Math.abs(foldAngle) / 180);
+/**
+ * @param {number} foldAngle
+ * @returns {string}
+ */
+const angleToOpacity = (foldAngle) => String(Math.abs(foldAngle) / 180);
 
 /**
  * @description Convert the edges of a FOLD graph into SVG line elements.

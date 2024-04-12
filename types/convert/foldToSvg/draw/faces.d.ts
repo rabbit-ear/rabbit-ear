@@ -6,4 +6,4 @@ export default drawFaces;
  * Return the result as a group element <g> with all faces (if they exist)
  * as childNodes in the group.
  */
-declare function drawFaces(graph: any, options: any): any;
+declare function drawFaces(graph: any, options: any): SVGElement | SVGElement[];

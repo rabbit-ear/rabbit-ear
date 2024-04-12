@@ -111,14 +111,14 @@ const parseVertex = (vertex) => {
 const objToFold = (file) => {
 	const lines = file.split("\n").map(line => line.trim().split(/\s+/));
 	const graph = newFoldFile();
-	for (let i = 0; i < lines.length; i += 1) {
-		// groups and objects ("g", "o") separation is currently ignored
-		switch (lines[i][0].toLowerCase()) {
-		case "f": graph.faces_vertices.push(parseFace(lines[i])); break;
-		case "v": graph.vertices_coords.push(parseVertex(lines[i])); break;
-		default: break;
-		}
-	}
+	const linesCharKey = lines
+		.map(line => line[0].toLowerCase());
+	graph.vertices_coords = lines
+		.filter((_, i) => linesCharKey[i] === "v")
+		.map(parseVertex);
+	graph.faces_vertices = lines
+		.filter((_, i) => linesCharKey[i] === "f")
+		.map(parseFace);
 	graph.faces_normal = makeFacesNormal(graph);
 	graph.faces_center = makeFacesCenterQuick(graph);
 	graph.edges_vertices = makeEdgesVertices(graph);

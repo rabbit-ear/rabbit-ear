@@ -23,7 +23,7 @@ declare const _default: {
     makeFacesEdgesFromVertices: ({ edges_vertices, faces_vertices }: FOLD) => number[][];
     makePlanarFaces: ({ vertices_coords, vertices_vertices, vertices_edges, vertices_sectors, edges_vertices, edges_vector, }: FOLD) => any;
     makeFacesPolygon: ({ vertices_coords, faces_vertices }: FOLD, epsilon?: number) => ([number, number] | [number, number, number])[][];
-    makeFacesPolygonQuick: ({ vertices_coords, faces_vertices }: FOLD) => number[][][];
+    makeFacesPolygonQuick: ({ vertices_coords, faces_vertices }: FOLD) => ([number, number] | [number, number, number])[][];
     makeFacesCentroid2D: ({ vertices_coords, faces_vertices }: FOLD) => [number, number][];
     makeFacesCenter2DQuick: ({ vertices_coords, faces_vertices }: FOLD) => [number, number][];
     makeFacesCenter3DQuick: ({ vertices_coords, faces_vertices }: FOLD) => [number, number, number][];

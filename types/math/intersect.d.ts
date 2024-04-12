@@ -3,4 +3,4 @@ export function intersectLineLine(a: VecLine2, b: VecLine2, aDomain?: Function, 
     a: (number | undefined);
     b: (number | undefined);
 };
-export function intersectCircleLine(circle: Circle, line: VecLine2, _?: Function, lineDomain?: Function, epsilon?: number): [number, number][];
+export function intersectCircleLine(circle: Circle, line: VecLine2, circleDomain?: (n: number, epsilon?: number) => boolean, lineDomain?: Function, epsilon?: number): [number, number][];

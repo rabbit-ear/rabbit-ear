@@ -14,9 +14,9 @@ import * as transform from "../graph/transform.js";
 import * as explode from "../graph/explode.js";
 import * as nearest from "../graph/nearest.js";
 import * as validate from "../graph/validate.js";
-import {
-	getLine,
-} from "../general/get.js";
+// import {
+// 	getLine,
+// } from "../general/get.js";
 import {
 	foldKeys,
 	invertAssignments,
@@ -73,7 +73,7 @@ Object.entries({
 	...validate,
 }).forEach(([key, value]) => {
 	Graph.prototype[key] = function () {
-		return value.apply(this, arguments);
+		return value.apply(null, [this, ...arguments]);
 	};
 });
 

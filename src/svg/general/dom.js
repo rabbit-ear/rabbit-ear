@@ -63,6 +63,7 @@ const polyfillClassListAdd = (el, ...classes) => {
 	const classString = Object.keys(hash).join(" ");
 	el.setAttribute("class", classString);
 };
+
 /**
  * @description Add classes to an Element, essentially classList.add(), but
  * it will call a polyfill if classList doesn't exist (as in @xmldom/xmldom)
@@ -117,6 +118,7 @@ const objectifyAttributes = (list) => {
 	list.forEach((a) => { obj[a.nodeName] = a.value; });
 	return obj;
 };
+
 /**
  * @param {object} parentAttrs the parent element's attribute object
  * @param {Element|ChildNode} element the current element

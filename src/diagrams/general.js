@@ -16,6 +16,7 @@ import {
 	distance2,
 	midpoint2,
 	flip2,
+	resize2,
 	rotate90,
 } from "../math/vector.js";
 import {
@@ -218,7 +219,8 @@ export const betweenTwoIntersectingSegments = (lines, intersect, foldLine, bound
 		ray,
 		includeS,
 		includeR,
-	).shift().shift());
+	).shift());
+	// ).shift().shift());
 
 	// we can now build two arrows between the four points, however,
 	// we still need to... do something

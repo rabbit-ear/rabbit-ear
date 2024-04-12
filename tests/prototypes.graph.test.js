@@ -9,8 +9,8 @@ test("all methods that return the graph itself", () => {
 	const result = graph
 		.populate()
 		.invertAssignments()
-		.transform([2, 0, 0, 0, 2, 0, 0, 0, 2, 1, 2, 3])
-		.scale(2)
+		// .transform([2, 0, 0, 0, 2, 0, 0, 0, 2, 1, 2, 3])
+		.scaleUniform(2)
 		.scale([1, 2, 3])
 		.translate([1, 2])
 		.rotate(Math.PI / 2, [0, 0, 1], [0.5, 0.5])
@@ -146,10 +146,10 @@ test("affine transforms", () => {
 		edges_foldAngle: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 90, 90, 90],
 		edges_assignment: ["B", "B", "B", "B", "B", "B", "B", "B", "B", "B", "V", "V", "V", "V"],
 	});
-	graph.translate(4, 8);
+	graph.translate([4, 8]);
 	expect(graph.vertices_coords[5][0]).toBe(8);
 	expect(graph.vertices_coords[5][1]).toBe(9);
-	graph.scale(0.5);
+	graph.scaleUniform(0.5);
 	expect(graph.vertices_coords[5][0]).toBe(4);
 	expect(graph.vertices_coords[5][1]).toBe(4.5);
 });

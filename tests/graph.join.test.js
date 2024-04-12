@@ -19,7 +19,10 @@ test("join graphs with 2D and 3D vertices", () => {
 	// check will be correct and as expected.
 	// see: "removeDuplicateVertices with 2D and 3D vertices"
 	// in vertices.duplicate.test for more context.
+
+	// vertices: [[0,0],[0.5,0],[1,0],[1,1],[0.5,1],[0,1]]
 	const cp1 = graph.clone();
+	// vertices: [[0.5,0],[0.5,0],[0.5,0],[0.5,1],[0.5,1],[0.5,1]]
 	const cp2 = graph.clone().rotate(Math.PI / 2, [0, 1, 0], [0.5, 0, 0]);
 	ear.graph.join(cp1, cp2);
 	expect(cp1.vertices_coords.length).toBe(12);

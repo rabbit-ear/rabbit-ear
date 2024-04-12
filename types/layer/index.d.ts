@@ -1,13 +1,17 @@
 declare const _default: {
     layer3D: (graph: FOLD, epsilon?: number) => {
-        count: () => any;
-        structure: () => any;
-        leaves: () => any;
-        gather: (...pattern: any[]) => any;
-        gatherAll: () => any;
-        compile: (...pattern: any[]) => any;
-        compileAll: () => any;
-        faceOrders: (...pattern: any[]) => any;
+        count: (this: LayerFork) => any;
+        structure: (this: LayerFork) => any;
+        leaves: (this: LayerFork) => any;
+        gather: (this: LayerFork, ...pattern: number[]) => any;
+        gatherAll: (this: LayerFork) => {
+            [key: string]: number;
+        }[][];
+        compile: (this: LayerFork, ...pattern: number[]) => any;
+        compileAll: (this: LayerFork) => {
+            [key: string]: number;
+        }[][];
+        faceOrders: (this: LayerFork, ...pattern: number[]) => any;
     };
     makeTransitivity: ({ faces_polygon }: FOLD, facesFacesOverlap: number[][], epsilon?: number) => TransitivityConstraint[];
     getTransitivityTriosFromTacos: ({ taco_taco, taco_tortilla }: {
@@ -110,40 +114,28 @@ declare const _default: {
         orders: number[][];
         branches: any;
     };
-    getBranchStructure: ({ branches }: {
-        branches: any;
-    }) => any;
-    gather: ({ orders, branches }: {
-        orders: any;
-        branches: any;
-    }, pattern?: any[]) => any[];
-    compile: ({ orders, branches }: {
-        orders: any;
-        branches: any;
-    }, pattern: any) => any[];
-    gatherAll: ({ orders, branches }: {
-        orders: {
-            [key: string]: number;
-        };
-        branches?: LayerBranch[];
-    }) => {
+    getBranchStructure: ({ branches }: LayerFork) => any;
+    gather: ({ orders, branches }: LayerFork, pattern?: number[]) => any;
+    compile: ({ orders, branches }: LayerFork, pattern?: number[]) => any;
+    gatherAll: ({ orders, branches }: LayerFork) => {
         [key: string]: number;
     }[][];
-    compileAll: ({ orders, branches }: {
-        orders: any;
-        branches: any;
-    }) => {
+    compileAll: ({ orders, branches }: LayerFork) => {
         [key: string]: number;
     }[][];
     LayerPrototype: {
-        count: () => any;
-        structure: () => any;
-        leaves: () => any;
-        gather: (...pattern: any[]) => any;
-        gatherAll: () => any;
-        compile: (...pattern: any[]) => any;
-        compileAll: () => any;
-        faceOrders: (...pattern: any[]) => any;
+        count: (this: LayerFork) => any;
+        structure: (this: LayerFork) => any;
+        leaves: (this: LayerFork) => any;
+        gather: (this: LayerFork, ...pattern: number[]) => any;
+        gatherAll: (this: LayerFork) => {
+            [key: string]: number;
+        }[][];
+        compile: (this: LayerFork, ...pattern: number[]) => any;
+        compileAll: (this: LayerFork) => {
+            [key: string]: number;
+        }[][];
+        faceOrders: (this: LayerFork, ...pattern: number[]) => any;
     };
     solveFlatAdjacentEdges: ({ edges_faces, edges_assignment }: FOLD, faces_winding: boolean[]) => {
         [key: string]: number;

@@ -117,6 +117,30 @@ export const scale2 = (v, s) => [v[0] * s, v[1] * s];
 export const scale3 = (v, s) => [v[0] * s, v[1] * s, v[2] * s];
 
 /**
+ * @description scale an input vector by one number, return a copy.
+ * @param {number[]} v one vector, n-dimensions
+ * @param {number[]} s one scale vector, n-dimensions
+ * @returns {number[]} one vector
+ */
+export const scaleNonUniform = (v, s) => v.map((n, i) => n * s[i]);
+
+/**
+ * @description scale an input vector by one number, return a copy.
+ * @param {[number, number] | [number, number, number]} v one 2D vector
+ * @param {[number, number] | [number, number, number]} s one 2D scale vector
+ * @returns {[number, number]} one 2D vector
+ */
+export const scaleNonUniform2 = (v, s) => [v[0] * s[0], v[1] * s[1]];
+
+/**
+ * @description scale an input vector by one number, return a copy.
+ * @param {[number, number, number]} v one 3D vector
+ * @param {[number, number, number]} s one 3D scale vector
+ * @returns {[number, number, number]} one 3D vector
+ */
+export const scaleNonUniform3 = (v, s) => [v[0] * s[0], v[1] * s[1], v[2] * s[2]];
+
+/**
  * @description add two vectors and return the sum as another vector,
  * do not modify the input vectors.
  * @param {number[]} v one vector, n-dimensions

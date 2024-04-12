@@ -1,33 +1,9 @@
 import { expect, test } from "vitest";
 import ear from "../src/index.js";
 
-test("transform, matrix translate", () => {
-	const graph1 = ear.graph.fish();
-	const graph2 = ear.graph.transform(
-		structuredClone(graph1),
-		[1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 10, 0],
-	);
-	graph2.vertices_coords.forEach((v, i) => {
-		expect(v[0]).toBeCloseTo(graph1.vertices_coords[i][0] + 10);
-		expect(v[1]).toBeCloseTo(graph1.vertices_coords[i][1] + 10);
-	});
-});
-
-test("transform, matrix scale and translate", () => {
-	const graph1 = ear.graph.fish();
-	const graph2 = ear.graph.transform(
-		structuredClone(graph1),
-		[2, 0, 0, 0, 2, 0, 0, 0, 1, 10, 10, 0],
-	);
-	graph2.vertices_coords.forEach((v, i) => {
-		expect(v[0]).toBeCloseTo(graph1.vertices_coords[i][0] * 2 + 10);
-		expect(v[1]).toBeCloseTo(graph1.vertices_coords[i][1] * 2 + 10);
-	});
-});
-
 test("transform, uniform scale", () => {
 	const graph1 = ear.graph.fish();
-	const graph2 = ear.graph.scale(
+	const graph2 = ear.graph.scaleUniform(
 		structuredClone(graph1),
 		2,
 	);
@@ -58,13 +34,26 @@ test("transform, translate", () => {
 	graph2.vertices_coords.forEach((v, i) => {
 		expect(v[0]).toBeCloseTo(graph1.vertices_coords[i][0] + 1);
 		expect(v[1]).toBeCloseTo(graph1.vertices_coords[i][1] + 2);
-		expect(v[2]).toBeCloseTo(0);
+		expect(v[2]).toBe(undefined);
 	});
 });
 
-test("transform, translate 3D", () => {
+test("transform, translate, 3D with 2D vertices", () => {
 	const graph1 = ear.graph.fish();
 	const graph2 = ear.graph.translate(
+		structuredClone(graph1),
+		[1, 2, 3],
+	);
+	graph2.vertices_coords.forEach((v, i) => {
+		expect(v[0]).toBeCloseTo(graph1.vertices_coords[i][0] + 1);
+		expect(v[1]).toBeCloseTo(graph1.vertices_coords[i][1] + 2);
+		expect(v[2]).toBe(undefined);
+	});
+});
+
+test("transform, translate3, 3D with 2D vertices", () => {
+	const graph1 = ear.graph.fish();
+	const graph2 = ear.graph.translate3(
 		structuredClone(graph1),
 		[1, 2, 3],
 	);
@@ -125,3 +114,29 @@ test("transform, unitize 3D", () => {
 	expect(bounds.max[1]).toBeCloseTo(1 / 3);
 	expect(bounds.max[2]).toBeCloseTo(1);
 });
+
+// these call the transform matrix method which is now deprecated
+
+// test("transform, matrix translate", () => {
+// 	const graph1 = ear.graph.fish();
+// 	const graph2 = ear.graph.transform(
+// 		structuredClone(graph1),
+// 		[1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 10, 0],
+// 	);
+// 	graph2.vertices_coords.forEach((v, i) => {
+// 		expect(v[0]).toBeCloseTo(graph1.vertices_coords[i][0] + 10);
+// 		expect(v[1]).toBeCloseTo(graph1.vertices_coords[i][1] + 10);
+// 	});
+// });
+
+// test("transform, matrix scale and translate", () => {
+// 	const graph1 = ear.graph.fish();
+// 	const graph2 = ear.graph.transform(
+// 		structuredClone(graph1),
+// 		[2, 0, 0, 0, 2, 0, 0, 0, 1, 10, 10, 0],
+// 	);
+// 	graph2.vertices_coords.forEach((v, i) => {
+// 		expect(v[0]).toBeCloseTo(graph1.vertices_coords[i][0] * 2 + 10);
+// 		expect(v[1]).toBeCloseTo(graph1.vertices_coords[i][1] * 2 + 10);
+// 	});
+// });

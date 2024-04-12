@@ -1,2 +1,2 @@
 export default drawBoundaries;
-declare function drawBoundaries(graph: any, options?: {}): any;
+declare function drawBoundaries(graph: any, options?: {}): SVGElement;

@@ -9,6 +9,9 @@ export function normalize3(v: [number, number, number]): [number, number, number
 export function scale(v: number[], s: number): number[];
 export function scale2(v: [number, number] | [number, number, number], s: number): [number, number];
 export function scale3(v: [number, number, number], s: number): [number, number, number];
+export function scaleNonUniform(v: number[], s: number[]): number[];
+export function scaleNonUniform2(v: [number, number] | [number, number, number], s: [number, number] | [number, number, number]): [number, number];
+export function scaleNonUniform3(v: [number, number, number], s: [number, number, number]): [number, number, number];
 export function add(v: number[], u: number[]): number[];
 export function add2(v: [number, number] | [number, number, number], u: [number, number] | [number, number, number]): [number, number];
 export function add3(v: [number, number, number], u: [number, number, number]): [number, number, number];

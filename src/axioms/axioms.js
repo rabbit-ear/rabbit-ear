@@ -328,9 +328,9 @@ export const axiom7 = (line1, line2, point) => {
  * @param {...any} args the axiom input parameters
  * @returns {VecLine2[]} an array of solution lines in {vector, origin} form
  */
-export const axiom = (number, ...args) => [
-	null, axiom1, axiom2, axiom3, axiom4, axiom5, axiom6, axiom7,
-][number](...args);
+// export const axiom = (number, ...args) => [
+// 	null, axiom1, axiom2, axiom3, axiom4, axiom5, axiom6, axiom7,
+// ][number](...args);
 
 /**
  * @description Perform one of the seven origami axioms
@@ -338,16 +338,16 @@ export const axiom = (number, ...args) => [
  * @param {...any} args the lines or points, as required by this axiom
  * @returns {UniqueLine[]} an array of solution lines in {normal, distance} form
  */
-export const normalAxiom = (number, ...args) => [
-	null,
-	normalAxiom1,
-	normalAxiom2,
-	normalAxiom3,
-	normalAxiom4,
-	normalAxiom5,
-	normalAxiom6,
-	normalAxiom7,
-][number](...args);
+// export const normalAxiom = (number, ...args) => [
+// 	null,
+// 	normalAxiom1,
+// 	normalAxiom2,
+// 	normalAxiom3,
+// 	normalAxiom4,
+// 	normalAxiom5,
+// 	normalAxiom6,
+// 	normalAxiom7,
+// ][number](...args);
 
 // * @param {line?} line1 a line parameter, if required by the axiom
 // * @param {line?} line2 a line parameter, if required by the axiom
