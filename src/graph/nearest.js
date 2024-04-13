@@ -2,7 +2,8 @@
  * Rabbit Ear (c) Kraft
  */
 import {
-	subtract,
+	subtract2,
+	subtract3,
 	distance,
 	resize,
 } from "../math/vector.js";
@@ -48,6 +49,22 @@ export const nearestVertex = ({ vertices_coords }, point) => {
 	return nearest ? nearest.i : undefined;
 };
 
+const nearestPoints2 = ({ vertices_coords, edges_vertices }, point) => edges_vertices
+	.map(e => e.map(ev => vertices_coords[ev]))
+	.map(e => nearestPointOnLine(
+		{ vector: subtract2(e[1], e[0]), origin: e[0] },
+		point,
+		clampSegment,
+	));
+
+const nearestPoints3 = ({ vertices_coords, edges_vertices }, point) => edges_vertices
+	.map(e => e.map(ev => vertices_coords[ev]))
+	.map(e => nearestPointOnLine(
+		{ vector: subtract3(e[1], e[0]), origin: e[0] },
+		point,
+		clampSegment,
+	));
+
 /**
  * @description Iterate through all edges in a graph and find the one nearest to a provided point.
  * @param {FOLD} graph a FOLD object
@@ -57,13 +74,9 @@ export const nearestVertex = ({ vertices_coords }, point) => {
  */
 export const nearestEdge = ({ vertices_coords, edges_vertices }, point) => {
 	if (!vertices_coords || !edges_vertices) { return undefined; }
-	const nearest_points = edges_vertices
-		.map(e => e.map(ev => vertices_coords[ev]))
-		.map(e => nearestPointOnLine(
-			{ vector: subtract(e[1], e[0]), origin: e[0] },
-			point,
-			clampSegment,
-		));
+	const nearest_points = getDimensionQuick({ vertices_coords }) === 2
+		? nearestPoints2({ vertices_coords, edges_vertices }, point)
+		: nearestPoints3({ vertices_coords, edges_vertices }, point);
 	return arrayMinimumIndex(nearest_points, p => distance(p, point));
 };
 

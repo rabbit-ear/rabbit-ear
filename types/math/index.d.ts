@@ -8,7 +8,7 @@ declare const _default: {
     };
     intersectCircleLine: (circle: Circle, line: VecLine2, _?: Function, lineDomain?: Function, epsilon?: number) => [number, number][];
     overlapLinePoint: ({ vector, origin }: VecLine2, point: [number, number], lineDomain?: (_: number, __?: number) => boolean, epsilon?: number) => boolean;
-    overlapConvexPolygonPoint: (polygon: [number, number][], point: [number, number], polyDomain?: Function, epsilon?: number) => {
+    overlapConvexPolygonPoint: (polygon: ([number, number] | [number, number, number])[], point: [number, number] | [number, number, number], polyDomain?: Function, epsilon?: number) => {
         overlap: boolean;
         t: number[];
     };
@@ -105,7 +105,7 @@ declare const _default: {
     identity2x2: number[];
     identity2x3: number[];
     multiplyMatrix2Vector2: (matrix: number[], vector: [number, number]) => [number, number];
-    multiplyMatrix2Line2: (matrix: number[], vector: [number, number], origin: [number, number]) => VecLine;
+    multiplyMatrix2Line2: (matrix: number[], vector: [number, number], origin: [number, number]) => VecLine2;
     multiplyMatrices2: (m1: number[], m2: number[]) => number[];
     determinant2: (m: number[]) => number;
     invertMatrix2: (m: number[]) => number[];

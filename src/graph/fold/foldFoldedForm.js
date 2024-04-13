@@ -44,7 +44,7 @@ import clone from "../../general/clone.js";
  *
  */
 const recalculatePointBetweenPoints = (points, parameter) => {
-	const edgeLine = pointsToLine(...points);
+	const edgeLine = pointsToLine(points[0], points[1]);
 	return add2(edgeLine.origin, scale2(edgeLine.vector, parameter));
 };
 
@@ -296,7 +296,7 @@ export const foldFoldedSegment = (
 ) => (
 	foldFoldedForm(
 		graph,
-		pointsToLine(...segment),
+		pointsToLine(segment[0], segment[1]),
 		includeS,
 		segment,
 		vertices_coordsFolded,

@@ -82,11 +82,12 @@ export const mergeFlatNextmaps = (...maps) => {
  * @description Provide two or more nextmaps in the order
  * they were made and this will merge them into one nextmap which
  * reflects all changes to the graph.
- * @param {...number[][]} maps a sequence of nextmaps
+ * @param {...(number|number[])[]} maps a sequence of nextmaps
  * @returns {number[][]} one nextmap reflecting the sum of changes
  */
 export const mergeNextmaps = (...maps) => {
 	if (maps.length === 0) { return []; }
+	/** @type {any[]} */
 	const solution = maps[0].map((_, i) => [i]);
 	maps.forEach(map => {
 		solution.forEach((s, i) => s
@@ -120,12 +121,14 @@ export const mergeFlatBackmaps = (...maps) => {
  * @description Provide two or more  backmaps in the order
  * they were made and this will merge them into one backmap which
  * reflects all changes to the graph.
- * @param {...number[][]} maps a sequence of backmaps
+ * @param {...(number|number[])[]} maps a sequence of backmaps
  * @returns {number[][]} one backmap reflecting the sum of changes
  */
 export const mergeBackmaps = (...maps) => {
+	// const cat = (a, b) => a.concat(b)
 	if (maps.length === 0) { return []; }
-	let solution = maps[0].reduce((a, b) => a.concat(b), []).map((_, i) => [i]);
+	// let solution = maps[0].reduce((a, b) => a.concat(b), []).map((_, i) => [i]);
+	let solution = maps[0].flat().map((_, i) => [i]);
 	maps.forEach(map => {
 		const next = [];
 		map.forEach((el, j) => {

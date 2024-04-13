@@ -2,6 +2,9 @@
  * Rabbit Ear (c) Kraft
  */
 import {
+	getDimensionQuick,
+} from "../../fold/spec.js";
+import {
 	makePolygonNonCollinear,
 	centroid,
 } from "../../math/polygon.js";
@@ -31,13 +34,14 @@ import {
  * down every edge (both ways). This does not include the outside face which winds
  * around the boundary backwards enclosing the outside space.
  * @param {FOLD} graph a FOLD object
- * @returns {object} array of faces as objects containing "vertices",
- * "edges", and "angles"
+ * @returns {{
+ *   faces_vertices: number[][],
+ *   faces_edges: number[][],
+ *   faces_sectors: number[][],
+ * }} array of faces as objects containing "vertices", "edges", and "sectors"
  * @example
  * // to convert the return object into faces_vertices and faces_edges
- * var faces = makePlanarFaces(graph);
- * faces_vertices = faces.map(el => el.vertices);
- * faces_edges = faces.map(el => el.edges);
+ * const { faces_vertices, faces_edges } = makePlanarFaces(graph);
  */
 export const makePlanarFaces = ({
 	vertices_coords, vertices_vertices, vertices_edges,
@@ -146,7 +150,9 @@ export const makeFacesCenter3DQuick = ({ vertices_coords, faces_vertices }) => (
  * @returns {[number, number][] | [number, number, number][]} array of points,
  * where each point is an array of either 2 or 3 numbers.
  */
-export const makeFacesCenterQuick = ({ vertices_coords, faces_vertices }) => (
-	makeFacesPolygonQuick({ vertices_coords, faces_vertices })
-		.map(coords => average(...coords))
-);
+export const makeFacesCenterQuick = ({ vertices_coords, faces_vertices }) => {
+	const dimensions = getDimensionQuick({ vertices_coords });
+	return dimensions === 2
+		? makeFacesCenter2DQuick({ vertices_coords, faces_vertices })
+		: makeFacesCenter3DQuick({ vertices_coords, faces_vertices });
+};

@@ -48,8 +48,9 @@ export const overlapLinePoint = (
 
 /**
  * @description Test if a point is inside a convex polygon.
- * @param {[number, number][]} polygon a polygon in array of array form
- * @param {[number, number]} point a point in array form
+ * @param {([number, number]|[number, number, number])[]} polygon
+ * a polygon in array of array form
+ * @param {[number, number]|[number, number, number]} point a point in array form
  * @param {function} polyDomain determines if the polygon boundary
  * is inclusive or exclusive
  * @param {number} [epsilon=1e-6] an optional epsilon

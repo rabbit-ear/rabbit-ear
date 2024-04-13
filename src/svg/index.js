@@ -20,6 +20,7 @@ const library = {
 	...colors,
 	...general,
 	...constructors,
+	window: undefined, // set below
 };
 
 // the top level container object is also an <svg> constructor

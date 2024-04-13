@@ -63,9 +63,12 @@ export const makeVerticesNormal = ({ vertices_coords, faces_vertices, faces_norm
 		a[2] += b[2];
 	};
 
+	/** @returns {[number, number, number]} */
+	const mkzero = () => [0, 0, 0]
+
 	// for every vertex's face, add the vector to the vertex's vector
 	/** @type {[number, number, number][]} */
-	const vertices_normals = vertices_coords.map(() => [0, 0, 0]);
+	const vertices_normals = vertices_coords.map(mkzero);
 
 	faces_vertices
 		.forEach((vertices, f) => vertices

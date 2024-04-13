@@ -5,10 +5,14 @@ import { multiplyMatrix2Vector2 } from "../../math/matrix2.js";
 import { flattenDomTreeWithStyle } from "../../svg/general/dom.js";
 import { transformStringToMatrix } from "../../svg/general/transforms.js";
 import parsers from "./parsers/index.js";
+
 /**
- *
+ * @param {[number, number, number, number]} segment
+ * @param {string} transform
+ * @return {[number, number][]} segment
  */
 const transformSegment = (segment, transform) => {
+	/** @type {[number, number][]} */
 	const seg = [[segment[0], segment[1]], [segment[2], segment[3]]];
 	if (!transform) { return seg; }
 	const matrix = transformStringToMatrix(transform);

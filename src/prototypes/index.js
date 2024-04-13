@@ -11,6 +11,7 @@ import populate from "../graph/populate.js";
 /**
  * @description Create a FOLD object that inherits from the Graph prototype
  * with basic FOLD metadata, file spec and creator.
+ * @param {...any} args
  * @returns {FOLD} a FOLD object
  */
 const makeGraphInstance = (...args) => Object
@@ -57,6 +58,7 @@ const makeGraphInstance = (...args) => Object
  * prototype which includes a bunch of helper methods bound to it.
  * By default the graph will be empty, an optional FOLD object can be
  * passed in and the graph will populate it and initilize itself to it.
+ * @param {...any} args
  * @returns {FOLD} a FOLD object
  */
 const graph = (...args) => populate(makeGraphInstance(...args));
@@ -82,6 +84,7 @@ graph.prototype.constructor = graph;
 
 // static constructors for all the origami bases
 Object.keys(bases).forEach(baseName => {
+	/** @param {...any} args */
 	graph[baseName] = (...args) => makeGraphInstance(bases[baseName](...args));
 	// cp[baseName] = (...args) => makeCPInstance(bases[baseName](...args));
 	// origami[baseName] = (...args) => origami(bases[baseName](...args));

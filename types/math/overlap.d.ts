@@ -1,5 +1,5 @@
 export function overlapLinePoint({ vector, origin }: VecLine2, point: [number, number], lineDomain?: (_: number, __?: number) => boolean, epsilon?: number): boolean;
-export function overlapConvexPolygonPoint(polygon: [number, number][], point: [number, number], polyDomain?: Function, epsilon?: number): {
+export function overlapConvexPolygonPoint(polygon: ([number, number] | [number, number, number])[], point: [number, number] | [number, number, number], polyDomain?: Function, epsilon?: number): {
     overlap: boolean;
     t: number[];
 };

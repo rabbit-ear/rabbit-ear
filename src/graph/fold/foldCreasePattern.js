@@ -15,9 +15,6 @@ import {
 	invertAssignment,
 } from "../../fold/spec.js";
 import {
-	makeEdgesVector,
-} from "../make/edges.js";
-import {
 	makeFacesEdgesFromVertices,
 } from "../make/facesEdges.js";
 import {
@@ -32,13 +29,16 @@ import {
 import {
 	intersectLine,
 } from "../intersect.js";
+import {
+	edgesToLines2,
+} from "../edges/lines.js";
 
 /**
  * @description Given a flat-foldable crease pattern, perform a fold through
  * its folded form and return a list of new crease edges as edges in the
  * crease pattern space.
  * @param {FOLD} graph a FOLD object, in crease pattern form
- * @param {VecLine} line a fold line
+ * @param {VecLine2} line a fold line
  * @param {string} assignment the segment's assignment through the first face
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object[]} For each intersected face, a new segment object:
@@ -75,13 +75,12 @@ export const foldCreasePattern = ({
 		edges_assignment,
 		faces_vertices,
 		faces_faces,
-	}, startFace);
+	}, [startFace]);
 
 	// edge line data for the crease pattern state, needed to remap the edge
 	// intersections, which were calculated in the folded state, into points
 	// in the crease pattern state.
-	const edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
-	const edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
+	const edges_line = edgesToLines2({ vertices_coords, edges_vertices });
 
 	// note that this copy of faces_winding will be forced to be the case that
 	// our startFace is "true" instead of T/F based on face winding direction.
@@ -105,7 +104,7 @@ export const foldCreasePattern = ({
 
 	const remapPoint = ({ vertex, edge, b }) => (vertex !== undefined
 		? vertices_coords[vertex]
-		: add2(scale2(edges_vector[edge], b), edges_origin[edge]));
+		: add2(scale2(edges_line[edge].vector, b), edges_line[edge].origin));
 
 	// the return object will be, for every intersected face,
 	// an object which describes a new segment, including:

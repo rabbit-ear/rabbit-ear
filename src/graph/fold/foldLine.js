@@ -61,7 +61,6 @@ import clone from "../../general/clone.js";
  * edge parameter (along the edge's vector) to very precisely calculate
  * the position of the point in the new graph.
  * This method is more precise than transferPointBetweenGraphs.
- * @param {FOLD} from a FOLD object which the point now lies inside
  * @param {FOLD} to a FOLD object we want to move the point into
  * @param {number} edge the index of the edge which this point lies on
  * @param {number} parameter the parameter along the edge's vector where
@@ -69,9 +68,9 @@ import clone from "../../general/clone.js";
  * @returns {number[]} a new point
  */
 const transferPointOnEdgeBetweenGraphs = (to, edge, parameter) => {
-	const edgeSegment = to.edges_vertices[edge]
+	const [a, b] = to.edges_vertices[edge]
 		.map(v => to.vertices_coords[v]);
-	const edgeLine = pointsToLine(...edgeSegment);
+	const edgeLine = pointsToLine(a, b);
 	return add2(edgeLine.origin, scale2(edgeLine.vector, parameter));
 };
 
@@ -329,7 +328,7 @@ export const foldSegment = (
 ) => (
 	foldGraphWithLineMethod(
 		graph,
-		pointsToLine(...segment),
+		pointsToLine(segment[0], segment[1]),
 		includeS,
 		segment,
 		vertices_coordsFolded,

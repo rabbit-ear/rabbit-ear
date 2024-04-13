@@ -18,7 +18,7 @@ export const identity2x2: number[];
  */
 export const identity2x3: number[];
 export function multiplyMatrix2Vector2(matrix: number[], vector: [number, number]): [number, number];
-export function multiplyMatrix2Line2(matrix: number[], vector: [number, number], origin: [number, number]): VecLine;
+export function multiplyMatrix2Line2(matrix: number[], vector: [number, number], origin: [number, number]): VecLine2;
 export function multiplyMatrices2(m1: number[], m2: number[]): number[];
 export function determinant2(m: number[]): number;
 export function invertMatrix2(m: number[]): number[] | undefined;

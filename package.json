@@ -1,11 +1,8 @@
 {
 	"name": "rabbit-ear",
-	"version": "0.9.33",
+	"version": "0.9.34",
 	"description": "origami design library",
 	"main": "./rabbit-ear.js",
-	"type": "module",
-	"module": "./module/index.js",
-	"types": "./types/index.d.ts",
 	"exports": {
 		".": {
 			"import": "./module/index.js",
@@ -13,20 +10,25 @@
 		},
 		"./*": "./module/*"
 	},
+	"type": "module",
+	"module": "./module/index.js",
+	"types": "./types/*",
+	"scripts": {
+		"build": "npm run clean && rollup -c && npm run docs && npm run types",
+		"clean": "node tests/clean.js",
+		"docs": "typedoc --entryPointStrategy expand ./src",
+		"test": "vitest",
+		"types": "tsc"
+	},
 	"files": [
 		"./rabbit-ear.js",
 		"./rabbit-ear.module.js",
 		"./license",
 		"./package.json",
 		"./readme.md",
-		"./module/"
+		"./module/",
+		"./types/"
 	],
-	"scripts": {
-		"test": "vitest",
-		"clean": "node tests/clean.js",
-		"lineno": "node tests/lineno.js",
-		"docs": "node tests/docs.js"
-	},
 	"license": "GPLv3",
 	"author": {
 		"name": "Kraft",

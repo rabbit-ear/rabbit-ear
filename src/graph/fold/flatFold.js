@@ -9,6 +9,7 @@ import {
 	normalize2,
 	dot2,
 	cross2,
+	scale2,
 	subtract2,
 } from "../../math/vector.js";
 import {
@@ -107,8 +108,8 @@ const face_snapshot = (graph, face) => ({
  * it flips the folding faces over, appends them to the non-folding ordering,
  * and (re-indexes/normalizes) all the z-index values to be the minimum
  * whole number set starting with 0.
- * @param {number[]} each index is a face, each value is the z-layer order.
- * @param {boolean[]} each index is a face, T/F will the face be folded over?
+ * @param {number[]} faces_layer each index is a face, each value is the z-layer order.
+ * @param {boolean[]} faces_folding each index is a face, T/F will the face be folded over?
  * @returns {number[]} each index is a face, each value is the z-layer order.
  */
 const foldFacesLayer = (faces_layer, faces_folding) => {
@@ -146,7 +147,7 @@ export const getVerticesCollinearToLine = (
 		// point and origin are the same
 		if (Math.abs(mag) < epsilon) { return true; }
 		// normalize both vectors, compare dot product
-		const originToPointUnit = originToPoint.map(n => n / mag);
+		const originToPointUnit = scale2(originToPoint, 1 / mag);
 		const dotprod = Math.abs(dot2(originToPointUnit, normalizedLineVec));
 		return Math.abs(1.0 - dotprod) < epsilon;
 	};
@@ -192,9 +193,13 @@ export const getEdgesCollinearToLine = (
 /**
  * @description make a crease that passes through the entire origami and modify the
  * faces order to simulate one side of the faces flipped over and set on top.
- * @param {object} graph a FOLD graph in crease pattern form, will be modified in place
- * @param {number[]} vector a 2D vector describing the line as an array of numbers
- * @param {number[]} origin a 2D origin describing the line as an array of numbers
+ * @param {FOLD & {
+ *   faces_matrix2: number[][],
+ *   faces_winding: boolean[],
+ *   faces_crease: VecLine2[],
+ *   faces_side: boolean[],
+ * }} graph a FOLD graph in crease pattern form, will be modified in place
+ * @param {VecLine2} line a fold line in 2D
  * @param {string} assignment (M/V/F) a FOLD spec encoding of the direction of the fold
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} a summary of changes to faces/edges.

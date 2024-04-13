@@ -5,7 +5,8 @@ import {
 	TWO_PI,
 } from "../../math/constant.js";
 import {
-	flip,
+	resize2,
+	flip2,
 } from "../../math/vector.js";
 import {
 	counterClockwiseSectors2,
@@ -22,7 +23,7 @@ import {
  * of the incident vertices. This is accomplised by taking the vertices_vertices
  * array and converting it into vectors, indices will be aligned with vertices_vertices.
  * @param {FOLD} graph a FOLD object, containing vertices_coords, vertices_vertices, edges_vertices
- * @returns {number[][][]} array of array of array of numbers, where each row corresponds
+ * @returns {[number, number][][]} array of array of array of numbers, where each row corresponds
  * to a vertex index, inner arrays correspond to vertices_vertices, and inside is a 2D vector
  * @todo this can someday be rewritten without edges_vertices
  */
@@ -47,8 +48,9 @@ export const makeVerticesVerticesVector = ({
 			.map((b) => {
 				const edge_a = edge_map[`${a} ${b}`];
 				const edge_b = edge_map[`${b} ${a}`];
-				if (edge_a !== undefined) { return edges_vector[edge_a]; }
-				if (edge_b !== undefined) { return flip(edges_vector[edge_b]); }
+				if (edge_a !== undefined) { return resize2(edges_vector[edge_a]); }
+				if (edge_b !== undefined) { return flip2(edges_vector[edge_b]); }
+				return undefined;
 			}));
 };
 

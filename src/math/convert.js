@@ -4,11 +4,11 @@
 import {
 	magnitude,
 	dot,
-	scale,
 	scale2,
-	subtract,
 	subtract2,
+	subtract3,
 	resize2,
+	resize3,
 	rotate90,
 	rotate270,
 } from "./vector.js";
@@ -37,10 +37,9 @@ export const angleToVector = (a) => [Math.cos(a), Math.sin(a)];
  * one point, itself an array of numbers
  * @returns {VecLine} an object with "vector" and "origin".
  */
-export const pointsToLine = (origin, point2) => ({
-	vector: subtract(point2, origin),
-	origin,
-});
+export const pointsToLine = (origin, point2) => (origin.length === 2
+	? ({ vector: subtract2(point2, origin), origin })
+	: ({ vector: subtract3(resize3(point2), origin), origin }));
 
 /**
  * @description Given two points, create a vector-origin line representation

@@ -46,6 +46,7 @@ export const flattenFrame = (graph, frameNumber = 0) => {
 		const thisOrders = [currentIndex].concat(previousOrders);
 
 		// get a reference to the current frame
+		/** @type {FOLDInternalFrame} */
 		const frame = currentIndex > 0
 			? { ...graph.file_frames[currentIndex - 1] }
 			: { ...graph };

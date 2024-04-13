@@ -18,7 +18,7 @@ import {
  * lies inside. An optional domain function allows you to specify
  * inclusive or exclusive. This method is 2D only.
  * @param {FOLD} graph a FOLD object
- * @param {number[]} point the point to test
+ * @param {[number, number]} point the point to test
  * @param {function} [domainFunction=include], an optional domain function
  * to specificy inclusive or exclusive.
  * @returns {number[]} an array of face indices

@@ -261,7 +261,7 @@ const split_at_intersections = (graph, { vertices, edges }) => {
  * vertices_vertices. each vertices_vertices gains one additional
  * vertex, then the whole array is re-sorted counter-clockwise
  * @param {object} FOLD object
- * @param {number} index of the newly-added edge
+ * @param {number} edge index of the newly-added edge
  */
 export const update_vertices_vertices = ({
 	vertices_coords, vertices_vertices, edges_vertices,
@@ -396,7 +396,7 @@ export const update_faces_faces = ({ faces_vertices, faces_faces }, old_face, ne
 	// for each of the incident faces (to the old face), set one of two
 	// indices, one of the two new faces. this is the new incident face.
 	const incident_face_face = incident_faces.map(f => {
-		if (f === undefined || f === null) { return; }
+		if (f === undefined || f === null) { return undefined; }
 		const incident_face_vertices = faces_vertices[f];
 		const score = [0, 0];
 		for (let n = 0; n < new_faces_vertices.length; n += 1) {
@@ -410,6 +410,7 @@ export const update_faces_faces = ({ faces_vertices, faces_faces }, old_face, ne
 		}
 		if (score[0] >= 2) { return new_faces[0]; }
 		if (score[1] >= 2) { return new_faces[1]; }
+		return undefined;
 	});
 	// prepare the new faces' face_faces empty arrays, filled with one
 	// face, the opposite of the pair of the new faces.
@@ -470,9 +471,14 @@ export const splitFaceWithLine = (graph, face, line, epsilon) => {
 	// we need to adjust the map to exclude these faces.
 	faces_map.splice(-2);
 	// replace the "undefined" in the map with the two new edge indices.
-	faces_map[face] = faces;
+
+	/** @type {(number|number[])[]} */
+	const facesMap = faces_map.slice();
+	// set the location of the old face in the map to be the new faces
+	facesMap[face] = faces;
+
 	result.faces = {
-		map: faces_map,
+		map: facesMap,
 		new: faces,
 		remove: face,
 	};

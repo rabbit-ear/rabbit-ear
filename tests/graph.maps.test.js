@@ -36,6 +36,20 @@ test("merge backmap", () => {
 	objMatch(res, [[0, 6], [1, 5], [2, 3, 7], [4]]);
 });
 
+test("merge backmap no nested", () => {
+	const map1 = [0, 1, 2, 3, 4, 5];
+	const map2 = [0, 1, 2, 3, 4, 5];
+	const res = ear.graph.mergeBackmaps(map1, map2);
+	expect(res).toMatchObject([[0], [1], [2], [3], [4], [5]]);
+});
+
+test("merge nextmap no nested", () => {
+	const map1 = [0, 1, 2, 3, 4, 5];
+	const map2 = [0, 1, 2, 3, 4, 5];
+	const res = ear.graph.mergeNextmaps(map1, map2);
+	expect(res).toMatchObject([[0], [1], [2], [3], [4], [5]]);
+});
+
 test("merge with undefineds", () => {
 	// [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 	const map1 = [0, 1, 2, null, 3, 4, null, null, 5, 6];

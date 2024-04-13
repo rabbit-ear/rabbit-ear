@@ -1,5 +1,6 @@
 export { SVG as default };
 declare const SVG: ((...args: any[]) => SVGElement) & {
+    window: any;
     svg: (...args: any[]) => SVGElement;
     defs: (...args: any[]) => SVGElement;
     desc: (...args: any[]) => SVGElement;

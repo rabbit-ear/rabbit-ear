@@ -39,6 +39,7 @@ type FOLDOutOfSpec = {
     edges_vector?: ([number, number] | [number, number, number])[];
     faces_polygon?: ([number, number] | [number, number, number])[][];
     faces_matrix?: number[][];
+    faces_layer?: number[];
     vertices_sectors?: number[][];
 };
 type FOLD = FOLDFileMetadata & FOLDFrame & FOLDOutOfSpec;

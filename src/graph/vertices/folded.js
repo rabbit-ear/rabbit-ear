@@ -49,14 +49,16 @@ import {
  * solve things about an origami that is currently being figured out.
  * @param {FOLD} graph a FOLD object
  * @param {number[]} [rootFaces=[]] the index of the face that will remain in place
- * @returns {number[][]} a new set of `vertices_coords` with the new positions.
+ * @returns {[number, number, number][]} a new set of `vertices_coords` with the new positions.
  */
 export const makeVerticesCoords3DFolded = ({
 	vertices_coords, vertices_faces, edges_vertices, edges_foldAngle,
 	edges_assignment, faces_vertices, faces_faces, faces_matrix,
 }, rootFaces) => {
 	if (!vertices_coords || !vertices_coords.length) { return []; }
-	if (!faces_vertices || !faces_vertices.length) { return vertices_coords; }
+	if (!faces_vertices || !faces_vertices.length) {
+		return vertices_coords.map(resize3);
+	}
 	faces_matrix = makeFacesMatrix({
 		vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces,
 	}, rootFaces);
@@ -83,7 +85,7 @@ export const makeVerticesCoords3DFolded = ({
  * assume all edges are flat-folded (except boundary) and will fold everything.
  * @param {FOLD} graph a FOLD object
  * @param {number[]} [rootFaces=[]] the index of the face that will remain in place
- * @returns {number[][]} a new set of `vertices_coords` with the new positions.
+ * @returns {[number, number][]} a new set of `vertices_coords` with the new positions.
  */
 export const makeVerticesCoordsFlatFolded = (
 	{
@@ -93,7 +95,9 @@ export const makeVerticesCoordsFlatFolded = (
 	rootFaces = [],
 ) => {
 	if (!vertices_coords || !vertices_coords.length) { return []; }
-	if (!faces_vertices || !faces_vertices.length) { return vertices_coords; }
+	if (!faces_vertices || !faces_vertices.length) {
+		return vertices_coords.map(resize2);
+	}
 	if (!faces_faces) {
 		faces_faces = makeFacesFaces({ faces_vertices });
 	}
@@ -167,7 +171,8 @@ export const makeVerticesCoordsFlatFolded = (
  * assume all edges are flat-folded (except boundary) and will fold everything.
  * @param {FOLD} graph a FOLD object
  * @param {number[]} [rootFaces=[]] the indices of the faces that will remain in place
- * @returns {number[][]} a new set of `vertices_coords` with the new positions.
+ * @returns {([number, number]|[number, number, number])[]} a new set of
+ * `vertices_coords` with the new positions.
  */
 export const makeVerticesCoordsFolded = (graph, rootFaces) => (
 	edgesFoldAngleAreAllFlat(graph)
@@ -188,7 +193,7 @@ export const makeVerticesCoordsFolded = (graph, rootFaces) => (
  * @param {FOLD} graph a FOLD graph with vertices_coords, faces_vertices, and
  * if vertices_faces does not exist it will be built.
  * @param {number[][]} faces_matrix an array of 2x3 matrices. one per face.
- * @returns {number[][]} a new set of vertices_coords, transformed.
+ * @returns {[number, number][]} a new set of vertices_coords, transformed.
  */
 export const makeVerticesCoordsFoldedFromMatrix2 = ({
 	vertices_coords, vertices_faces, faces_vertices,

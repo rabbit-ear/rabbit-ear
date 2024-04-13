@@ -232,7 +232,14 @@ export const validateAxiom6 = function (boundary, solutions, line1, line2, point
  * @param {[number, number]} point the point parameter for axiom 7
  * @returns {boolean[]} true if the parameters/solutions are valid
  */
-export const validateAxiom7 = (boundary, solutions, line1, line2, point) => [true];
+export const validateAxiom7 = (boundary, solutions, line1, line2, point) => {
+	boundary;
+	solutions;
+	line1;
+	line2;
+	point;
+	return [true];
+};
 
 // this method has been commented out because intersectConvexPolygonLine
 // has been removed. the implementation was no good. need to rewrite.

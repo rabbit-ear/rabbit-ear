@@ -94,6 +94,7 @@
  *   edges_vector?: ([number, number] | [number, number, number])[],
  *   faces_polygon?: ([number, number] | [number, number, number])[][],
  *   faces_matrix?: number[][],
+ *   faces_layer?: number[],
  *   vertices_sectors?: number[][],
  * }}
  * @property {([number, number] | [number, number, number])[]} [faces_center]
@@ -101,6 +102,7 @@
  * @property {([number, number] | [number, number, number])[]} [edges_vector]
  * @property {([number, number] | [number, number, number])[][]} [faces_polygon]
  * @property {number[][]} [faces_matrix]
+ * @property {number[]} [faces_layer]
  * @property {number[][]} [vertices_sectors]
  */
 

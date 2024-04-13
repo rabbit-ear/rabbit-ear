@@ -4,10 +4,15 @@
 import {
 	subtract,
 	magnitude,
+	resize2,
+	resize3,
 } from "../../math/vector.js";
 import {
 	boundingBox,
 } from "../../math/polygon.js";
+import {
+	getDimensionQuick,
+} from "../../fold/spec.js";
 
 /**
  * @description map vertices_coords onto edges_vertices so that the result
@@ -27,13 +32,15 @@ export const makeEdgesCoords = ({ vertices_coords, edges_vertices }) => (
  * @description Turn every edge into a vector, basing the direction on the order of
  * the pair of vertices in each edges_vertices entry.
  * @param {FOLD} graph a FOLD graph, with vertices_coords, edges_vertices
- * @returns {number[][]} each entry
+ * @returns {([number, number]|[number, number, number])[]} each entry
  * relates to an edge, each array contains a 2D vector
  */
-export const makeEdgesVector = ({ vertices_coords, edges_vertices }) => (
-	makeEdgesCoords({ vertices_coords, edges_vertices })
-		.map(([a, b]) => subtract(b, a))
-);
+export const makeEdgesVector = ({ vertices_coords, edges_vertices }) => {
+	const dimensions = getDimensionQuick({ vertices_coords });
+	const resize = dimensions === 2 ? resize2 : resize3;
+	return makeEdgesCoords({ vertices_coords, edges_vertices })
+		.map(([a, b]) => resize(subtract(b, a)));
+};
 
 /**
  * @description For every edge, find the length between the edges pair of vertices.

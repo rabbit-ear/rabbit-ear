@@ -7,7 +7,7 @@ declare const _default: {
     makeVerticesFaces: ({ vertices_coords, vertices_vertices, faces_vertices }: FOLD) => number[][];
     makeVerticesEdgesUnsorted: ({ edges_vertices }: FOLD) => number[][];
     makeVerticesEdges: ({ edges_vertices, vertices_vertices }: FOLD) => number[][];
-    makeVerticesVerticesVector: ({ vertices_coords, vertices_vertices, vertices_edges, vertices_faces, edges_vertices, edges_vector, faces_vertices, }: FOLD) => number[][][];
+    makeVerticesVerticesVector: ({ vertices_coords, vertices_vertices, vertices_edges, vertices_faces, edges_vertices, edges_vector, faces_vertices, }: FOLD) => [number, number][][];
     makeVerticesSectors: ({ vertices_coords, vertices_vertices, edges_vertices, edges_vector, }: FOLD) => number[][];
     makeVerticesToEdge: ({ edges_vertices }: FOLD, edges: any) => {
         [key: string]: number;
@@ -21,7 +21,11 @@ declare const _default: {
     makeFacesVerticesFromEdges: ({ edges_vertices, faces_edges }: FOLD) => number[][];
     makeFacesFaces: ({ faces_vertices }: FOLD) => number[][];
     makeFacesEdgesFromVertices: ({ edges_vertices, faces_vertices }: FOLD) => number[][];
-    makePlanarFaces: ({ vertices_coords, vertices_vertices, vertices_edges, vertices_sectors, edges_vertices, edges_vector, }: FOLD) => any;
+    makePlanarFaces: ({ vertices_coords, vertices_vertices, vertices_edges, vertices_sectors, edges_vertices, edges_vector, }: FOLD) => {
+        faces_vertices: number[][];
+        faces_edges: number[][];
+        faces_sectors: number[][];
+    };
     makeFacesPolygon: ({ vertices_coords, faces_vertices }: FOLD, epsilon?: number) => ([number, number] | [number, number, number])[][];
     makeFacesPolygonQuick: ({ vertices_coords, faces_vertices }: FOLD) => ([number, number] | [number, number, number])[][];
     makeFacesCentroid2D: ({ vertices_coords, faces_vertices }: FOLD) => [number, number][];
@@ -36,7 +40,7 @@ declare const _default: {
     makeEdgesAssignmentSimple: ({ edges_foldAngle }: FOLD) => string[];
     makeEdgesAssignment: ({ edges_vertices, edges_foldAngle, edges_faces, faces_vertices, faces_edges, }: FOLD) => string[];
     makeEdgesCoords: ({ vertices_coords, edges_vertices }: FOLD) => [[number, number] | [number, number, number], [number, number] | [number, number, number]][];
-    makeEdgesVector: ({ vertices_coords, edges_vertices }: FOLD) => number[][];
+    makeEdgesVector: ({ vertices_coords, edges_vertices }: FOLD) => ([number, number] | [number, number, number])[];
     makeEdgesLength: ({ vertices_coords, edges_vertices }: FOLD) => number[];
     makeEdgesBoundingBox: ({ vertices_coords, edges_vertices, }: FOLD, epsilon?: number) => Box[];
 };

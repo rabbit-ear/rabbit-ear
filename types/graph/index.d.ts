@@ -140,9 +140,9 @@ declare const _default: {
     invertFlatToArrayMap: (map: number[]) => number[][];
     invertArrayMap: (map: number[][]) => number[][];
     mergeFlatNextmaps: (...maps: number[][]) => number[];
-    mergeNextmaps: (...maps: number[][][]) => number[][];
+    mergeNextmaps: (...maps: (number | number[])[][]) => number[][];
     mergeFlatBackmaps: (...maps: number[][]) => number[];
-    mergeBackmaps: (...maps: number[][][]) => number[][];
+    mergeBackmaps: (...maps: (number | number[])[][]) => number[][];
     remapKey: (graph: FOLD, key: string, indexMap: number[]) => void;
     makeVerticesVertices2D: ({ vertices_coords, vertices_edges, edges_vertices }: FOLD) => number[][];
     makeVerticesVerticesFromFaces: ({ vertices_coords, vertices_faces, faces_vertices, }: FOLD) => number[][];
@@ -152,7 +152,7 @@ declare const _default: {
     makeVerticesFaces: ({ vertices_coords, vertices_vertices, faces_vertices }: FOLD) => number[][];
     makeVerticesEdgesUnsorted: ({ edges_vertices }: FOLD) => number[][];
     makeVerticesEdges: ({ edges_vertices, vertices_vertices }: FOLD) => number[][];
-    makeVerticesVerticesVector: ({ vertices_coords, vertices_vertices, vertices_edges, vertices_faces, edges_vertices, edges_vector, faces_vertices, }: FOLD) => number[][][];
+    makeVerticesVerticesVector: ({ vertices_coords, vertices_vertices, vertices_edges, vertices_faces, edges_vertices, edges_vector, faces_vertices, }: FOLD) => [number, number][][];
     makeVerticesSectors: ({ vertices_coords, vertices_vertices, edges_vertices, edges_vector, }: FOLD) => number[][];
     makeVerticesToEdge: ({ edges_vertices }: FOLD, edges: any) => {
         [key: string]: number;
@@ -166,7 +166,11 @@ declare const _default: {
     makeFacesVerticesFromEdges: ({ edges_vertices, faces_edges }: FOLD) => number[][];
     makeFacesFaces: ({ faces_vertices }: FOLD) => number[][];
     makeFacesEdgesFromVertices: ({ edges_vertices, faces_vertices }: FOLD) => number[][];
-    makePlanarFaces: ({ vertices_coords, vertices_vertices, vertices_edges, vertices_sectors, edges_vertices, edges_vector, }: FOLD) => any;
+    makePlanarFaces: ({ vertices_coords, vertices_vertices, vertices_edges, vertices_sectors, edges_vertices, edges_vector, }: FOLD) => {
+        faces_vertices: number[][];
+        faces_edges: number[][];
+        faces_sectors: number[][];
+    };
     makeFacesPolygon: ({ vertices_coords, faces_vertices }: FOLD, epsilon?: number) => ([number, number] | [number, number, number])[][];
     makeFacesPolygonQuick: ({ vertices_coords, faces_vertices }: FOLD) => ([number, number] | [number, number, number])[][];
     makeFacesCentroid2D: ({ vertices_coords, faces_vertices }: FOLD) => [number, number][];
@@ -181,7 +185,7 @@ declare const _default: {
     makeEdgesAssignmentSimple: ({ edges_foldAngle }: FOLD) => string[];
     makeEdgesAssignment: ({ edges_vertices, edges_foldAngle, edges_faces, faces_vertices, faces_edges, }: FOLD) => string[];
     makeEdgesCoords: ({ vertices_coords, edges_vertices }: FOLD) => [[number, number] | [number, number, number], [number, number] | [number, number, number]][];
-    makeEdgesVector: ({ vertices_coords, edges_vertices }: FOLD) => number[][];
+    makeEdgesVector: ({ vertices_coords, edges_vertices }: FOLD) => ([number, number] | [number, number, number])[];
     makeEdgesLength: ({ vertices_coords, edges_vertices }: FOLD) => number[];
     makeEdgesBoundingBox: ({ vertices_coords, edges_vertices, }: FOLD, epsilon?: number) => Box[];
     join: (target: FOLD, source: FOLD) => any;
@@ -224,10 +228,10 @@ declare const _default: {
     faceIsolatedVertices: ({ vertices_coords, faces_vertices }: FOLD) => number[];
     isolatedVertices: ({ vertices_coords, edges_vertices, faces_vertices }: FOLD) => number[];
     removeIsolatedVertices: (graph: FOLD, remove_indices?: number[]) => any;
-    makeVerticesCoords3DFolded: ({ vertices_coords, vertices_faces, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, faces_matrix, }: FOLD, rootFaces?: number[]) => number[][];
-    makeVerticesCoordsFlatFolded: ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, }: FOLD, rootFaces?: number[]) => number[][];
-    makeVerticesCoordsFolded: (graph: FOLD, rootFaces?: number[]) => number[][];
-    makeVerticesCoordsFoldedFromMatrix2: ({ vertices_coords, vertices_faces, faces_vertices, }: FOLD, faces_matrix: number[][]) => number[][];
+    makeVerticesCoords3DFolded: ({ vertices_coords, vertices_faces, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, faces_matrix, }: FOLD, rootFaces?: number[]) => [number, number, number][];
+    makeVerticesCoordsFlatFolded: ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, }: FOLD, rootFaces?: number[]) => [number, number][];
+    makeVerticesCoordsFolded: (graph: FOLD, rootFaces?: number[]) => ([number, number] | [number, number, number])[];
+    makeVerticesCoordsFoldedFromMatrix2: ({ vertices_coords, vertices_faces, faces_vertices, }: FOLD, faces_matrix: number[][]) => [number, number][];
     duplicateVertices: ({ vertices_coords }: FOLD, epsilon?: number) => number[][];
     removeDuplicateVertices: (graph: FOLD, epsilon?: number, makeAverage?: boolean) => any;
     getOtherVerticesInEdges: ({ edges_vertices }: FOLD, vertex: number, edges: number[]) => number[];
@@ -286,8 +290,13 @@ declare const _default: {
         origin: any;
     }, epsilon?: number) => any;
     getEdgesCollinearToLine: ({ vertices_coords, edges_vertices, vertices_edges }: FOLD, { vector, origin }: VecLine, epsilon?: number) => number[];
-    flatFold: (graph: any, { vector, origin }: number[], assignment?: string, epsilon?: number) => any;
-    foldCreasePattern: ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_edges, faces_faces, }: FOLD, { vector, origin }: VecLine, assignment?: string, epsilon?: number) => any[];
+    flatFold: (graph: FOLDFileMetadata & FOLDFrame & FOLDOutOfSpec & {
+        faces_matrix2: number[][];
+        faces_winding: boolean[];
+        faces_crease: VecLine2[];
+        faces_side: boolean[];
+    }, { vector, origin }: VecLine2, assignment?: string, epsilon?: number) => any;
+    foldCreasePattern: ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_edges, faces_faces, }: FOLD, { vector, origin }: VecLine2, assignment?: string, epsilon?: number) => any[];
     makeFacesWinding: ({ vertices_coords, faces_vertices }: FOLD) => boolean[];
     makeFacesWindingFromMatrix: (faces_matrix: number[][]) => boolean[];
     makeFacesWindingFromMatrix2: (faces_matrix2: number[][]) => boolean[];

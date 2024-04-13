@@ -18,18 +18,16 @@ export const parseCSSStyleSheet = (sheet) => {
 	for (let i = 0; i < sheet.cssRules.length; i += 1) {
 		const cssRules = sheet.cssRules[i];
 		if (cssRules.constructor.name !== "CSSStyleRule") { continue; }
-		// /** @type {CSSStyleRule|undefined} */
-		// const cssStyleRule = sheet.cssRules[i].constructor.name !== "CSSStyleRule"
-		// 	? sheet.cssRules[i]
-		// 	: undefined;
+		/** @type {any} CSSStyleRule */
+		const cssStyleRule = cssRules;
 		// if (cssRules.type !== 1) { continue; }
-		const selectorList = cssRules.selectorText
+		const selectorList = cssStyleRule.selectorText
 			.split(/,/gm)
 			.filter(Boolean)
 			.map(str => str.trim());
 		const style = {};
-		Object.values(cssRules.style)
-			.forEach(key => { style[key] = cssRules.style[key]; });
+		Object.values(cssStyleRule.style)
+			.forEach(key => { style[key] = cssStyleRule.style[key]; });
 		selectorList.forEach(selector => {
 			stylesheets[selector] = style;
 		});

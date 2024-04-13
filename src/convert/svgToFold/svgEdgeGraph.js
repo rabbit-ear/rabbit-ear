@@ -81,7 +81,7 @@ const makeAssignmentFoldAngle = (segments, options) => {
  * yet a planar graph, no faces, and possible edge overlaps.
  */
 const svgEdgeGraph = (svg, options) => {
-	const segments = svgSegments(svg, options);
+	const segments = svgSegments(svg); // , options);
 	const {
 		edges_assignment,
 		edges_foldAngle,

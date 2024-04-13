@@ -15,7 +15,6 @@
  * clustered, and the plane's normal is established, and all faces_winding
  * winding orders are based off of this common plane normal.
  * @param {FOLD} graph a FOLD object
- * @param {string[]} facePairs an array of space-separated face-pair strings
  * @param {boolean[]} faces_winding for every face, true if the face's
  * winding is counter-clockwise, false if clockwise.
  * @returns {{[key: string]: number}} an object describing all the
