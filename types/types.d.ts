@@ -1,4 +1,10 @@
-type FOLD = {
+type FOLDFrame = {
+    frame_author?: string;
+    frame_title?: string;
+    frame_description?: string;
+    frame_classes?: string[];
+    frame_attributes?: string[];
+    frame_unit?: string;
     vertices_coords?: [number, number][] | [number, number, number][];
     vertices_vertices?: number[][];
     vertices_edges?: number[][];
@@ -13,28 +19,29 @@ type FOLD = {
     faces_faces?: (number | null | undefined)[][];
     faceOrders?: [number, number, number][];
     edgeOrders?: [number, number, number][];
-    file_frames?: FOLD[];
+};
+type FOLDInternalFrame = FOLDFrame & {
+    frame_parent?: number;
+    frame_inherit?: boolean;
+};
+type FOLDFileMetadata = {
+    file_frames?: FOLDInternalFrame[];
     file_spec?: number;
     file_creator?: string;
     file_author?: string;
     file_title?: string;
     file_description?: string;
     file_classes?: string[];
-    frame_author?: string;
-    frame_title?: string;
-    frame_description?: string;
-    frame_classes?: string[];
-    frame_attributes?: string[];
-    frame_unit?: string;
-    frame_parent?: number;
-    frame_inherit?: boolean;
+};
+type FOLDOutOfSpec = {
     faces_center?: ([number, number] | [number, number, number])[];
     faces_normal?: ([number, number] | [number, number, number])[];
-    edges_vector?: number[][];
+    edges_vector?: ([number, number] | [number, number, number])[];
     faces_polygon?: ([number, number] | [number, number, number])[][];
     faces_matrix?: number[][];
     vertices_sectors?: number[][];
 };
+type FOLD = FOLDFileMetadata & FOLDFrame & FOLDOutOfSpec;
 type VecLine2 = {
     vector: [number, number];
     origin: [number, number];
@@ -79,3 +86,10 @@ type LayerFork = {
     branches?: LayerFork[][];
 };
 type LayerSolverSolution = LayerFork;
+type FaceOrdersBranch = FaceOrdersFork[];
+type FaceOrders = [number, number, number][];
+type FaceOrdersFork = {
+    orders: [number, number, number][];
+    branches?: FaceOrdersFork[][];
+};
+type FaceOrdersSolverSolution = FaceOrdersFork;

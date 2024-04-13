@@ -8,7 +8,7 @@ export function intersectLine({ vertices_coords, edges_vertices, faces_vertices,
     edges: (object | undefined)[];
     faces: (object | undefined)[];
 };
-export function intersectLineAndPoints({ vertices_coords, edges_vertices, faces_vertices, faces_edges }: FOLD, { vector, origin }: VecLine2, lineDomain?: Function, interiorPoints?: number[][], epsilon?: number): {
+export function intersectLineAndPoints({ vertices_coords, edges_vertices, faces_vertices, faces_edges }: FOLD, { vector, origin }: VecLine2, lineDomain?: Function, interiorPoints?: [number, number][], epsilon?: number): {
     vertices: number[];
     edges: (object | undefined)[];
     faces: (object | undefined)[];

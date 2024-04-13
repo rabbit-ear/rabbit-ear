@@ -12,10 +12,7 @@ import {
 } from "../../math/convert.js";
 import {
 	magnitude,
-	normalize,
 	subtract,
-	subtract2,
-	subtract3,
 	resize2,
 	resize3,
 	dot,

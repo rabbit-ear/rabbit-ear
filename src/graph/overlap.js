@@ -31,11 +31,10 @@ import {
 	chooseTwoPairs,
 	clustersToReflexiveArrays,
 	arrayArrayToLookupArray,
-	lookupArrayToArrayArray,
 } from "../general/array.js";
 import {
 	getEdgesLine,
-	edgeToLine,
+	edgesToLines2,
 } from "./edges/lines.js";
 import {
 	makeFacesPolygon,
@@ -52,9 +51,9 @@ import {
 import {
 	getVerticesClusters,
 } from "./vertices/clusters.js";
-import {
-	getSimilarEdges,
-} from "./edges/duplicate.js";
+// import {
+// 	getSimilarEdges,
+// } from "./edges/duplicate.js";
 
 /**
  * @description For every face, get a list of all other faces
@@ -143,7 +142,10 @@ export const getEdgesEdgesCollinearOverlap = ({
 
 	invertFlatToArrayMap(edges_line)
 		.flatMap(edges => chooseTwoPairs(edges))
-		.filter(pair => doRangesOverlap(...pair.map(edge => edges_range[edge]), epsilon))
+		.filter(pair => {
+			const [a, b] = pair.map(edge => edges_range[edge]);
+			return doRangesOverlap(a, b, epsilon);
+		})
 		.forEach(([a, b]) => {
 			edgesEdgesOverlap[a].push(b);
 			edgesEdgesOverlap[b].push(a);
@@ -170,11 +172,11 @@ export const getOverlappingComponents = ({
 	vertices_coords, edges_vertices, faces_vertices,
 }, epsilon = EPSILON) => {
 	// prepare edges and faces into their geometric forms (line, polygon)
-	const edgesLine = edges_vertices
-		.map((_, e) => edgeToLine({ vertices_coords, edges_vertices }, e));
+	const vertices_coords2 = vertices_coords.map(resize2);
+	const edgesLine = edgesToLines2({ vertices_coords, edges_vertices });
 	const facesPolygon = faces_vertices
 		.map(vertices => vertices
-			.map(v => vertices_coords[v]));
+			.map(v => vertices_coords2[v]));
 
 	const similarVertices = getVerticesClusters({ vertices_coords }, epsilon);
 	const verticesVertices = arrayArrayToLookupArray(
@@ -209,7 +211,12 @@ export const getOverlappingComponents = ({
 			.map((_, v) => v)
 			// .filter(v => !faces_vertices[f].includes(v)
 			// 	&& overlapConvexPolygonPoint(polygon, vertices_coords[v], exclude, epsilon).overlap)
-			.filter(v => overlapConvexPolygonPoint(polygon, vertices_coords[v], exclude, epsilon).overlap)
+			.filter(v => overlapConvexPolygonPoint(
+				polygon,
+				vertices_coords2[v],
+				exclude,
+				epsilon,
+			).overlap)
 			.forEach(v => { facesVertices[f][v] = true; }));
 
 	return {

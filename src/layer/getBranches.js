@@ -42,6 +42,7 @@ export const getBranches = (
 		// if the key already been visited, move onto the next.
 		if (!keys[remainingKeys[i]]) { i += 1; continue; }
 		// this marks the beginning of a new group.
+		/** @type {string[]} */
 		const group = [];
 		// create a new stack (and stackHash containing duplicate data)
 		// beginning with the first unvisited key

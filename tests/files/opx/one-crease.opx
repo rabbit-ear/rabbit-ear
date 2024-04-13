@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<java version="21.0.2" class="java.beans.XMLDecoder">
+ <object class="oripa.DataSet" id="DataSet0">
+  <void class="oripa.DataSet" method="getField">
+   <string>lines</string>
+   <void method="set">
+    <object idref="DataSet0"/>
+    <array class="oripa.OriLineProxy" length="5">
+     <void index="0">
+      <object class="oripa.OriLineProxy">
+       <void property="type">
+        <int>2</int>
+       </void>
+       <void property="x0">
+        <double>200.0</double>
+       </void>
+       <void property="x1">
+        <double>-200.0</double>
+       </void>
+       <void property="y0">
+        <double>-200.0</double>
+       </void>
+       <void property="y1">
+        <double>200.0</double>
+       </void>
+      </object>
+     </void>
+     <void index="1">
+      <object class="oripa.OriLineProxy">
+       <void property="type">
+        <int>1</int>
+       </void>
+       <void property="x0">
+        <double>-200.0</double>
+       </void>
+       <void property="x1">
+        <double>200.0</double>
+       </void>
+       <void property="y0">
+        <double>-200.0</double>
+       </void>
+       <void property="y1">
+        <double>-200.0</double>
+       </void>
+      </object>
+     </void>
+     <void index="2">
+      <object class="oripa.OriLineProxy">
+       <void property="type">
+        <int>1</int>
+       </void>
+       <void property="x0">
+        <double>200.0</double>
+       </void>
+       <void property="x1">
+        <double>200.0</double>
+       </void>
+       <void property="y0">
+        <double>200.0</double>
+       </void>
+       <void property="y1">
+        <double>-200.0</double>
+       </void>
+      </object>
+     </void>
+     <void index="3">
+      <object class="oripa.OriLineProxy">
+       <void property="type">
+        <int>1</int>
+       </void>
+       <void property="x0">
+        <double>200.0</double>
+       </void>
+       <void property="x1">
+        <double>-200.0</double>
+       </void>
+       <void property="y0">
+        <double>200.0</double>
+       </void>
+       <void property="y1">
+        <double>200.0</double>
+       </void>
+      </object>
+     </void>
+     <void index="4">
+      <object class="oripa.OriLineProxy">
+       <void property="type">
+        <int>1</int>
+       </void>
+       <void property="x0">
+        <double>-200.0</double>
+       </void>
+       <void property="x1">
+        <double>-200.0</double>
+       </void>
+       <void property="y0">
+        <double>-200.0</double>
+       </void>
+       <void property="y1">
+        <double>200.0</double>
+       </void>
+      </object>
+     </void>
+    </array>
+   </void>
+  </void>
+  <void class="oripa.DataSet" method="getField">
+   <string>title</string>
+   <void method="set">
+    <object idref="DataSet0"/>
+    <string>one single crease</string>
+   </void>
+  </void>
+  <void class="oripa.DataSet" method="getField">
+   <string>editorName</string>
+   <void method="set">
+    <object idref="DataSet0"/>
+    <string>Kraft</string>
+   </void>
+  </void>
+  <void class="oripa.DataSet" method="getField">
+   <string>originalAuthorName</string>
+   <void method="set">
+    <object idref="DataSet0"/>
+    <string>traditional</string>
+   </void>
+  </void>
+  <void class="oripa.DataSet" method="getField">
+   <string>reference</string>
+   <void method="set">
+    <object idref="DataSet0"/>
+    <string>no references</string>
+   </void>
+  </void>
+  <void class="oripa.DataSet" method="getField">
+   <string>memo</string>
+   <void method="set">
+    <object idref="DataSet0"/>
+    <string>this is a square with one diagonal crease</string>
+   </void>
+  </void>
+  <void property="mainVersion">
+   <int>2</int>
+  </void>
+  <void property="paperSize">
+   <double>400.0</double>
+  </void>
+  <void property="subVersion">
+   <int>1</int>
+  </void>
+ </object>
+</java>

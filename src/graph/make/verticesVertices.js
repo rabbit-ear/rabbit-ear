@@ -141,7 +141,7 @@ export const makeVerticesVerticesFromFaces = ({
 				if (lookup.facesVerts[faceIndex][1] === prev) {
 					nextKey = lookup.facesVerts[faceIndex][0];
 				}
-				if (nextKey === undefined) { return "not found"; }
+				if (nextKey === undefined) { return []; }
 				const nextKeyFlipped = nextKey.split(" ").reverse().join(" ");
 				walk.push(nextKey);
 				// this indicates the end of a walk which completed a cycle

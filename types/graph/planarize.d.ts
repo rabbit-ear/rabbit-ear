@@ -24,6 +24,6 @@ export default planarize;
  * M/V above all, then perhaps Cut/Join, then unassigned, then boundary/flat.
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {object} a summary of changes to the graph
+ * @returns {FOLD} a planarized FOLD object
  */
-declare function planarize({ vertices_coords, edges_vertices, edges_assignment, edges_foldAngle, }: FOLD, epsilon?: number): object;
+declare function planarize({ vertices_coords, edges_vertices, edges_assignment, edges_foldAngle, }: FOLD, epsilon?: number): FOLD;

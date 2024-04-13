@@ -125,9 +125,15 @@ export const collinearBetween = (p0, p1, p2, inclusive = false, epsilon = EPSILO
 // };
 
 /**
- * @description a subroutine of pleat(), if we identify that
- * the two lines are parallel.
- * @returns {[VecLine2[], VecLine2[]]} an array of lines, objects with "vector" and "origin"
+ * @description a subroutine of pleat(). If we know that the two lines are
+ * parallel, this will pleat between the two parallel lines, additionally,
+ * it will handle the case where two lines are parallel, but their vectors
+ * are 180 flipped from each other, ensuring the pleat lines do not lerp
+ * between two 180-degree flipped states.
+ * @param {VecLine2} a
+ * @param {VecLine2} b
+ * @param {number} count
+ * @returns {[VecLine2[], VecLine2[]]} an array of lines
  */
 const parallelPleat = (a, b, count) => {
 	const isOpposite = dot(a.vector, b.vector) < 0;
@@ -165,8 +171,8 @@ export const pleat = (a, b, count, epsilon = EPSILON) => {
 	const determinant = cross2(a.vector, b.vector);
 	const numerator = cross2(subtract2(b.origin, a.origin), b.vector);
 	const t = numerator / determinant;
-	const normalized = [a.vector, b.vector].map(vec => normalize2(vec));
-	const isParallel = Math.abs(cross2(normalized[0], normalized[1])) < epsilon;
+	const [aNormalized, bNormalized] = [a.vector, b.vector].map(normalize2);
+	const isParallel = Math.abs(cross2(aNormalized, bNormalized)) < epsilon;
 	if (isParallel) {
 		return parallelPleat(a, b, count);
 	}
@@ -188,22 +194,11 @@ export const pleat = (a, b, count, epsilon = EPSILON) => {
 	// the origin of the lines will be either the intersection,
 	// or in the case of parallel, a lerp between the two line origins.
 	const origins = Array.from(Array(count - 1)).map(() => intersection);
-	// return pleatVectors
-	// 	.map(side => side.map((vector, i) => ({
-	// 		vector: [vector[0], vector[1]],
-	// 		origin: [origins[i][0], origins[i][1]],
-	// 	})));
 
-	return [
-		pleatVectors[0].map((vector, i) => ({
-			vector: [vector[0], vector[1]],
-			origin: [origins[i][0], origins[i][1]],
-		})),
-		pleatVectors[1].map((vector, i) => ({
-			vector: [vector[0], vector[1]],
-			origin: [origins[i][0], origins[i][1]],
-		})),
-	];
+	const [sideA, sideB] = pleatVectors
+		.map(side => side
+			.map((vector, i) => ({ vector, origin: origins[i] })));
+	return [sideA, sideB];
 };
 
 /**

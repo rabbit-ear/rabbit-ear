@@ -8,6 +8,7 @@ import {
 	scale2,
 	subtract,
 	subtract2,
+	resize2,
 	rotate90,
 	rotate270,
 } from "./vector.js";
@@ -45,15 +46,15 @@ export const pointsToLine = (origin, point2) => ({
  * @description Given two points, create a vector-origin line representation
  * of a line that passes through both points. This will work in n-dimensions.
  * If there are more than two points, the rest will be ignored.
- * @param {[number, number]} origin
+ * @param {[number, number]|[number, number, number]} origin
  * one point, itself an array of numbers
- * @param {[number, number]} point2
+ * @param {[number, number]|[number, number, number]} point2
  * one point, itself an array of numbers
  * @returns {VecLine2} an object with "vector" and "origin".
  */
 export const pointsToLine2 = (origin, point2) => ({
 	vector: subtract2(point2, origin),
-	origin,
+	origin: resize2(origin),
 });
 
 /**

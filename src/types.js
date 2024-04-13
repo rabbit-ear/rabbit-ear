@@ -2,13 +2,19 @@
  * Rabbit Ear (c) Kraft
  */
 
-// todo: FOLD definition should contain a better recursive definition,
-// the inner frames cannot contain FILE information
-//*   vertices_coords?: ([number, number] | [number, number, number])[],
+// todo:
+// should vertices coords be like this?
+//   vertices_coords?: ([number, number] | [number, number, number])[],
 
 /**
- * @typedef FOLD
+ * @typedef FOLDFrame
  * @type {{
+ *   frame_author?: string,
+ *   frame_title?: string,
+ *   frame_description?: string,
+ *   frame_classes?: string[],
+ *   frame_attributes?: string[],
+ *   frame_unit?: string,
  *   vertices_coords?: [number, number][]|[number, number, number][],
  *   vertices_vertices?: number[][],
  *   vertices_edges?: number[][],
@@ -23,31 +29,15 @@
  *   faces_faces?: (number | null | undefined)[][],
  *   faceOrders?: [number, number, number][],
  *   edgeOrders?: [number, number, number][],
- *   file_frames?: FOLD[],
- *   file_spec?: number,
- *   file_creator?: string,
- *   file_author?: string,
- *   file_title?: string,
- *   file_description?: string,
- *   file_classes?: string[],
- *   frame_author?: string,
- *   frame_title?: string,
- *   frame_description?: string,
- *   frame_classes?: string[],
- *   frame_attributes?: string[],
- *   frame_unit?: string,
- *   frame_parent?: number,
- *   frame_inherit?: boolean,
- *   faces_center?: ([number, number] | [number, number, number])[],
- *   faces_normal?: ([number, number] | [number, number, number])[],
- *   edges_vector?: number[][],
- *   faces_polygon?: ([number, number] | [number, number, number])[][],
- *   faces_matrix?: number[][],
- *   vertices_sectors?: number[][],
  * }}
- * @description A Javascript object representation of a FOLD file which follows the FOLD
- * specification in that it contains any number of the geometry arrays.
- * @property {number[][]} [vertices_coords] xy or xyz coordinates of the vertices
+ * @property {string} [frame_author] metadata
+ * @property {string} [frame_title] metadata
+ * @property {string} [frame_description] metadata
+ * @property {string[]} [frame_classes] metadata
+ * @property {string[]} [frame_attributes] metadata
+ * @property {string} [frame_unit] metadata
+ * @property {[number, number][]|[number, number, number][]} [vertices_coords]
+ * xy or xyz coordinates of the vertices
  * @property {number[][]} [vertices_vertices] for each vertex all adjacent vertices
  * @property {number[][]} [vertices_edges] for each vertex all adjacent edges
  * @property {(number | null | undefined)[][]} [vertices_faces] for each vertex all adjacent faces
@@ -55,31 +45,70 @@
  * @property {(number | null | undefined)[][]} [edges_faces] for each edge all adjacent faces
  * @property {string[]} [edges_assignment] single-character fold assignment of each edge
  * @property {number[]} [edges_foldAngle] in degrees, the fold angle of each edge
+ * @property {number[]} [edges_length] length of each edge
  * @property {number[][]} [faces_vertices] for each face, all adjacent vertices
  * @property {number[][]} [faces_edges] for each face, all adjacent edges
  * @property {(number | null | undefined)[][]} [faces_faces] for each face, all adjacent faces
- * @property {FOLD[]} [file_frames] array of embedded FOLD objects, good for representing
- * a linear sequence like diagram steps for example.
+ * @property {[number, number, number][]} [faceOrders] a series of layer
+ * ordering rules between pairs of faces
+ * @property {[number, number, number][]} [edgeOrders] a series of layer
+ * ordering rules between pairs of edges
+ */
+
+/**
+ * @typedef FOLDInternalFrame
+ * @type {FOLDFrame & {
+ *   frame_parent?: number,
+ *   frame_inherit?: boolean,
+ * }}
+ * @property {number} [frame_parent] metadata
+ * @property {boolean} [frame_inherit] metadata
+ */
+
+/**
+ * @typedef FOLDFileMetadata
+ * @type {{
+ *   file_frames?: FOLDInternalFrame[],
+ *   file_spec?: number,
+ *   file_creator?: string,
+ *   file_author?: string,
+ *   file_title?: string,
+ *   file_description?: string,
+ *   file_classes?: string[],
+ * }}
+ * @property {FOLDInternalFrame[]} [file_frames] array of embedded FOLD frames,
+ * good for representing a linear sequence like diagram steps for example.
  * @property {number} [file_spec] metadata
  * @property {string} [file_creator] metadata
  * @property {string} [file_author] metadata
  * @property {string} [file_title] metadata
  * @property {string} [file_description] metadata
  * @property {string[]} [file_classes] metadata
- * @property {string} [frame_author] metadata
- * @property {string} [frame_title] metadata
- * @property {string} [frame_description] metadata
- * @property {string[]} [frame_classes] metadata
- * @property {string[]} [frame_attributes] metadata
- * @property {string} [frame_unit] metadata
- * @property {number} [frame_parent] metadata
- * @property {boolean} [frame_inherit] metadata
- * @property {number[][]} [faces_center] out-of-spec data
- * @property {number[][]} [faces_normal] out-of-spec data
- * @property {number[][]} [edges_vector] out-of-spec data
- * @property {number[][][]} [faces_polygon] out-of-spec data
- * @property {number[][]} [faces_matrix] out-of-spec data
- * @property {number[][]} [vertices_sectors] out-of-spec data
+ */
+
+/**
+ * @typedef FOLDOutOfSpec
+ * @type {{
+ *   faces_center?: ([number, number] | [number, number, number])[],
+ *   faces_normal?: ([number, number] | [number, number, number])[],
+ *   edges_vector?: ([number, number] | [number, number, number])[],
+ *   faces_polygon?: ([number, number] | [number, number, number])[][],
+ *   faces_matrix?: number[][],
+ *   vertices_sectors?: number[][],
+ * }}
+ * @property {([number, number] | [number, number, number])[]} [faces_center]
+ * @property {([number, number] | [number, number, number])[]} [faces_normal]
+ * @property {([number, number] | [number, number, number])[]} [edges_vector]
+ * @property {([number, number] | [number, number, number])[][]} [faces_polygon]
+ * @property {number[][]} [faces_matrix]
+ * @property {number[][]} [vertices_sectors]
+ */
+
+/**
+ * @typedef FOLD
+ * @type {FOLDFileMetadata & FOLDFrame & FOLDOutOfSpec}
+ * @description A Javascript object encoding of a FOLD file
+ * which adheres to the FOLD file format specification.
  * @example
  * {
  *   vertices_coords: [[0, 0], [1, 0], [1, 1], [0, 1]],
@@ -256,4 +285,30 @@
  *   ],
  * }
  *
+ */
+
+
+/**
+ * @typedef FaceOrdersBranch
+ * @type {FaceOrdersFork[]}
+ * @description To compile a solution, you must include
+ * a selection from every Branch inside this FaceOrdersBranchs array.
+  *
+ * @typedef FaceOrders
+ * @type {[number, number, number][]}
+ * @description an array of faceOrders. faces a and b: [a, b, solution]
+  *
+ * @typedef FaceOrdersFork
+ * @type {{ orders: FaceOrders, branches?: FaceOrdersBranch[] }}
+ * @description To compile a solution, you must choose only one item
+ * from this list. Each item is a copy of one another, but with
+ * different values.
+  *
+ * @typedef FaceOrdersSolverSolution
+ * @type {FaceOrdersFork}
+ * @example In this example there are three "branches", one top-level,
+ * and two more inside of this one each at a similar depth.
+ * The top-level branch contains two all-branches (each happen to be
+ * identical in structure), and each of these all-branches contain
+ * two choice-branches.
  */

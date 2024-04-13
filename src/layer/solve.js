@@ -36,6 +36,21 @@ import {
 } from "./general.js";
 
 /**
+ * @param {LayerFork} solutionBranch
+ * @param {boolean[]} faces_winding
+ * @returns {FaceOrdersSolverSolution}
+ */
+const layerSolutionToFaceOrdersTree = ({ orders, branches }, faces_winding) => (
+	branches === undefined
+		? ({ orders: solverSolutionToFaceOrders(orders, faces_winding) })
+		: ({
+			orders: solverSolutionToFaceOrders(orders, faces_winding),
+			branches: branches
+				.map(inner => inner
+					.map(b => layerSolutionToFaceOrdersTree(b, faces_winding))),
+		}));
+
+/**
  * @description Find all possible layer orderings of the faces
  * in a flat-foldable origami model. The result contains all possible
  * solutions, use the prototype methods available on this return object
@@ -44,7 +59,7 @@ import {
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {{
  *   orders: {[key:string]: number},
- *   branches: {[key:string]: number}[][],
+ *   branches?: LayerBranch[],
  *   faces_winding: boolean[],
  * }} an object that describes all layer orderings, where the "root" orders
  * are true for all solutions, and each object in "branches" can be appended
@@ -59,7 +74,7 @@ export const solveLayerOrders = ({
 
 	// necessary conditions for the layer solver to work
 	if (!vertices_coords || !edges_vertices || !faces_vertices) {
-		return { root: {}, branches: [], faces_winding: [] };
+		return { orders: {}, faces_winding: [] };
 	}
 	if (!faces_edges) {
 		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
@@ -115,28 +130,11 @@ export const solveLayerOrders = ({
 };
 
 /**
- *
- */
-export const solveFaceOrders = (graph, epsilon) => {
-	const {
-		faces_winding,
-		...result
-	} = solveLayerOrders(graph, epsilon);
-
-	const recurse = ({ orders, branches }) => (branches === undefined
-		? ({ orders: solverSolutionToFaceOrders(orders, faces_winding) })
-		: ({
-			orders: solverSolutionToFaceOrders(orders, faces_winding),
-			branches: branches.map(inner => inner.map(recurse)),
-		}));
-
-	return recurse(result);
-};
-
-/**
  * @description Keeping this around for legacy reasons.
  * This is the layer solver that builds one top-level branch
  * and no more.
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
  */
 export const solveLayerOrdersSingleBranches = ({
 	vertices_coords, edges_vertices, edges_faces, edges_assignment,
@@ -144,7 +142,7 @@ export const solveLayerOrdersSingleBranches = ({
 }, epsilon) => {
 	// necessary conditions for the layer solver to work
 	if (!vertices_coords || !edges_vertices || !faces_vertices) {
-		return { root: {}, branches: [], faces_winding: [] };
+		return { orders: {}, faces_winding: [] };
 	}
 	if (!faces_edges) {
 		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
@@ -182,7 +180,6 @@ export const solveLayerOrdersSingleBranches = ({
 	};
 };
 
-
 /**
  * @description Find all possible layer orderings of the faces
  * in a 3D folded origami. The result contains all possible
@@ -196,7 +193,7 @@ export const solveLayerOrdersSingleBranches = ({
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {{
  *   orders: {[key:string]: number},
- *   branches: {[key:string]: number}[][],
+ *   branches?: LayerBranch[],
  *   faces_winding: boolean[],
  * }} an object that describes all layer orderings, where the "root" orders
  * are true for all solutions, and each object in "branches" can be appended
@@ -211,7 +208,7 @@ export const solveLayerOrders3D = ({
 
 	// necessary conditions for the layer solver to work
 	if (!vertices_coords || !edges_vertices || !faces_vertices) {
-		return { root: {}, branches: [], faces_winding: [] };
+		return { orders: {}, faces_winding: [] };
 	}
 	if (!faces_edges) {
 		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
@@ -265,7 +262,23 @@ export const solveLayerOrders3D = ({
 };
 
 /**
- *
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {FaceOrdersSolverSolution}
+ */
+export const solveFaceOrders = (graph, epsilon) => {
+	const {
+		faces_winding,
+		...result
+	} = solveLayerOrders(graph, epsilon);
+
+	return layerSolutionToFaceOrdersTree(result, faces_winding);
+};
+
+/**
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {FaceOrdersSolverSolution}
  */
 export const solveFaceOrders3D = (graph, epsilon) => {
 	const {
@@ -273,12 +286,5 @@ export const solveFaceOrders3D = (graph, epsilon) => {
 		...result
 	} = solveLayerOrders3D(graph, epsilon);
 
-	const recurse = ({ orders, branches }) => (branches === undefined
-		? ({ orders: solverSolutionToFaceOrders(orders, faces_winding) })
-		: ({
-			orders: solverSolutionToFaceOrders(orders, faces_winding),
-			branches: branches.map(inner => inner.map(recurse)),
-		}));
-
-	return recurse(result);
+	return layerSolutionToFaceOrdersTree(result, faces_winding);
 };

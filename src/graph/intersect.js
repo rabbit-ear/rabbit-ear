@@ -14,9 +14,10 @@ import {
 	dot2,
 	cross2,
 	subtract2,
+	resize2,
 } from "../math/vector.js";
 import {
-	pointsToLine,
+	pointsToLine2,
 } from "../math/convert.js";
 import {
 	intersectLineLine,
@@ -125,7 +126,7 @@ export const intersectLineVerticesEdges = (
 		.map(([s0, s1], e) => (edgesVerticesOverlap[e].length === 0
 			? intersectLineLine(
 				{ vector, origin },
-				pointsToLine(s0, s1),
+				pointsToLine2(s0, s1),
 				lineDomain,
 				includeS,
 			)
@@ -258,7 +259,7 @@ export const intersectLine = (
  * @param {VecLine2} line a line/ray/segment in vector origin form
  * @param {Function} lineDomain the function which characterizes "line"
  * parameter into a line, ray, or segment.
- * @param {number[][]} [interiorPoints=[]] in the case of a ray or segment,
+ * @param {[number, number][]} [interiorPoints=[]] in the case of a ray or segment,
  * include the endpoint(s) and they will be included if they appear in a face.
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {{
@@ -314,10 +315,11 @@ export const intersectLineAndPoints = (
 	// does a point lie inside of the face, and if so, include it in this list.
 	// The result is an object containing a "point" {number[]} and "t" {number[]}
 	// this "t" parameter can be used later to trilaterate the position again.
+	const vertices_coords2 = vertices_coords.map(resize2);
 	const facesInteriorPoints = !interiorPoints.length
 		? faces.map(() => [])
 		: faces.map((_, face) => {
-			const polygon = faces_vertices[face].map(v => vertices_coords[v]);
+			const polygon = faces_vertices[face].map(v => vertices_coords2[v]);
 			const pointsOverlap = interiorPoints.map(point => ({
 				...overlapConvexPolygonPoint(polygon, point, exclude, epsilon),
 				point,

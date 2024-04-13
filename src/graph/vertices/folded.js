@@ -13,6 +13,7 @@ import {
 	subtract2,
 	rotate270,
 	rotate90,
+	resize2,
 	resize3,
 } from "../../math/vector.js";
 import {
@@ -208,5 +209,6 @@ export const makeVerticesCoordsFoldedFromMatrix2 = ({
 			: faces_matrix[face]));
 
 	return vertices_coords
-		.map(([x, y], i) => multiplyMatrix2Vector2(vertices_matrix[i], [x, y]));
+		.map(resize2)
+		.map((point, i) => multiplyMatrix2Vector2(vertices_matrix[i], point))
 };

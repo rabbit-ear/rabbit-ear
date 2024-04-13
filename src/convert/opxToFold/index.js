@@ -1,18 +1,32 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { makeEdgesFoldAngle } from "../../graph/make/edgesFoldAngle.js";
+import RabbitEarWindow from "../../environment/window.js";
 import planarizeGraph from "../general/planarizeGraph.js";
-import { xmlStringToElement } from "../../svg/general/dom.js";
 import {
 	findEpsilonInObject,
 	invertVertical,
 } from "../general/options.js";
+import {
+	makeEdgesFoldAngle,
+} from "../../graph/make/edgesFoldAngle.js";
+
+// there is probably a better way of coding this using XPath
+// although that requires an additional dependency
+
+/**
+ * @param {string} input a DOM string
+ * @param {string} [mimeType="text/xml"]
+ * @returns {Document}
+ */
+const xmlStringToDocument = (input, mimeType = "text/xml") => (
+	(new (RabbitEarWindow().DOMParser)()).parseFromString(input, mimeType)
+);
 
 /**
  * @description given a parsed xml object, get the branch which
  * contains a node which has some node containing the value specified.
- * @param {Element|null} oripa
+ * @param {any} oripa
  * @param {string} value a value to match
  * @returns {Element} a child branch which contains this value
  */
@@ -26,49 +40,17 @@ const getContainingValue = (oripa, value) => (oripa == null
 		.shift());
 
 /**
- * @description There are top level nodes which contain metadata,
- * I'm not sure how many there are, but at least I've seen:
- * memo, originalAuthorName, title
- * @param {Element|null} oripa
- * @param {string} value
- * @returns {string|null} the contents of the value
- */
-const getMetadataValue = (oripa, value) => {
-	const parentNode = getContainingValue(oripa, value);
-	const node = parentNode
-		? Array.from(parentNode.childNodes).shift()
-		: null;
-	return node
-		? node.textContent
-		: null;
-};
-
-/**
- * @description Get all line elements from the OPX file.
- * @param {Element|null} oripa
- */
-const getLines = (oripa) => {
-	const linesParent = getContainingValue(oripa, "lines");
-	const linesNode = linesParent
-		? Array.from(linesParent.childNodes)
-			.filter(el => el.getAttribute)
-			.filter(el => el.getAttribute("class")
-				.split(" ")
-				.includes("oripa.OriLineProxy"))
-			.shift()
-		: undefined;
-	return linesNode ? Array.from(linesNode.childNodes) : [];
-};
-
-/**
  * @description For each ORIPA line, extract the coordinates
  * and the assignment type. Return each line as a simple
  * Javascript object. XML Entries will be missing if
  * their value is 0, this is taken care of. All values will be
  * parsed into floats.
- * @param {object[]} lines the result of calling getLines()
+ * @param {any} oriLineProxy
+ * @returns {number[][]} array of array of numbers, each inner
+ * array describes one line.
  */
-const parseLines = (lines) => lines
+const parseOriLineProxy = (oriLineProxy) => Array
+	.from(oriLineProxy.childNodes)
 	.filter(line => line.nodeName === "void")
 	.filter(line => line.childNodes)
 	.map(line => getContainingValue(line, "oripa.OriLineProxy"))
@@ -85,46 +67,92 @@ const parseLines = (lines) => lines
 		.map(parseFloat));
 
 /**
+ * @description For each ORIPA line, extract the coordinates
+ * and the assignment type. Return each line as a simple
+ * Javascript object. XML Entries will be missing if
+ * their value is 0, this is taken care of. All values will be
+ * parsed into floats.
+ * @param {any} parsed
+ * @returns {object} object
+ */
+const parseFileMetadata = (parsed) => {
+	// this generates a list of strings looking like this
+	// [
+	// 	"lines", "title", "one single crease", "editorName", "Kraft",
+	// 	"originalAuthorName", "traditional", "reference", "no references",
+	// 	"memo", "this is a square with one diagonal crease",
+	// ]
+	const strings = Array
+		.from(parsed.getElementsByTagName("string"))
+		.map(el => Array.from(el.childNodes)
+			.map(ch => ch.nodeValue)
+			.filter(str => str !== "")
+			.shift());
+
+	const titleIndex = strings.indexOf("title");
+	const editorNameIndex = strings.indexOf("editorName");
+	const originalAuthorNameIndex = strings.indexOf("originalAuthorName");
+	const referenceIndex = strings.indexOf("reference");
+	const memoIndex = strings.indexOf("memo");
+
+	const metadata = {
+		file_spec: 1.2,
+		file_creator: "Rabbit Ear",
+		file_classes: ["singleModel"],
+		frame_classes: ["creasePattern"],
+	};
+
+	const file_authors = [];
+	const file_descriptions = [];
+
+	if (titleIndex !== -1 && strings[titleIndex + 1]) {
+		metadata.file_title = strings[titleIndex + 1];
+	}
+	if (editorNameIndex !== -1 && strings[editorNameIndex + 1]) {
+		file_authors.push(strings[editorNameIndex + 1]);
+	}
+	if (originalAuthorNameIndex !== -1 && strings[originalAuthorNameIndex + 1]) {
+		file_authors.push(strings[originalAuthorNameIndex + 1]);
+	}
+	if (referenceIndex !== -1 && strings[referenceIndex + 1]) {
+		file_descriptions.push(strings[referenceIndex + 1]);
+	}
+	if (memoIndex !== -1 && strings[memoIndex + 1]) {
+		file_descriptions.push(strings[memoIndex + 1]);
+	}
+
+	if (file_authors.length) {
+		metadata.file_author = file_authors.join(", ");
+	}
+	if (file_descriptions.length) {
+		metadata.file_description = file_descriptions.join(", ");
+	}
+
+	return metadata;
+};
+
+/**
  * @description ORIPA line assignments are numbered.
  */
 const opxAssignment = ["F", "B", "M", "V", "U"];
 
-const makeFOLD = (lines) => {
-	const fold = {};
-	fold.vertices_coords = lines
-		.flatMap(line => [[line[1], line[3]], [line[2], line[4]]]);
-	fold.edges_vertices = lines.map((_, i) => [i * 2, i * 2 + 1]);
-	fold.edges_assignment = lines.map(line => opxAssignment[line[0]]);
-	fold.edges_foldAngle = makeEdgesFoldAngle(fold);
-	return fold;
-};
-
 /**
- * @param {string} file an ORIPA file as a string
+ * @param {number[][]} lines
+ * @returns {FOLD}
  */
-const opxEdgeGraph = (file) => {
-	const parsed = xmlStringToElement(file, "text/xml");
-	const oripa = Array.from(parsed.childNodes)
-		.filter(el => el.getAttribute)
-		.filter(el => el.getAttribute("class").split(" ").includes("oripa.DataSet"))
-		.shift();
-	return makeFOLD(parseLines(getLines(oripa)));
-};
-
-const setMetadata = (oripa, fold) => {
-	const metadata = {
-		file_description: "memo",
-		file_author: "originalAuthorName",
-		file_title: "title",
+const makeLineGraph = (lines) => {
+	/** @type {[number, number][]} */
+	const vertices_coords = lines
+		.flatMap(line => [[line[1], line[3]], [line[2], line[4]]]);
+	const edges_vertices = lines.map((_, i) => [i * 2, i * 2 + 1]);
+	const edges_assignment = lines.map(line => opxAssignment[line[0]]);
+	const edges_foldAngle = makeEdgesFoldAngle({ edges_assignment });
+	return {
+		vertices_coords,
+		edges_vertices,
+		edges_assignment,
+		edges_foldAngle,
 	};
-	Object.keys(metadata).forEach(key => {
-		metadata[key] = getMetadataValue(oripa, metadata[key]);
-	});
-	Object.keys(metadata)
-		.filter(key => metadata[key])
-		.forEach(key => { fold[key] = metadata[key]; });
-	fold.file_classes = ["singleModel"];
-	fold.frame_classes = ["creasePattern"];
 };
 
 /**
@@ -132,26 +160,56 @@ const setMetadata = (oripa, fold) => {
  * @param {string} file an ORIPA file as a string
  * @param {number | object} options an epsilon or an options object
  * used to merge nearby vertices
- * @returns {FOLD} a FOLD representation of the ORIPA file
+ * @returns {FOLD|undefined} a FOLD representation of the ORIPA file
  */
 const opxToFold = (file, options) => {
-	const parsed = xmlStringToElement(file, "text/xml");
-	const children = parsed && parsed.childNodes
-		? Array.from(parsed.childNodes)
-		: [];
-	const oripa = children
-		.filter(el => el.getAttribute)
-		.filter(el => el.getAttribute("class").split(" ").includes("oripa.DataSet"))
+	const parsed = xmlStringToDocument(file, "text/xml");
+
+	// this will match with one container element and many line elements
+	// inside of this container. get the container element only (nodeName "array")
+	// this will get us the <array class="oripa.OriLineProxy" length="28">
+	const arrayOriLineProxy = Array
+		.from(parsed.getElementsByClassName("oripa.OriLineProxy"))
+		.filter(el => el.nodeName === "array" || el.tagName === "array")
 		.shift();
-	const graph = makeFOLD(parseLines(getLines(oripa)));
+
+	const firstDataSet = Array
+		.from(parsed.getElementsByClassName("oripa.DataSet"))
+		.filter(el => el.nodeName === "object" || el.tagName === "object")
+		.shift();
+
+	if (firstDataSet === undefined || arrayOriLineProxy === undefined) {
+		return undefined;
+	}
+
+	const lines = parseOriLineProxy(arrayOriLineProxy);
+	const file_metadata = parseFileMetadata(parsed);
+	const graph = makeLineGraph(lines);
+
 	if (options && options.invertVertical && graph.vertices_coords) {
 		invertVertical(graph.vertices_coords);
 	}
 	// analysis on vertices_coords to find an appropriate epsilon
 	const epsilon = findEpsilonInObject(graph, options);
 	const planarGraph = planarizeGraph(graph, epsilon);
-	setMetadata(oripa, planarGraph);
-	return planarGraph;
+
+	return {
+		...file_metadata,
+		...planarGraph,
+	};
+};
+
+/**
+ * @param {string} file an ORIPA file as a string
+ */
+const opxEdgeGraph = (file) => {
+	const parsed = xmlStringToDocument(file, "text/xml");
+	const arrayOriLineProxy = Array
+		.from(parsed.getElementsByClassName("oripa.OriLineProxy"))
+		.filter(el => el.nodeName === "array" || el.tagName === "array")
+		.shift();
+	const lines = parseOriLineProxy(arrayOriLineProxy);
+	return makeLineGraph(lines);
 };
 
 Object.assign(opxToFold, {

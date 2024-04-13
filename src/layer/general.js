@@ -115,15 +115,16 @@ const signedLayerSolverValue = { 0: 0, 1: 1, 2: -1 };
  * @param {object} facePairOrders an object with face-pair keys and 1, 2 values
  * @param {boolean[]} faces_winding for every face, is the face aligned
  * with the stacking-axis which was used in the layer solver.
- * @returns {number[][]} faceOrders array
+ * @returns {[number, number, number][]} faceOrders array
  */
 export const solverSolutionToFaceOrders = (facePairOrders, faces_winding) => {
 	// convert the space-separated face pair keys into arrays of two integers
 	const keys = Object.keys(facePairOrders);
-	const faceOrders = keys.map(string => string.split(" ").map(n => parseInt(n, 10)));
+	const faceOrdersPairs = keys
+		.map(string => string.split(" ").map(n => parseInt(n, 10)));
 
 	// convert the value (1 or 2) into the faceOrder value (-1 or +1).
-	faceOrders.forEach((faces, i) => {
+	const solutions = faceOrdersPairs.map((faces, i) => {
 		// according to the FOLD spec, for order [f, g, s]:
 		// +1 indicates that face f lies above face g
 		// −1 indicates that face f lies below face g
@@ -132,9 +133,11 @@ export const solverSolutionToFaceOrders = (facePairOrders, faces_winding) => {
 		const value = signedLayerSolverValue[facePairOrders[keys[i]]];
 		const side = (!faces_winding[faces[1]]) ? -value : value;
 		// const side = (((value === 1) ^ (faces_aligned[faces[1]])) * -2) + 1;
-		faces.push(side);
+		return side;
 	});
-	return faceOrders;
+
+	/** @type {[number, number, number][]} */
+	return faceOrdersPairs.map(([a, b], i) => [a, b, solutions[i]]);
 };
 
 /**

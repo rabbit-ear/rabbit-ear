@@ -10,7 +10,7 @@ import {
 	includeS,
 } from "../../math/compare.js";
 import {
-	pointsToLine,
+	pointsToLine2,
 } from "../../math/convert.js";
 import {
 	mergeNextmaps,
@@ -30,7 +30,8 @@ import {
 } from "../add/vertex.js";
 
 /**
- *
+ * @param {...any[]} arrays a list of arrays
+ * @returns {number} the maximum length of all the array lengths
  */
 const arraysLengthSum = (...arrays) => arrays
 	.map(arr => arr.length)
@@ -39,9 +40,9 @@ const arraysLengthSum = (...arrays) => arrays
 /**
  * @description The internal function for splitting a graph with a line
  * @param {FOLD} graph a FOLD object, modified in place
- * @param {VecLine} line a splitting line
- * @param {function} lineDomain the domain function for the line
- * @param {number[][]} interiorPoints if the line is a segment or ray,
+ * @param {VecLine2} line a splitting line
+ * @param {Function} lineDomain the domain function for the line
+ * @param {[number, number][]} interiorPoints if the line is a segment or ray,
  * place its endpoints here
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} an object describing the changes
@@ -218,7 +219,7 @@ export const splitGraphWithLineAndPoints = (
  * @description Split a graph with a line, modifying the graph in place,
  * returning an object describing the changes to the components.
  * @param {FOLD} graph a FOLD object, modified in place
- * @param {VecLine} line a splitting line
+ * @param {VecLine2} line a splitting line
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} an object describing the changes
  */
@@ -235,7 +236,7 @@ export const splitGraphWithLine = (graph, line, epsilon = EPSILON) => (
  * @description Split a graph with a ray, modifying the graph in place,
  * returning an object describing the changes to the components.
  * @param {FOLD} graph a FOLD object, modified in place
- * @param {VecLine} ray a splitting ray
+ * @param {VecLine2} ray a splitting ray
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} an object describing the changes
  */
@@ -252,14 +253,14 @@ export const splitGraphWithRay = (graph, ray, epsilon = EPSILON) => (
  * @description Split a graph with a segment, modifying the graph in place,
  * returning an object describing the changes to the components.
  * @param {FOLD} graph a FOLD object, modified in place
- * @param {number[][]} segment a pair of points forming a line segment
+ * @param {[number, number][]} segment a pair of points forming a line segment
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} an object describing the changes
  */
 export const splitGraphWithSegment = (graph, segment, epsilon = EPSILON) => (
 	splitGraphWithLineAndPoints(
 		graph,
-		pointsToLine(...segment),
+		pointsToLine2(segment[0], segment[1]),
 		includeS,
 		segment,
 		epsilon,

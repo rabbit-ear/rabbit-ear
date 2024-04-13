@@ -48,7 +48,7 @@ export const constraintToFacePairsStrings: {
     tortilla_tortilla: (f: TortillaTortillaConstraint) => string[];
     transitivity: (f: TransitivityConstraint) => string[];
 };
-export function solverSolutionToFaceOrders(facePairOrders: object, faces_winding: boolean[]): number[][];
+export function solverSolutionToFaceOrders(facePairOrders: object, faces_winding: boolean[]): [number, number, number][];
 export function mergeWithoutOverwrite(orders: {
     [key: string]: number;
 }[]): {

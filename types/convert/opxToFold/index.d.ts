@@ -4,6 +4,6 @@ export default opxToFold;
  * @param {string} file an ORIPA file as a string
  * @param {number | object} options an epsilon or an options object
  * used to merge nearby vertices
- * @returns {FOLD} a FOLD representation of the ORIPA file
+ * @returns {FOLD|undefined} a FOLD representation of the ORIPA file
  */
-declare function opxToFold(file: string, options: number | object): FOLD;
+declare function opxToFold(file: string, options: number | object): FOLD | undefined;

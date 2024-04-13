@@ -108,7 +108,7 @@ export const makeEdgesFacesForEdge = (
 	if (faces_edges) {
 		return faces_edges
 			.map((_, f) => f)
-			.filter(face => faces_edges[face].includes(e => e === edge));
+			.filter(face => faces_edges[face].includes(edge));
 	}
 
 	return [];

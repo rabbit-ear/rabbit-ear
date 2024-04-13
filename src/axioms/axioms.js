@@ -13,14 +13,14 @@ import {
 } from "../math/compare.js";
 import {
 	normalize2,
-	cross2,
-	rotate90,
-	subtract2,
-	dot2,
-	add2,
 	distance2,
+	dot2,
+	cross2,
+	add2,
+	subtract2,
 	scale2,
 	midpoint2,
+	rotate90,
 } from "../math/vector.js";
 import {
 	bisectLines2,

@@ -1,4 +1,24 @@
 declare const _default: {
+    validateAxiom1And2: (boundary: [number, number][], point1: [number, number], point2: [number, number]) => boolean[];
+    validateAxiom3: (boundary: [number, number][], solutions: VecLine2[], line1: VecLine2, line2: VecLine2) => boolean[];
+    validateAxiom4: (boundary: [number, number][], solutions: VecLine2[], line: VecLine2, point: [number, number]) => boolean[];
+    validateAxiom5: (boundary: [number, number][], solutions: VecLine2[], line: VecLine2, point1: [number, number], point2: [number, number]) => boolean[];
+    validateAxiom6: (boundary: [number, number][], solutions: VecLine2[], line1: VecLine2, line2: VecLine2, point1: [number, number], point2: [number, number]) => boolean[];
+    validateAxiom7: (boundary: [number, number][], solutions: VecLine2[], line1: VecLine2, line2: VecLine2, point: [number, number]) => boolean[];
+    normalAxiom1InPolygon: (polygon: [number, number][], point1: [number, number], point2: [number, number]) => UniqueLine[];
+    axiom1InPolygon: (polygon: [number, number][], point1: [number, number], point2: [number, number]) => VecLine2[];
+    normalAxiom2InPolygon: (polygon: [number, number][], point1: [number, number], point2: [number, number]) => UniqueLine[];
+    axiom2InPolygon: (polygon: [number, number][], point1: [number, number], point2: [number, number]) => VecLine2[];
+    normalAxiom3InPolygon: (polygon: [number, number][], line1: UniqueLine, line2: UniqueLine) => UniqueLine[];
+    axiom3InPolygon: (polygon: [number, number][], line1: VecLine2, line2: VecLine2) => VecLine2[];
+    normalAxiom4InPolygon: (polygon: [number, number][], line: UniqueLine, point: [number, number]) => UniqueLine[];
+    axiom4InPolygon: (polygon: [number, number][], line: VecLine2, point: [number, number]) => VecLine2[];
+    normalAxiom5InPolygon: (polygon: [number, number][], line: UniqueLine, point1: [number, number], point2: [number, number]) => UniqueLine[];
+    axiom5InPolygon: (polygon: [number, number][], line: VecLine2, point1: [number, number], point2: [number, number]) => VecLine2[];
+    normalAxiom6InPolygon: (polygon: [number, number][], line1: UniqueLine, line2: UniqueLine, point1: [number, number], point2: [number, number]) => UniqueLine[];
+    axiom6InPolygon: (polygon: [number, number][], line1: VecLine2, line2: VecLine2, point1: [number, number], point2: [number, number]) => VecLine2[];
+    normalAxiom7InPolygon: (polygon: [number, number][], line1: UniqueLine, line2: UniqueLine, point: [number, number]) => UniqueLine[];
+    axiom7InPolygon: (polygon: [number, number][], line1: VecLine2, line2: VecLine2, point: [number, number]) => VecLine2[];
     normalAxiom1: (point1: [number, number], point2: [number, number]) => [UniqueLine];
     axiom1: (point1: [number, number], point2: [number, number]) => [VecLine2];
     normalAxiom2: (point1: [number, number], point2: [number, number]) => [UniqueLine];

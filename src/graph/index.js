@@ -31,7 +31,7 @@ import * as connectedComponents from "./connectedComponents.js";
 import * as directedGraph from "./directedGraph.js";
 import * as disjoint from "./disjoint.js";
 import * as explodeMethods from "./explode.js";
-import * as flaps from "./flaps.js";
+// import * as flaps from "./flaps.js";
 import * as intersect from "./intersect.js";
 import * as join from "./join.js";
 import * as maps from "./maps.js";
@@ -90,7 +90,7 @@ export default {
 	...directedGraph,
 	...disjoint,
 	...explodeMethods,
-	...flaps,
+	// ...flaps,
 	...intersect,
 	...join,
 	...make,

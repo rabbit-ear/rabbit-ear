@@ -38,9 +38,9 @@ import {
  * @description given faceOrders and a list of faces, filter the list
  * of faceOrders so that it only contains orders between faces where
  * both faces are contained in the argument subset faces array.
- * @param {number[][]} faceOrders faceOrders array, as in the FOLD spec
+ * @param {[number, number, number][]} faceOrders faceOrders array, as in the FOLD spec
  * @param {number[]} faces a list of face indices
- * @returns {number[][]} a subset of faceOrders
+ * @returns {[number, number, number][]} a subset of faceOrders
  */
 export const faceOrdersSubset = (faceOrders, faces) => {
 	const facesHash = {};
@@ -84,6 +84,7 @@ export const linearizeFaceOrders = ({ faceOrders, faces_normal }, rootFace) => {
 
 	// create a lookup. for every face, does its normal match the normal
 	// we just chose to represent the linearization direction?
+	/** @type {boolean[]} */
 	const facesNormalMatch = [];
 	faces.forEach(f => {
 		facesNormalMatch[f] = dot(faces_normal[f], normal) > 0;
@@ -92,7 +93,8 @@ export const linearizeFaceOrders = ({ faceOrders, faces_normal }, rootFace) => {
 	// this pair states face [0] is above face [1]. according to the +1 -1 order,
 	// and whether or not the reference face [1] normal is flipped. (xor either)
 	const directedEdges = faceOrders
-		.map(order => ((order[2] === -1) ^ (!facesNormalMatch[order[1]])
+		// .map(order => ((order[2] === -1) ^ (!facesNormalMatch[order[1]])
+		.map(order => ((order[2] === -1) !== (!facesNormalMatch[order[1]])
 			? [order[0], order[1]]
 			: [order[1], order[0]]));
 	return topologicalSort(directedEdges);

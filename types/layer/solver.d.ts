@@ -15,11 +15,4 @@ export function solver({ constraints, lookup, facePairs, orders }: {
     orders: {
         [key: string]: number;
     };
-}): {
-    orders: {
-        [key: string]: number;
-    };
-    branches?: {
-        [key: string]: number;
-    }[][];
-};
+}): LayerSolverSolution;

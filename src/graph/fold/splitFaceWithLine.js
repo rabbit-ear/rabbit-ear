@@ -12,6 +12,7 @@ import {
 	distance,
 	subtract,
 	subtract2,
+	resize2,
 } from "../../math/vector.js";
 import {
 	sortVerticesCounterClockwise,
@@ -42,8 +43,7 @@ import Messages from "../../environment/messages.js";
  * - intersect two edges (valid)
  * @param {FOLD} graph a FOLD object
  * @param {number} face the index of the face
- * @param {number[]} vector the vector component describing the line
- * @param {number[]} origin a point that lies along the line
+ * @param {VecLine2} line the vector component describing the line
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object|undefined} "vertices" and "edges" keys, indices of the
  * components which intersect the line. or undefined if no intersection
@@ -51,10 +51,11 @@ import Messages from "../../environment/messages.js";
 export const intersectConvexFaceLine = ({
 	vertices_coords, edges_vertices, faces_vertices, faces_edges,
 }, face, { vector, origin }, epsilon = EPSILON) => {
+	const vertices_coords2 = vertices_coords.map(resize2);
 	// give us back the indices in the faces_vertices[face] array
 	// we can count on these being sorted (important later)
 	const face_vertices_indices = faces_vertices[face]
-		.map(v => vertices_coords[v])
+		.map(v => vertices_coords2[v])
 		.map(coord => overlapLinePoint({ vector, origin }, coord, () => true, epsilon))
 		.map((overlap, i) => (overlap ? i : undefined))
 		.filter(i => i !== undefined);
@@ -79,7 +80,7 @@ export const intersectConvexFaceLine = ({
 	// run the line-segment intersection on every side of the face polygon
 	const edges = faces_edges[face]
 		.map(edge => edges_vertices[edge]
-			.map(v => vertices_coords[v]))
+			.map(v => vertices_coords2[v]))
 		.map(seg => intersectLineLine(
 			{ vector, origin },
 			{ vector: subtract2(seg[1], seg[0]), origin: seg[0] },
@@ -124,8 +125,8 @@ const splitCircularArray = (array, indices) => {
 /**
  * this must be done AFTER edges_vertices has been updated with the new edge.
  *
- * @param {object} FOLD graph
- * @param {number} the face that will be replaced by these 2 new
+ * @param {FOLD} graph a FOLD object
+ * @param {number} face the face that will be replaced by these 2 new
  * @param {number[]} vertices (in the face) that split the face into 2 sides
  */
 const make_faces = ({
@@ -135,7 +136,7 @@ const make_faces = ({
 	// this is where we will split the face into two.
 	const indices = vertices.map(el => faces_vertices[face].indexOf(el));
 	const faces = splitCircularArray(faces_vertices[face], indices)
-		.map(fv => ({ faces_vertices: fv }));
+		.map(fv => ({ faces_vertices: fv, faces_edges: [] }));
 	if (faces_edges) {
 		// table to build faces_edges
 		const vertices_to_edge = makeVerticesToEdge({ edges_vertices });
@@ -149,7 +150,9 @@ const make_faces = ({
 };
 
 /**
- *
+ * @param {FOLD} graph a FOLD object
+ * @param {number} face
+ * @param {number[]} vertices
  */
 const build_faces = (graph, face, vertices) => {
 	// new face indices at the end of the list
@@ -166,25 +169,24 @@ const build_faces = (graph, face, vertices) => {
  * @description given two vertices and incident faces, create all new
  * "edges_" entries to describe a new edge that sits between the params.
  * @param {object} FOLD graph
- * @param {number[]} two incident vertices that make up this edge
- * @param {number[]} two edge-adjacent faces to this new edge
- * @param {number[]} TEMPORARILY holds 2x the index of the face that
- *  this edge currently lies inside, because the faces arrays will be
- *  rebuilt from scratch, we need the old data.
+ * @param {number[]} vertices two incident vertices that make up this edge
+ * @param {number} face
  * @returns {object} all FOLD spec "edges_" entries for this new edge.
  */
 // const make_edge = ({ vertices_coords }, vertices, faces) => {
 const make_edge = ({ vertices_coords }, vertices, face) => {
 	// coords reversed for "vector", so index [0] comes last in subtract
 	const new_edge_coords = vertices
+		.slice() // todo: i just added this without testing
 		.map(v => vertices_coords[v])
 		.reverse();
+
 	return {
 		edges_vertices: [...vertices],
 		edges_foldAngle: 0,
 		edges_assignment: "U",
-		edges_length: distance(...new_edge_coords),
-		edges_vector: subtract(...new_edge_coords),
+		edges_length: distance(new_edge_coords[0], new_edge_coords[1]),
+		edges_vector: subtract(new_edge_coords[0], new_edge_coords[1]),
 		edges_faces: [face, face],
 	};
 };
@@ -209,7 +211,7 @@ const rebuild_edge = (graph, face, vertices) => {
  * @description this is a highly specific method, it takes in the output
  * from intersectConvexFaceLine and applies it to a graph by splitting
  * the edges (in the case of edge, not vertex intersection),
- * @param {object} a FOLD object. modified in place.
+ * @param {FOLD} graph a FOLD object. modified in place.
  * @param {object} the result from calling "intersectConvexFaceLine".
  * each value must be an array. these will be modified in place.
  * @returns {object} with "vertices" and "edges" keys where
@@ -277,7 +279,10 @@ export const update_vertices_vertices = ({
 		v1,
 	);
 };
+
 /**
+* @param {FOLD} graph a FOLD object. modified in place.
+* @param {number} edge
  * vertices_vertices was just run before this method. use it.
  * vertices_edges should be up to date, except for the addition
  * of this one new edge at both ends of
@@ -380,6 +385,9 @@ export const update_edges_faces = (graph, old_face, new_edge, new_faces) => {
  * regarding the faces_faces array, updates need to be made to the two
  * new faces, as well as all the previously neighboring faces of
  * the removed face.
+ * @param {FOLD} graph
+ * @param {number} old_face
+ * @param {number[]} new_faces
  */
 export const update_faces_faces = ({ faces_vertices, faces_faces }, old_face, new_faces) => {
 	// this is presuming that new_faces have their updated faces_vertices by now
@@ -427,7 +435,7 @@ export const update_faces_faces = ({ faces_vertices, faces_faces }, old_face, ne
  * used, otherwise, new vertices will be added (splitting edges).
  * @param {FOLD} graph a FOLD object, modified in place
  * @param {number} face index of face to split
- * @param {VecLine} line with a "vector" and an "origin" component
+ * @param {VecLine2} line with a "vector" and an "origin" component
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object|undefined} a summary of changes to the FOLD object,
  *  or undefined if no change (no intersection).

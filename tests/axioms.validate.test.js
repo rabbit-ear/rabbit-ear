@@ -33,16 +33,16 @@ test("validate, valid results", () => {
 		[0.25, 0.85],
 	];
 
-	const solutions1 = ear.axiom.axiom1(...args1);
-	const solutions2 = ear.axiom.axiom2(...args2);
+	// const solutions1 = ear.axiom.axiom1(...args1);
+	// const solutions2 = ear.axiom.axiom2(...args2);
 	const solutions3 = ear.axiom.axiom3(...args3);
 	const solutions4 = ear.axiom.axiom4(...args4);
 	const solutions5 = ear.axiom.axiom5(...args5);
 	const solutions6 = ear.axiom.axiom6(...args6);
 	const solutions7 = ear.axiom.axiom7(...args7);
 
-	const valid1 = ear.axiom.validateAxiom1(boundary, solutions1, ...args1);
-	const valid2 = ear.axiom.validateAxiom2(boundary, solutions2, ...args2);
+	const valid1 = ear.axiom.validateAxiom1And2(boundary, ...args1);
+	const valid2 = ear.axiom.validateAxiom1And2(boundary, ...args2);
 	const valid3 = ear.axiom.validateAxiom3(boundary, solutions3, ...args3);
 	const valid4 = ear.axiom.validateAxiom4(boundary, solutions4, ...args4);
 	const valid5 = ear.axiom.validateAxiom5(boundary, solutions5, ...args5);
@@ -88,16 +88,16 @@ test("validate, invalid results due to point (or line) outside boundary", () => 
 		[0.25, 1.1],
 	];
 
-	const solutions1 = ear.axiom.axiom1(...args1);
-	const solutions2 = ear.axiom.axiom2(...args2);
+	// const solutions1 = ear.axiom.axiom1(...args1);
+	// const solutions2 = ear.axiom.axiom2(...args2);
 	const solutions3 = ear.axiom.axiom3(...args3);
 	const solutions4 = ear.axiom.axiom4(...args4);
 	const solutions5 = ear.axiom.axiom5(...args5);
 	const solutions6 = ear.axiom.axiom6(...args6);
 	const solutions7 = ear.axiom.axiom7(...args7);
 
-	const valid1 = ear.axiom.validateAxiom1(boundary, solutions1, ...args1);
-	const valid2 = ear.axiom.validateAxiom2(boundary, solutions2, ...args2);
+	const valid1 = ear.axiom.validateAxiom1And2(boundary, ...args1);
+	const valid2 = ear.axiom.validateAxiom1And2(boundary, ...args2);
 	const valid3 = ear.axiom.validateAxiom3(boundary, solutions3, ...args3);
 	const valid4 = ear.axiom.validateAxiom4(boundary, solutions4, ...args4);
 	const valid5 = ear.axiom.validateAxiom5(boundary, solutions5, ...args5);

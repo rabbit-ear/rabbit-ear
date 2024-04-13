@@ -24,8 +24,8 @@ import {
  * of their endpoints and the epsilon value.
  * @param {VecLine2} a line object with "vector" and "origin"
  * @param {VecLine2} b line object with "vector" and "origin"
- * @param {function} [aDomain=includeL] the domain of the first line
- * @param {function} [bDomain=includeL] the domain of the second line
+ * @param {Function} [aDomain=includeL] the domain of the first line
+ * @param {Function} [bDomain=includeL] the domain of the second line
  * @param {number} [epsilon=1e-6] optional epsilon
  * @returns {{
  *   point: ([number, number] | undefined)
@@ -64,18 +64,6 @@ export const intersectLineLine = (
 	return { a: undefined, b: undefined, point: undefined };
 };
 
-/**
- * @description Calculate the intersection of a circle and a line;
- * the line can be a line, ray, or segment.
- * @param {Circle} circle a circle in "radius" "origin" form
- * @param {VecLine2} line a line in "vector" "origin" form
- * @param {function} [_=include] the inclusivity of
- * the circle boundary (currently not used).
- * @param {function} [lineDomain=includeL] set the line/ray/segment
- * and inclusive/exclusive
- * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {[number, number][]} a list of 2D points
- */
 // export const intersectCircleLine = (
 // 	circle,
 // 	line,
@@ -106,25 +94,38 @@ export const intersectLineLine = (
 // 		.map(d => d / magSq);
 // 	return results.filter((__, i) => lineDomain(ts[i], epsilon));
 // };
+/**
+ * @description Calculate the intersection of a circle and a line;
+ * the line can be a line, ray, or segment.
+ * @param {Circle} circle a circle in "radius" "origin" form
+ * @param {VecLine2} line a line in "vector" "origin" form
+ * @param {Function} [_=include] the inclusivity of
+ * the circle boundary (currently not used).
+ * @param {Function} [lineDomain=includeL] set the line/ray/segment
+ * and inclusive/exclusive
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {[number, number][]} a list of 2D points
+ */
 export const intersectCircleLine = (
 	circle,
 	line,
-	circleDomain = include,
+	_ = include,
 	lineDomain = includeL,
 	epsilon = EPSILON,
 ) => {
 	const magSq = line.vector[0] ** 2 + line.vector[1] ** 2;
 	const mag = Math.sqrt(magSq);
-	const norm = mag === 0 ? line.vector : line.vector.map(c => c / mag);
+	const norm = mag === 0 ? line.vector : scale2(line.vector, 1 / mag);
 	const rot90 = rotate90(norm);
 	const bvec = subtract2(line.origin, circle.origin);
 	const det = cross2(bvec, norm);
 	if (Math.abs(det) > circle.radius + epsilon) { return undefined; }
 	const side = Math.sqrt((circle.radius ** 2) - (det ** 2));
 	const f = (s, i) => circle.origin[i] - rot90[i] * det + norm[i] * s;
+	/** @type {[number, number][]} */
 	const results = Math.abs(circle.radius - Math.abs(det)) < epsilon
-		? [side].map((s) => [s, s].map(f)) // tangent to circle
-		: [-side, side].map((s) => [s, s].map(f));
+		? [side].map((s) => [f(s, 0), f(s, 1)]) // tangent to circle
+		: [-side, side].map((s) => [f(s, 0), f(s, 1)]);
 	const ts = results.map(res => res.map((n, i) => n - line.origin[i]))
 		.map(v => v[0] * line.vector[0] + line.vector[1] * v[1])
 		.map(d => d / magSq);

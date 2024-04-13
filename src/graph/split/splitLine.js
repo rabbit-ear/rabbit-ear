@@ -15,7 +15,14 @@ import {
 } from "../intersect.js";
 
 /**
- * @description 
+ * @description
+ * @param {FOLD} graph a fold graph in creasePattern or foldedForm
+ * @param {VecLine2} line a line/ray/segment in vector origin form
+ * @param {Function} [lineDomain=() => true] the function which characterizes
+ * "line" parameter into a line, ray, or segment.
+ * @param {[number, number][]} [interiorPoints=[]] in the case of a ray or segment,
+ * place in here the endpoint(s), and they will be included in the result.
+ * @param {number} [epsilon=1e-6] an optional epsilon
  */
 export const splitLineToSegments = (
 	{ vertices_coords, edges_vertices, faces_vertices, faces_edges },
@@ -106,13 +113,18 @@ export const splitLineToSegments = (
  * The edge indices will make use of existing vertices when possible, so,
  * edges_vertices may reference vertex indices from the source graph.
  * @param {FOLD} graph a fold graph in creasePattern or foldedForm
- * @param {VecLine} line a line/ray/segment in vector origin form
- * @param {function} [lineDomain=() => true] the function which characterizes
+ * @param {VecLine2} line a line/ray/segment in vector origin form
+ * @param {Function} [lineDomain=() => true] the function which characterizes
  * "line" parameter into a line, ray, or segment.
- * @param {number[][]} [interiorPoints=[]] in the case of a ray or segment,
+ * @param {[number, number][]} [interiorPoints=[]] in the case of a ray or segment,
  * place in here the endpoint(s), and they will be included in the result.
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {FOLD} graph a FOLD graph containing only the line's geometry,
+ * @returns {{
+ *   vertices?: number[],
+ *   edges_vertices?: number[][],
+ *   edges_collinear?: boolean[],
+ *   edges_face?: number[][],
+ * }} graph a FOLD graph containing only the line's geometry,
  * as a list of vertices and edges, where all new geometry's indices are
  * indexed to start after the input graph's components end, so there is no
  * confusion as to which graph's indices we are referring.
@@ -132,6 +144,12 @@ export const splitLineIntoEdges = (
 	interiorPoints = [],
 	epsilon = EPSILON,
 ) => {
+	// !!!
+	// WARNING: DEPRECATED
+	// !!!
+	// I commented out the block with the "remapKeys" calls,
+	// they don't even make sense
+	// not sure what was intended, but this method is being deprecated anyway.
 	if (!vertices_coords || !edges_vertices || !faces_vertices) {
 		return undefined;
 	}
@@ -156,15 +174,15 @@ export const splitLineIntoEdges = (
 	// additionally, vertices will be mapped so that the final vertex list
 	// excludes those vertices which are pointing to existing vertex indices
 	// from the input graph; only including vertices which will become new points.
-	let count = 0;
-	const vertexMap = segments.vertices_info
-		.map(el => (el.vertex === undefined
-			? vertices_coords.length + (count++)
-			: el.vertex));
-	const edgeMap = segments.edges_vertices
-		.map((_, i) => edges_vertices.length + i);
-	remapKey(segments, "vertices", vertexMap);
-	remapKey(segments, "edges", edgeMap);
+	// let count = 0;
+	// const vertexMap = segments.vertices_info
+	// 	.map(el => (el.vertex === undefined
+	// 		? vertices_coords.length + (count++)
+	// 		: el.vertex));
+	// const edgeMap = segments.edges_vertices
+	// 	.map((_, i) => edges_vertices.length + i);
+	// remapKey(segments, "vertices", vertexMap);
+	// remapKey(segments, "edges", edgeMap);
 
 	// we are done requiring the vertices_ array have an underbar. rename it back
 	segments.vertices = segments.vertices_info;

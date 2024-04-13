@@ -1,12 +1,4 @@
-export function splitLineToSegments({ vertices_coords, edges_vertices, faces_vertices, faces_edges }: {
-    vertices_coords: any;
-    edges_vertices: any;
-    faces_vertices: any;
-    faces_edges: any;
-}, { vector, origin }: {
-    vector: any;
-    origin: any;
-}, lineDomain?: (_: number, __?: number) => boolean, interiorPoints?: any[], epsilon?: number): {
+export function splitLineToSegments({ vertices_coords, edges_vertices, faces_vertices, faces_edges }: FOLD, { vector, origin }: VecLine2, lineDomain?: Function, interiorPoints?: [number, number][], epsilon?: number): {
     vertices: number[];
     edges: any[];
     faces: any[];
@@ -14,4 +6,9 @@ export function splitLineToSegments({ vertices_coords, edges_vertices, faces_ver
         vertices: any[];
     };
 };
-export function splitLineIntoEdges({ vertices_coords, edges_vertices, faces_vertices, faces_edges }: FOLD, line: VecLine, lineDomain?: Function, interiorPoints?: number[][], epsilon?: number): FOLD;
+export function splitLineIntoEdges({ vertices_coords, edges_vertices, faces_vertices, faces_edges }: FOLD, line: VecLine2, lineDomain?: Function, interiorPoints?: [number, number][], epsilon?: number): {
+    vertices?: number[];
+    edges_vertices?: number[][];
+    edges_collinear?: boolean[];
+    edges_face?: number[][];
+};

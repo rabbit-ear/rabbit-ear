@@ -6,7 +6,7 @@ declare const _default: {
         a: number;
         b: number;
     };
-    intersectCircleLine: (circle: Circle, line: VecLine2, circleDomain?: (n: number, epsilon?: number) => boolean, lineDomain?: Function, epsilon?: number) => [number, number][];
+    intersectCircleLine: (circle: Circle, line: VecLine2, _?: Function, lineDomain?: Function, epsilon?: number) => [number, number][];
     overlapLinePoint: ({ vector, origin }: VecLine2, point: [number, number], lineDomain?: (_: number, __?: number) => boolean, epsilon?: number) => boolean;
     overlapConvexPolygonPoint: (polygon: [number, number][], point: [number, number], polyDomain?: Function, epsilon?: number) => {
         overlap: boolean;
@@ -179,7 +179,7 @@ declare const _default: {
     vectorToAngle: (v: [number, number]) => number;
     angleToVector: (a: number) => [number, number];
     pointsToLine: (origin: [number, number] | [number, number, number], point2: [number, number] | [number, number, number]) => VecLine;
-    pointsToLine2: (origin: [number, number], point2: [number, number]) => VecLine2;
+    pointsToLine2: (origin: [number, number] | [number, number, number], point2: [number, number] | [number, number, number]) => VecLine2;
     vecLineToUniqueLine: ({ vector, origin }: VecLine) => UniqueLine;
     uniqueLineToVecLine: ({ normal, distance }: UniqueLine) => VecLine2;
     EPSILON: 0.000001;

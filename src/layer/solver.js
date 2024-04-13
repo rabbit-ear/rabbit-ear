@@ -37,10 +37,7 @@ import {
  * @param {...{[key: string]: number}} orders any number of facePairsOrder
  * solutions which relate facePairs (key) like "3 5" to an order,
  * either 0, 1, or 2.
- * @returns {{
- *   orders: {[key: string]: number},
- *   branches: any,
- * }} an array of arrays of solution
+ * @returns {LayerFork[]} an array of arrays of solution
  * objects, where each top level array entry is a "branch" and inside each
  * branch is an array of solution objects when taken together compose
  * a complete solution.
@@ -138,10 +135,8 @@ const solveBranch = (
  * - orders a prelimiary solution to some of the facePairs
  *   with solutions in 1,2 value encoding. Useful for any pre-calculations,
  *   for example, pre-calculating edge-adjacent face pairs with known assignments.
- * @returns {{
- *   orders: {[key:string]: number},
- *   branches?: {[key: string]: number}[][],
- * }} a set of solutions where keys are space-separated face pair strings,
+ * @returns {LayerSolverSolution} a set of solutions
+ * where keys are space-separated face pair strings,
  * and values are 1 or 2 describing the relationship of the two faces.
  * Results are stored in "root" and "branches", to compile a complete solution,
  * append the "root" to one selection from each array in "branches".

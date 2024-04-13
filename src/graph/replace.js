@@ -58,7 +58,8 @@ const replaceGeometryIndices = (graph, key, replaceIndices) => {
 	// are interchangeable and it doesn't matter which one we remove, but warn
 	// the user that this took place.
 	Object.entries(replaceIndices)
-		.filter(([index, value]) => parseInt(index, 10) < value)
+		.map(([index, value]) => [parseInt(index, 10), value])
+		.filter(([index, value]) => index < value)
 		.forEach(([index, value]) => {
 			delete replaceIndices[index];
 			replaceIndices[value] = index;

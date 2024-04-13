@@ -57,39 +57,18 @@ declare const _default: {
         orders: {
             [key: string]: number;
         };
-    }) => {
-        orders: {
-            [key: string]: number;
-        };
-        branches?: {
-            [key: string]: number;
-        }[][];
-    };
+    }) => LayerFork;
     solveLayerOrders: ({ vertices_coords, edges_vertices, edges_faces, edges_assignment, edges_foldAngle, faces_vertices, faces_edges, faces_faces, edges_vector, }: FOLD, epsilon?: number) => {
         orders: {
             [key: string]: number;
         };
-        branches: {
-            [key: string]: number;
-        }[][];
+        branches?: LayerBranch[];
         faces_winding: boolean[];
     };
-    solveFaceOrders: (graph: any, epsilon: any) => {
-        orders: number[][];
-        branches?: undefined;
+    solveLayerOrdersSingleBranches: ({ vertices_coords, edges_vertices, edges_faces, edges_assignment, faces_vertices, faces_edges, edges_vector, }: FOLD, epsilon?: number) => {
+        orders: {};
+        faces_winding: any[];
     } | {
-        orders: number[][];
-        branches: any;
-    };
-    solveLayerOrdersSingleBranches: ({ vertices_coords, edges_vertices, edges_faces, edges_assignment, faces_vertices, faces_edges, edges_vector, }: {
-        vertices_coords: any;
-        edges_vertices: any;
-        edges_faces: any;
-        edges_assignment: any;
-        faces_vertices: any;
-        faces_edges: any;
-        edges_vector: any;
-    }, epsilon: any) => {
         faces_winding: boolean[];
         root: {
             [key: string]: number;
@@ -97,23 +76,17 @@ declare const _default: {
         branches: {
             [key: string]: number;
         }[][];
+        orders?: undefined;
     };
     solveLayerOrders3D: ({ vertices_coords, edges_vertices, edges_faces, edges_assignment, edges_foldAngle, faces_vertices, faces_edges, faces_faces, }: FOLD, epsilon?: number) => {
         orders: {
             [key: string]: number;
         };
-        branches: {
-            [key: string]: number;
-        }[][];
+        branches?: LayerBranch[];
         faces_winding: boolean[];
     };
-    solveFaceOrders3D: (graph: any, epsilon: any) => {
-        orders: number[][];
-        branches?: undefined;
-    } | {
-        orders: number[][];
-        branches: any;
-    };
+    solveFaceOrders: (graph: FOLD, epsilon?: number) => FaceOrdersFork;
+    solveFaceOrders3D: (graph: FOLD, epsilon?: number) => FaceOrdersFork;
     getBranchStructure: ({ branches }: LayerFork) => any;
     gather: ({ orders, branches }: LayerFork, pattern?: number[]) => any;
     compile: ({ orders, branches }: LayerFork, pattern?: number[]) => any;
@@ -159,7 +132,7 @@ declare const _default: {
         tortilla_tortilla: (f: TortillaTortillaConstraint) => string[];
         transitivity: (f: TransitivityConstraint) => string[];
     };
-    solverSolutionToFaceOrders: (facePairOrders: any, faces_winding: boolean[]) => number[][];
+    solverSolutionToFaceOrders: (facePairOrders: any, faces_winding: boolean[]) => [number, number, number][];
     mergeWithoutOverwrite: (orders: {
         [key: string]: number;
     }[]) => {

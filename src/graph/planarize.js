@@ -81,6 +81,9 @@ const getLinesIntersections = (lines, epsilon = EPSILON) => {
 /**
  * @description NOTICE this method is used internally and not yet ready for
  * general use. It only works on graphs with no faces and requires cleanup later.
+ * @param {FOLD} graph a FOLD object
+ * @param {number} vertex
+ * @returns {number}
  */
 const removeCollinearVertex = ({ edges_vertices, vertices_edges }, vertex) => {
 	// edges[0] will remain. edges[1] will be removed
@@ -124,7 +127,7 @@ const removeCollinearVertex = ({ edges_vertices, vertices_edges }, vertex) => {
  * M/V above all, then perhaps Cut/Join, then unassigned, then boundary/flat.
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {object} a summary of changes to the graph
+ * @returns {FOLD} a planarized FOLD object
  */
 const planarize = ({
 	vertices_coords,
