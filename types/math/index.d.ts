@@ -58,10 +58,10 @@ declare const _default: {
     clampLine: (dist: number) => number;
     clampRay: (dist: number) => number;
     clampSegment: (dist: number) => number;
-    resizeLine2: ({ vector, origin }: VecLine) => VecLine2;
-    resizeLine3: ({ vector, origin }: VecLine) => VecLine3;
-    isCollinear: (p0: number[], p1: number[], p2: number[], epsilon?: number) => boolean;
+    collinearPoints: (p0: number[], p1: number[], p2: number[], epsilon?: number) => boolean;
     collinearBetween: (p0: number[], p1: number[], p2: number[], inclusive?: boolean, epsilon?: number) => boolean;
+    collinearLines2: (a: VecLine2, b: VecLine2, epsilon?: number) => boolean;
+    collinearLines3: (a: VecLine3, b: VecLine3, epsilon?: number) => boolean;
     pleat: (a: VecLine2, b: VecLine2, count: number, epsilon?: number) => [VecLine2[], VecLine2[]];
     bisectLines2: (a: VecLine2, b: VecLine2, epsilon?: number) => [VecLine2?, VecLine2?];
     convexHullRadialSortPoints: (points: [number, number][], epsilon?: number) => number[][];
@@ -158,6 +158,7 @@ declare const _default: {
     parallelNormalized: (v: number[], u: number[], epsilon?: number) => boolean;
     parallel: (v: number[], u: number[], epsilon?: number) => boolean;
     parallel2: (v: [number, number] | [number, number, number], u: [number, number] | [number, number, number], epsilon?: number) => boolean;
+    parallel3: (v: [number, number, number], u: [number, number, number], epsilon?: number) => boolean;
     resize: (dimension: number, vector: number[]) => number[];
     resize2: (vector: number[]) => [number, number];
     resize3: (vector: number[]) => [number, number, number];
@@ -178,8 +179,9 @@ declare const _default: {
     excludeS: (n: number, e?: number) => boolean;
     vectorToAngle: (v: [number, number]) => number;
     angleToVector: (a: number) => [number, number];
-    pointsToLine: (origin: [number, number] | [number, number, number], point2: [number, number] | [number, number, number]) => VecLine;
-    pointsToLine2: (origin: [number, number] | [number, number, number], point2: [number, number] | [number, number, number]) => VecLine2;
+    pointsToLine2: (a: [number, number] | [number, number, number], b: [number, number] | [number, number, number]) => VecLine2;
+    pointsToLine3: (a: [number, number, number], b: [number, number, number]) => VecLine3;
+    pointsToLine: (a: [number, number] | [number, number, number], b: [number, number] | [number, number, number]) => VecLine;
     vecLineToUniqueLine: ({ vector, origin }: VecLine) => UniqueLine;
     uniqueLineToVecLine: ({ normal, distance }: UniqueLine) => VecLine2;
     EPSILON: 0.000001;

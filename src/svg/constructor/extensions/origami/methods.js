@@ -1,10 +1,10 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import TransformMethods from '../shared/transforms.js';
 import methods$1 from '../shared/urls.js';
 import * as dom from '../shared/dom.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 // const clearSVG = (element) => {

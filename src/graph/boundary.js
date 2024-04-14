@@ -69,7 +69,10 @@ const emptyBoundaryObject = () => ({ vertices: [], edges: [] });
  * connected boundary in the graph. If there are more than one,
  * use the "boundaries" method.
  * @param {FOLD} graph a FOLD object
- * @returns {object} with "vertices" and "edges", each arrays of indices.
+ * @returns {{
+ *   vertices: number[],
+ *   edges: number[],
+ * }} with "vertices" and "edges", each arrays of indices.
  */
 export const boundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
 	if (!edges_assignment || !edges_vertices) { return emptyBoundaryObject(); }
@@ -140,7 +143,10 @@ export const boundary = ({ vertices_edges, edges_vertices, edges_assignment }) =
  * both vertices and edges. This method will safely find all boundaries,
  * in case of a graph that has two disjoint sets.
  * @param {FOLD} graph a FOLD object
- * @returns {object[]} an array of boundary solutions, where each boundary
+ * @returns {{
+ *   vertices: number[],
+ *   edges: number[],
+ * }[]} an array of boundary solutions, where each boundary
  * is an object with "vertices" and "edges", each arrays of indices.
  */
 export const boundaries = ({ vertices_edges, edges_vertices, edges_assignment }) => {
@@ -244,7 +250,10 @@ export const boundaries = ({ vertices_edges, edges_vertices, edges_assignment })
  * @param {FOLD} graph a FOLD object
  * (vertices_coords, vertices_vertices, edges_vertices)
  * (vertices edges only required in case vertices_vertices needs to be built)
- * @returns {object} "vertices" and "edges" with arrays of indices.
+ * @returns {{
+ *   vertices: number[],
+ *   edges: number[],
+ * }} "vertices" and "edges" with arrays of indices.
  * @usage call populate() before to ensure this works.
  */
 export const planarBoundary = ({
@@ -345,7 +354,10 @@ export const planarBoundary = ({
  * @param {FOLD} graph a FOLD object
  * (vertices_coords, vertices_vertices, edges_vertices)
  * (vertices edges only required in case vertices_vertices needs to be built)
- * @returns {object} "vertices" and "edges" with arrays of indices.
+ * @returns {{
+ *   vertices: number[],
+ *   edges: number[],
+ * }[]} array of objects with "vertices" and "edges" with arrays of indices.
  * @usage call populate() before to ensure this works.
  */
 export const planarBoundaries = ({

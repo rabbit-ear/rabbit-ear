@@ -1,6 +1,6 @@
 export { colors as default };
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 declare const colors: {
     parseColorToHex: (string: string) => string;
@@ -13,6 +13,9 @@ declare const colors: {
         silver: string;
         gray: string;
         white: string;
+        /**
+         * Rabbit Ear (c) Kraft
+         */
         maroon: string;
         red: string;
         purple: string;

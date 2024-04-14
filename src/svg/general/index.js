@@ -1,4 +1,4 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import * as algebra from './algebra.js';
 import * as dom from './dom.js';
 import * as cdata from './cdata.js';
@@ -7,7 +7,7 @@ import * as transforms from './transforms.js';
 import * as viewBox from './viewBox.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 const general = {

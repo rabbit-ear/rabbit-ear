@@ -1,8 +1,8 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import { str_transform } from '../../../environment/strings.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 const getAttr = (element) => {

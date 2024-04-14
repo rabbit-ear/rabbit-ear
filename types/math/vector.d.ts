@@ -42,6 +42,7 @@ export function degenerate(v: number[], epsilon?: number): boolean;
 export function parallelNormalized(v: number[], u: number[], epsilon?: number): boolean;
 export function parallel(v: number[], u: number[], epsilon?: number): boolean;
 export function parallel2(v: [number, number] | [number, number, number], u: [number, number] | [number, number, number], epsilon?: number): boolean;
+export function parallel3(v: [number, number, number], u: [number, number, number], epsilon?: number): boolean;
 export function resize(dimension: number, vector: number[]): number[];
 export function resize2(vector: number[]): [number, number];
 export function resize3(vector: number[]): [number, number, number];

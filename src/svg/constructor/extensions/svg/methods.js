@@ -1,4 +1,4 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import RabbitEarWindow from '../../../environment/window.js';
 import { str_style } from '../../../environment/strings.js';
 import NS from '../../../spec/namespace.js';
@@ -11,7 +11,7 @@ import * as dom from '../shared/dom.js';
 import { removeChildren } from '../shared/dom.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 // check if the loader is running synchronously or asynchronously

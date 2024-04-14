@@ -6,7 +6,7 @@ import {
 	resize2,
 } from "../math/vector.js";
 import {
-	isCollinear,
+	collinearPoints,
 } from "../math/line.js";
 import {
 	trilateration2,
@@ -43,7 +43,7 @@ export const transferPointInFaceBetweenGraphs = (from, to, face, point) => {
 			const [d, e, f] = verts.map(v => to.vertices_coords[v]);
 			return [a, b, c, d, e, f];
 		})
-		.map(([a, b, c, d, e, f]) => isCollinear(a, b, c) || isCollinear(d, e, f));
+		.map(([a, b, c, d, e, f]) => collinearPoints(a, b, c) || collinearPoints(d, e, f));
 
 	// we want only vertices which are not collinear
 	const faceVertsValid = faceVerticesInitial

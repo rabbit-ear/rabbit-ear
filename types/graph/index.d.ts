@@ -218,10 +218,22 @@ declare const _default: {
     connectedComponentsPairs: (array_array: number[][]) => [number, number][];
     boundingBox: ({ vertices_coords }: FOLD, padding?: number) => Box;
     boundaryVertices: ({ edges_vertices, edges_assignment }: FOLD) => number[];
-    boundary: ({ vertices_edges, edges_vertices, edges_assignment }: FOLD) => any;
-    boundaries: ({ vertices_edges, edges_vertices, edges_assignment }: FOLD) => any[];
-    planarBoundary: ({ vertices_coords, vertices_edges, vertices_vertices, edges_vertices, }: FOLD) => any;
-    planarBoundaries: ({ vertices_coords, vertices_edges, vertices_vertices, edges_vertices, }: FOLD) => any;
+    boundary: ({ vertices_edges, edges_vertices, edges_assignment }: FOLD) => {
+        vertices: number[];
+        edges: number[];
+    };
+    boundaries: ({ vertices_edges, edges_vertices, edges_assignment }: FOLD) => {
+        vertices: number[];
+        edges: number[];
+    }[];
+    planarBoundary: ({ vertices_coords, vertices_edges, vertices_vertices, edges_vertices, }: FOLD) => {
+        vertices: number[];
+        edges: number[];
+    };
+    planarBoundaries: ({ vertices_coords, vertices_edges, vertices_vertices, edges_vertices, }: FOLD) => {
+        vertices: number[];
+        edges: number[];
+    }[];
     sortVerticesCounterClockwise: ({ vertices_coords }: FOLD, vertices: number[], vertex: number) => number[];
     sortVerticesAlongVector: ({ vertices_coords }: FOLD, vertices: number[], vector: number[]) => number[];
     edgeIsolatedVertices: ({ vertices_coords, edges_vertices }: FOLD) => number[];
@@ -328,11 +340,14 @@ declare const _default: {
         clusters_faces: number[][];
     };
     edgeToLine2: ({ vertices_coords, edges_vertices }: FOLD, edge: number) => VecLine2;
-    edgeToLine: ({ vertices_coords, edges_vertices }: FOLD, edge: number) => VecLine;
     edgesToLines: ({ vertices_coords, edges_vertices }: FOLD) => VecLine[];
     edgesToLines2: ({ vertices_coords, edges_vertices }: FOLD) => VecLine2[];
     edgesToLines3: ({ vertices_coords, edges_vertices }: FOLD) => VecLine3[];
     getEdgesLine: ({ vertices_coords, edges_vertices }: FOLD, epsilon?: number) => {
+        lines: VecLine[];
+        edges_line: number[];
+    };
+    getEdgesLineBruteForce: ({ vertices_coords, edges_vertices }: FOLD, epsilon?: number) => {
         lines: VecLine[];
         edges_line: number[];
     };

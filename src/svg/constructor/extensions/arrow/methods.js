@@ -1,4 +1,4 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import { str_arrow, str_head, str_tail, str_boolean, str_object, str_function } from '../../../environment/strings.js';
 import { toCamel } from '../../../general/string.js';
 import { svgSemiFlattenArrays } from '../../../arguments/semiFlattenArrays.js';
@@ -7,7 +7,7 @@ import makeArrowPaths from './makeArrowPaths.js';
 import TransformMethods from '../shared/transforms.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 // end is "head" or "tail"

@@ -1,6 +1,6 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 /** @param {[number, number]} a @param {[number, number]} b @returns {[number, number]} */

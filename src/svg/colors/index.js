@@ -1,10 +1,10 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import cssColors from './cssColors.js';
 import * as convert from './convert.js';
 import * as parseColor from './parseColor.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 const colors = {

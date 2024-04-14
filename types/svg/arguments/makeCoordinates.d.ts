@@ -1,6 +1,6 @@
 export { makeCoordinates as default };
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 /**
  * this will extract coordinates from a set of inputs

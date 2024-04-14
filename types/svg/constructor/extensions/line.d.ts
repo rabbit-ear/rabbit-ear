@@ -12,6 +12,6 @@ declare namespace lineDef {
     }
 }
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 declare function Args(...args: any[]): any[];

@@ -1,9 +1,9 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import { str_string, str_id } from '../../../environment/strings.js';
 import { toCamel } from '../../../general/string.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 // for the clip-path and mask values. looks for the ID as a "url(#id-name)" string

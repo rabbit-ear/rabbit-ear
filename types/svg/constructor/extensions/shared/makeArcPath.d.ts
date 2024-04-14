@@ -1,5 +1,5 @@
 export { arcPath as default };
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 declare function arcPath(x: any, y: any, radius: any, startAngle: any, endAngle: any, includeCenter?: boolean): string;

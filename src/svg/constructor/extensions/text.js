@@ -1,4 +1,4 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import NS from '../../spec/namespace.js';
 import RabbitEarWindow from '../../environment/window.js';
 import makeCoordinates from '../../arguments/makeCoordinates.js';
@@ -8,7 +8,7 @@ import methods from './shared/urls.js';
 import { appendTo, setAttributes } from './shared/dom.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 /**
  * @description SVG text element

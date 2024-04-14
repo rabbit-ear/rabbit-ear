@@ -16,24 +16,22 @@ import * as foldedPrograms from "./foldedForm/programs.js";
 import * as cpArrays from "./creasePattern/arrays.js";
 import * as cpData from "./creasePattern/data.js";
 import * as cpPrograms from "./creasePattern/programs.js";
+
 /**
  * @description WebGL methods
  */
-export default Object.assign(
-	Object.create(null),
-	{
-		createProgram,
-		initialize,
-		foldedForm,
-		creasePattern,
-		// webGLHelpers,
-	},
-	view,
-	program,
-	foldedArrays,
-	foldedData,
-	foldedPrograms,
-	cpArrays,
-	cpData,
-	cpPrograms,
-);
+export default {
+	createProgram,
+	initialize,
+	foldedForm,
+	creasePattern,
+	// webGLHelpers,
+	...view,
+	...program,
+	...foldedArrays,
+	...foldedData,
+	...foldedPrograms,
+	...cpArrays,
+	...cpData,
+	...cpPrograms,
+};

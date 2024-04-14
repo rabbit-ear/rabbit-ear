@@ -1,9 +1,9 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import { str_tail, str_head } from '../../../environment/strings.js';
 import { svg_sub2, svg_add2, svg_scale2, svg_magnitude2 } from '../../../general/algebra.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 const ends = [str_tail, str_head];

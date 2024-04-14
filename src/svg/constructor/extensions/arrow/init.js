@@ -1,4 +1,4 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import { str_class, str_arrow, str_tail, str_head, str_path, str_style, str_stroke, str_none, str_object } from '../../../environment/strings.js';
 import NS from '../../../spec/namespace.js';
 import RabbitEarWindow from '../../../environment/window.js';
@@ -6,7 +6,7 @@ import ArrowMethods from './methods.js';
 import { makeArrowOptions } from './options.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 // import Library from "../../../library.js";
 

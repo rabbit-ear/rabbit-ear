@@ -4,6 +4,6 @@ export function foldToViewBox({ vertices_coords }: {
 }): string;
 export function getViewBox(element: any): any;
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 export function setViewBox(element: any, ...args: any[]): any;

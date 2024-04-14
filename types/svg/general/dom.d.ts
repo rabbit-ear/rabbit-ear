@@ -34,13 +34,15 @@ export function flattenDomTree(el: Element | ChildNode): (Element | ChildNode)[]
  * "transform", where the parent-child values are computed and merged.
  * @param {Element|ChildNode} element
  * @param {object} attributes key value pairs of attributes
- * @returns {{ element: Element|ChildNode, attributes: object }[]}
+ * @returns {{ element: Element|ChildNode, attributes: { [key: string]: string } }[]}
  * a flat array of objects containing the element and an object describing
  * the attributes.
  */
 export function flattenDomTreeWithStyle(element: Element | ChildNode, attributes?: object): {
     element: Element | ChildNode;
-    attributes: object;
+    attributes: {
+        [key: string]: string;
+    };
 }[];
 /**
  * @description Get the furthest root parent up the DOM tree
@@ -49,7 +51,7 @@ export function flattenDomTreeWithStyle(element: Element | ChildNode, attributes
  */
 export function getRootParent(el: Element): Element;
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 /**
  * @description Parse a string into an XML Element

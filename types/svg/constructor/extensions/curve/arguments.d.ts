@@ -1,5 +1,5 @@
 export { curveArguments as default };
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 declare function curveArguments(...args: any[]): string[];

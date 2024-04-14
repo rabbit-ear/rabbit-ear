@@ -1,10 +1,10 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import classes_attributes from './classes_attributes.js';
 import classes_nodes from './classes_nodes.js';
 import { str_viewBox, str_points, str_id, str_svg } from '../environment/strings.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 /**
  * @description This is the base object containing mostly the unique

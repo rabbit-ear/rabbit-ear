@@ -1,10 +1,10 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import NS from '../../spec/namespace.js';
 import RabbitEarWindow from '../../environment/window.js';
 import { makeCDATASection } from '../../general/cdata.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 const styleDef = {

@@ -1,6 +1,10 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import { str_function } from '../../../environment/strings.js';
 import { getViewBox } from '../../../general/viewBox.js';
+
+/**
+ * Rabbit Ear (c) Kraft
+ */
 
 const getSVGFrame = function (element) {
 	const viewBox = getViewBox(element);

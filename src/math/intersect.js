@@ -32,9 +32,15 @@ import {
  *   a: (number | undefined)
  *   b: (number | undefined)
  * }} object with properties:
- * - point: {[number, number]|undefined} one 2D point or undefined
- * - a: {number|undefined} the intersection parameter along the first line
- * - b: {number|undefined} the intersection parameter along the second line
+ * - point: one 2D point or undefined
+ * - a: the intersection parameter along the first line
+ * - b: the intersection parameter along the second line
+ * @example
+ * // intersect two lines
+ * const { a, b, point } = intersectLine(line1, line2);
+ * @example
+ * // intersect a line and a segment
+ * const { a, b, point } = intersectLine(line, segment, ear.math.includeL, ear.math.includeS);
 */
 export const intersectLineLine = (
 	a,

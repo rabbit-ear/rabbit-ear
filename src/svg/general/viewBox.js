@@ -1,9 +1,9 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import makeViewBox from '../arguments/makeViewBox.js';
 import { str_string, str_viewBox } from '../environment/strings.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 const setViewBox = (element, ...args) => {

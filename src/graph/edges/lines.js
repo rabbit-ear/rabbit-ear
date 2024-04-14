@@ -9,18 +9,20 @@ import {
 } from "../../math/compare.js";
 import {
 	pointsToLine,
+	pointsToLine2,
+	pointsToLine3,
 } from "../../math/convert.js";
 import {
 	magnitude,
 	subtract,
+	subtract2,
 	resize2,
 	resize3,
 	dot,
 } from "../../math/vector.js";
 import {
 	clampLine,
-	resizeLine2,
-	resizeLine3,
+	collinearLines3,
 } from "../../math/line.js";
 import {
 	projectPointOnPlane,
@@ -45,10 +47,11 @@ import {
 	getDimensionQuick,
 } from "../../fold/spec.js";
 import {
-	makeEdgesCoords,
-} from "../make/edges.js";
+	connectedComponents,
+} from "../connectedComponents.js";
 import {
 	invertArrayToFlatMap,
+	invertFlatToArrayMap,
 } from "../maps.js";
 
 /**
@@ -57,16 +60,10 @@ import {
  * @param {number} edge the index of the edge
  * @returns {VecLine2} a line form of the edge
  */
-export const edgeToLine2 = ({ vertices_coords, edges_vertices }, edge) => ({
-	vector: [
-		vertices_coords[edges_vertices[edge][1]][0] - vertices_coords[edges_vertices[edge][0]][0],
-		vertices_coords[edges_vertices[edge][1]][1] - vertices_coords[edges_vertices[edge][0]][1],
-	],
-	origin: [
-		vertices_coords[edges_vertices[edge][0]][0],
-		vertices_coords[edges_vertices[edge][0]][1],
-	],
-});
+export const edgeToLine2 = ({ vertices_coords, edges_vertices }, edge) => {
+	const [a, b] = edges_vertices[edge].map(v => vertices_coords[v])
+	return ({ vector: subtract2(b, a), origin: resize2(a) });
+};
 
 /**
  * @description convert an edge to a vector-origin line.
@@ -74,11 +71,11 @@ export const edgeToLine2 = ({ vertices_coords, edges_vertices }, edge) => ({
  * @param {number} edge the index of the edge
  * @returns {VecLine} a line form of the edge
  */
-export const edgeToLine = ({ vertices_coords, edges_vertices }, edge) => (
-	pointsToLine(
-		vertices_coords[edges_vertices[edge][0]],
-		vertices_coords[edges_vertices[edge][1]],
-	));
+// export const edgeToLine = ({ vertices_coords, edges_vertices }, edge) => (
+// 	pointsToLine(
+// 		vertices_coords[edges_vertices[edge][0]],
+// 		vertices_coords[edges_vertices[edge][1]],
+// 	));
 
 /**
  * @description convert the edges of a graph into vector-origin line form.
@@ -86,7 +83,8 @@ export const edgeToLine = ({ vertices_coords, edges_vertices }, edge) => (
  * @returns {VecLine[]} a line for every edge
  */
 export const edgesToLines = ({ vertices_coords, edges_vertices }) => (
-	makeEdgesCoords({ vertices_coords, edges_vertices })
+	edges_vertices
+		.map(ev => [vertices_coords[ev[0]], vertices_coords[ev[1]]])
 		.map(([a, b]) => pointsToLine(a, b))
 );
 
@@ -95,34 +93,24 @@ export const edgesToLines = ({ vertices_coords, edges_vertices }) => (
  * @param {FOLD} graph a FOLD object
  * @returns {VecLine2[]} a line form of the edge
  */
-export const edgesToLines2 = ({ vertices_coords, edges_vertices }) => (
-	edgesToLines({ vertices_coords, edges_vertices })
-		.map(resizeLine2));
+export const edgesToLines2 = ({ vertices_coords, edges_vertices }) => {
+	const vertices_coords2 = vertices_coords.map(resize2);
+	return edges_vertices
+		.map(ev => [vertices_coords2[ev[0]], vertices_coords2[ev[1]]])
+		.map(([a, b]) => pointsToLine2(a, b))
+};
 
 /**
  * @description convert an edge to a vector-origin line.
  * @param {FOLD} graph a FOLD object
  * @returns {VecLine3[]} a line form of the edge
  */
-export const edgesToLines3 = ({ vertices_coords, edges_vertices }) => (
-	edgesToLines({ vertices_coords, edges_vertices })
-		.map(resizeLine3));
-
-// /**
-//  * @description convert an edge to a vector-origin line.
-//  * @param {FOLD} graph a FOLD object
-//  * @returns {(VecLine2|VecLine3)[]} a line form of the edge
-//  */
-// export const edgesToLines = ({ vertices_coords, edges_vertices }) => {
-// 	const coords = makeEdgesCoords({ vertices_coords, edges_vertices });
-// 	const dimensions = getDimensionQuick({ vertices_coords });
-// 	return dimensions === 2
-// 		? coords.map(([a, b]) => ({ origin: [a[0], a[1]], vector: subtract2(b, a) }))
-// 		: coords.map(([a, b]) => ({
-// 			origin: [a[0], a[1], a[2]],
-// 			vector: [b[0] - a[0], b[1] - a[1], b[2] - a[2]],
-// 		}))
-// };
+export const edgesToLines3 = ({ vertices_coords, edges_vertices }) => {
+	const vertices_coords3 = vertices_coords.map(resize3);
+	return edges_vertices
+		.map(ev => [vertices_coords3[ev[0]], vertices_coords3[ev[1]]])
+		.map(([a, b]) => pointsToLine3(a, b))
+};
 
 /**
  * @description Most origami models have many edges which lie along
@@ -139,16 +127,11 @@ export const getEdgesLine = (
 	if (!vertices_coords || !edges_vertices || !edges_vertices.length) {
 		return { edges_line: [], lines: [] };
 	}
+
 	// a vector-origin line representation of every edge. we will apply
 	// clustering operations to this list to group edges with similar lines.
 	const edgesLine = edgesToLines3({ vertices_coords, edges_vertices });
-	// const edgesCoords = makeEdgesCoords({ vertices_coords, edges_vertices });
-	// const edgesVector = edgesCoords
-	// 	.map(verts => subtract(verts[1], verts[0]))
-	// 	.map(normalize);
-
-	// const edgesLine = edgesVector
-	// 	.map((vector, i) => ({ vector, origin: edgesCoords[i][0] }));
+	// const edgesLine = edgesToLines({ vertices_coords, edges_vertices });
 
 	// this is the distance from the origin to the nearest point along the line
 	// no epsilon is needed in nearestPointOnLine, because there is no clamp.
@@ -367,3 +350,81 @@ export const getEdgesLine = (
 // 		edges_cluster,
 // 	};
 // };
+
+/**
+ * @description Most origami models have many edges which lie along
+ * the same infinite line. This method finds all lines which cover all edges,
+ * returning a list of lines, and a mapping of each edge to each line.
+ * @param {FOLD} graph a FOLD object, can be 2D or 3D.
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {{ lines: VecLine[], edges_line: number[] }}
+ */
+export const getEdgesLineBruteForce = (
+	{ vertices_coords, edges_vertices },
+	epsilon = EPSILON,
+) => {
+	if (!vertices_coords || !edges_vertices || !edges_vertices.length) {
+		return { edges_line: [], lines: [] };
+	}
+
+	// a vector-origin line representation of every edge. we will apply
+	// clustering operations to this list to group edges with similar lines.
+	// const edgesLine = edgesToLines3({ vertices_coords, edges_vertices });
+	const edgesLine = edgesToLines3({ vertices_coords, edges_vertices });
+
+	const lines_lines = edgesLine.map(() => []);
+
+	edgesLine.forEach((line0, e0) => edgesLine.forEach((line1, e1) => {
+		if (e1 <= e0) { return; }
+		if (collinearLines3(line0, line1, epsilon)) {
+			lines_lines[e0].push(e1);
+			lines_lines[e1].push(e0);
+		}
+	}));
+
+	const edges_line = connectedComponents(lines_lines);
+	const lines_edges = invertFlatToArrayMap(edges_line);
+
+	// get the most precise form of a line possible.
+	// the fastest way to do this is, for every segment, build a vector
+	// from the furthest two points possible.
+	// so, step 1, for each line/cluster, get a list of all vertices involved.
+	const lines_vertices = lines_edges
+		.map(edges => edges.flatMap(e => edges_vertices[e]))
+		.map(uniqueElements);
+
+	// for each line/cluster, find the two vertices furthest on either end.
+	// use one vector from the line, it doesn't matter which one.
+	const lines_firstVector = lines_edges.map(edges => edgesLine[edges[0]].vector);
+
+	// project each vertex onto the line, get the dot product
+	// find the minimum and maximum vertices along the line's vector.
+	const lines_vertProjects = lines_vertices
+		.map((vertices, i) => vertices
+			.map(v => dot(vertices_coords[v], lines_firstVector[i])));
+	const lines_vertProjectsMin = lines_vertProjects
+		.map((projections, i) => lines_vertices[i][arrayMinimumIndex(projections)]);
+	const lines_vertProjectsMax = lines_vertProjects
+		.map((projections, i) => lines_vertices[i][arrayMaximumIndex(projections)]);
+
+	// for each line/cluster, create a vector from the furthest two vertices
+	const lines_vector = lines_vertices.map((_, i) => subtract(
+		vertices_coords[lines_vertProjectsMax[i]],
+		vertices_coords[lines_vertProjectsMin[i]],
+	));
+
+	// the "line" result will have both vector and origin matching
+	// in dimensions with the input graph's vertices_coords
+	const lines_vectorN = getDimensionQuick({ vertices_coords }) === 2
+		? lines_vector.map(resize2)
+		: lines_vector.map(resize3);
+
+	// for each line's origin, we want to use an existing vertex.
+	const lines_origin = lines_vertProjectsMin.map(v => vertices_coords[v]);
+	const lines = lines_vectorN
+		.map((vector, i) => ({ vector, origin: lines_origin[i] }));
+	return {
+		lines,
+		edges_line,
+	};
+};

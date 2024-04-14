@@ -142,11 +142,22 @@ test("3D layer solver, square-fish base, faces sets", () => {
 
 test("3D layer solver, Mooser's train", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/moosers-train.fold", "utf-8");
-	const graph = JSON.parse(FOLD);
+	const folded = JSON.parse(FOLD);
 	const {
 		orders,
 		branches,
-	} = ear.layer.layer3D(graph);
+	} = ear.layer.layer3D(folded);
+
+	// something so confusing.
+	// in the source code for "getEdgesLine", the line:
+	// const edgesLine = edgesToLines3({ vertices_coords, edges_vertices });
+	// switch it out for "edgesToLines" and 1633 becomes 1581.
+
+	expect(JSON.stringify(folded.vertices_coords.map(ear.math.resize3)))
+		.toMatchObject(JSON.stringify(folded.vertices_coords));
+
+	expect(JSON.stringify(ear.graph.edgesToLines(folded)))
+		.toMatchObject(JSON.stringify(ear.graph.edgesToLines3(folded)));
 
 	// expect(Object.keys(orders).length).toBe(1713);
 	expect(Object.keys(orders).length).toBe(1633);
@@ -172,8 +183,8 @@ test("3D layer solver, Mooser's train", () => {
 	// 		{ orders: [[108, 114, 1], [108, 136, 1], [108, 137, -1], [108, 116, -1]]},
 	// 	]
 	// ]);
-	graph.faceOrders = ear.layer.compile({ orders, branches });
-	fs.writeFileSync(`./tests/tmp/moosers-train-layer-solved.fold`, JSON.stringify(graph));
+	folded.faceOrders = ear.layer.compile({ orders, branches });
+	fs.writeFileSync(`./tests/tmp/moosers-train-layer-solved.fold`, JSON.stringify(folded));
 });
 
 test("3D layer solver, maze-u", () => {

@@ -1,11 +1,11 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import { pathCommandNames, parsePathCommands } from '../../general/path.js';
 import TransformMethods from './shared/transforms.js';
 import methods from './shared/urls.js';
 import * as dom from './shared/dom.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 /**
  * @param {SVGElement} el one svg element, intended to be a <path> element

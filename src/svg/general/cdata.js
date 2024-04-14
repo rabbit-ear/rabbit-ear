@@ -1,8 +1,8 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import RabbitEarWindow from '../environment/window.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 /**

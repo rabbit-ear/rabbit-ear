@@ -1,4 +1,4 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import svgDef from './svg/index.js';
 import gDef from './g.js';
 import circleDef from './circle.js';
@@ -17,7 +17,7 @@ import wedgeDef from './wedge/index.js';
 import origamiDef from './origami/index.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 /**
  * in each of these instances, arguments maps the arguments to attributes

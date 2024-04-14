@@ -382,6 +382,99 @@ test("constraints3DEdges, maze-u", () => {
 	]);
 });
 
+test("constraints3DEdges, Mooser's train, carriage only", () => {
+	const FOLD = fs.readFileSync(
+		"./tests/files/fold/moosers-train-carriage.fold",
+		"utf-8",
+	);
+	const graph = JSON.parse(FOLD);
+	const folded = {
+		...graph,
+		vertices_coords: ear.graph.makeVerticesCoordsFolded(graph),
+	};
+	ear.graph.populate(folded);
+
+	// face cluster stuff is test in other files: graph.faces.planes
+	const {
+		// planes_transform,
+		// faces_plane,
+		// faces_cluster,
+		// faces_winding,
+		// faces_polygon,
+		// faces_center,
+		// clusters_faces,
+		// clusters_graph,
+		// clusters_transform,
+		// facesFacesOverlap,
+		facePairs,
+		orders,
+		tortilla_tortilla,
+		taco_tortilla,
+	} = constraints3DEdges(folded);
+
+	const {
+		tJunctions,
+		yJunctions,
+		bentFlatTortillas,
+		bentTortillas,
+		bentTortillasFlatTaco,
+	} = getSolvable3DEdgePairs(folded);
+
+	expect(facePairs).toHaveLength(440);
+	expect(yJunctions).toHaveLength(0);
+	expect(tJunctions).toHaveLength(40);
+	expect(bentFlatTortillas).toHaveLength(0);
+	expect(bentTortillas).toHaveLength(80);
+	expect(bentTortillasFlatTaco).toHaveLength(68);
+	expect(tortilla_tortilla).toHaveLength(80);
+	expect(taco_tortilla).toHaveLength(68);
+	expect(Object.keys(orders)).toHaveLength(40);
+
+	expect(tJunctions).toMatchObject([
+		[32, 35], [32, 36], [33, 35], [33, 36], [34, 35], [34, 36], [35, 37],
+		[35, 38], [36, 37], [36, 38], [38, 40], [38, 41], [39, 40], [39, 41],
+		[40, 42], [40, 43], [40, 44], [41, 42], [41, 43], [41, 44], [244, 247],
+		[244, 248], [245, 247], [245, 248], [246, 247], [246, 248], [247, 249],
+		[247, 250], [248, 249], [248, 250], [250, 252], [250, 253], [251, 252],
+		[251, 253], [252, 254], [252, 255], [252, 256], [253, 254], [253, 255],
+		[253, 256],
+	]);
+
+	expect(bentTortillas).toMatchObject([
+		[32, 33], [32, 34], [32, 37], [32, 38], [33, 34], [33, 37], [33, 38],
+		[34, 37], [34, 38], [35, 36], [37, 38], [38, 39], [38, 42], [38, 43],
+		[38, 44], [39, 42], [39, 43], [39, 44], [40, 41], [42, 43], [42, 44],
+		[43, 44], [49, 196], [51, 169], [52, 134], [54, 101], [55, 56], [57, 58],
+		[57, 162], [58, 162], [60, 61], [60, 138], [61, 138], [62, 63], [79, 80],
+		[79, 81], [80, 81], [81, 82], [81, 83], [82, 83], [102, 243], [135, 241],
+		[140, 222], [140, 223], [164, 219], [164, 220], [170, 240], [197, 238],
+		[202, 203], [202, 204], [203, 204], [204, 205], [204, 206], [205, 206],
+		[217, 218], [219, 220], [222, 223], [224, 225], [244, 245], [244, 246],
+		[244, 249], [244, 250], [245, 246], [245, 249], [245, 250], [246, 249],
+		[246, 250], [247, 248], [249, 250], [250, 251], [250, 254], [250, 255],
+		[250, 256], [251, 254], [251, 255], [251, 256], [252, 253], [254, 255],
+		[254, 256], [255, 256],
+	]);
+
+	expect(bentTortillasFlatTaco).toMatchObject([
+		[55, 59], [56, 59], [57, 118], [57, 161], [57, 183], [57, 207], [58, 118],
+		[58, 161], [58, 183], [58, 207], [59, 62], [59, 63], [60, 84], [60, 115],
+		[60, 120], [60, 137], [61, 84], [61, 115], [61, 120], [61, 137], [78, 140],
+		[78, 222], [78, 223], [79, 189], [80, 189], [81, 121], [81, 189], [82, 121],
+		[83, 121], [84, 138], [112, 140], [112, 222], [112, 223], [115, 138],
+		[117, 204], [117, 205], [117, 206], [118, 162], [120, 138], [137, 138],
+		[140, 141], [140, 188], [141, 222], [141, 223], [161, 162], [162, 183],
+		[162, 207], [164, 165], [164, 180], [164, 186], [164, 201], [165, 219],
+		[165, 220], [180, 219], [180, 220], [185, 202], [185, 203], [185, 204],
+		[186, 219], [186, 220], [188, 222], [188, 223], [201, 219], [201, 220],
+		[217, 221], [218, 221], [221, 224], [221, 225],
+	]);
+
+	expect(orders).toMatchObject({
+		"16 19": 2, "16 20": 2, "17 19": 2, "17 20": 2, "18 19": 2, "18 20": 2, "19 21": 1, "19 22": 1, "20 21": 1, "20 22": 1, "22 24": 2, "22 25": 2, "23 24": 2, "23 25": 2, "24 26": 1, "24 27": 1, "24 28": 1, "25 26": 1, "25 27": 1, "25 28": 1, "0 123": 2, "0 128": 2, "91 123": 2, "91 128": 2, "102 123": 2, "102 128": 2, "123 136": 1, "123 139": 1, "128 136": 1, "128 139": 1, "112 139": 1, "101 139": 1, "112 114": 1, "101 114": 1, "99 112": 2, "112 141": 1, "112 144": 1, "99 101": 2, "101 141": 1, "101 144": 1,
+	});
+});
+
 test("constraints3DEdges, mooser's train", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/moosers-train.fold", "utf-8");
 	const fold = JSON.parse(foldfile);

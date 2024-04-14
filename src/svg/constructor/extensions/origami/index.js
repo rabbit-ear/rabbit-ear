@@ -1,9 +1,9 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import init from './init.js';
 import methods from './methods.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 const origamiDef = {

@@ -1,4 +1,4 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import { str_points, str_string } from '../../environment/strings.js';
 import { svgSemiFlattenArrays } from '../../arguments/semiFlattenArrays.js';
 import makeCoordinates from '../../arguments/makeCoordinates.js';
@@ -7,7 +7,7 @@ import methods from './shared/urls.js';
 import * as dom from './shared/dom.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 const getPoints = (el) => {

@@ -1,4 +1,4 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import { str_string } from '../../environment/strings.js';
 import { makeUUID } from '../../general/string.js';
 import { setViewBox } from '../../general/viewBox.js';
@@ -7,7 +7,7 @@ import methods from './shared/urls.js';
 import * as dom from './shared/dom.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 const makeIDString = function () {

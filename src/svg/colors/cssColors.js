@@ -1,4 +1,7 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
+/**
+ * Rabbit Ear (c) Kraft
+ */
 const cssColors = {
 	black: "#000000",
 	silver: "#c0c0c0",

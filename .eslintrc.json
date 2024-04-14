@@ -19,6 +19,10 @@
     "no-continue": 0,
     "no-labels": 0,
     "no-plusplus": 0,
+    "no-param-reassign": ["error", {
+    	"props": true,
+      "ignorePropertyModificationsFor": ["graph", "epsilon", "faces_edges"]
+    }],
     "no-sparse-arrays": 0,
     "no-tabs": 0,
     "no-restricted-syntax": ["error", "ForInStatement", "ForOfStatement", "WithStatement"],

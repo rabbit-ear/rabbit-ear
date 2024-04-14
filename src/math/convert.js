@@ -31,30 +31,44 @@ export const angleToVector = (a) => [Math.cos(a), Math.sin(a)];
  * @description Given two points, create a vector-origin line representation
  * of a line that passes through both points. This will work in n-dimensions.
  * If there are more than two points, the rest will be ignored.
- * @param {[number, number]|[number, number, number]} origin
- * one point, itself an array of numbers
- * @param {[number, number]|[number, number, number]} point2
- * one point, itself an array of numbers
- * @returns {VecLine} an object with "vector" and "origin".
+ * @param {[number, number]|[number, number, number]} a
+ * one point, this will become the origin
+ * @param {[number, number]|[number, number, number]} b
+ * one point
+ * @returns {VecLine2} an object with "vector" and "origin".
  */
-export const pointsToLine = (origin, point2) => (origin.length === 2
-	? ({ vector: subtract2(point2, origin), origin })
-	: ({ vector: subtract3(resize3(point2), origin), origin }));
+export const pointsToLine2 = (a, b) => ({
+	vector: subtract2(b, a),
+	origin: resize2(a),
+});
 
 /**
  * @description Given two points, create a vector-origin line representation
  * of a line that passes through both points. This will work in n-dimensions.
  * If there are more than two points, the rest will be ignored.
- * @param {[number, number]|[number, number, number]} origin
- * one point, itself an array of numbers
- * @param {[number, number]|[number, number, number]} point2
- * one point, itself an array of numbers
- * @returns {VecLine2} an object with "vector" and "origin".
+ * @param {[number, number, number]} a one point, this will become the origin
+ * @param {[number, number, number]} b one point
+ * @returns {VecLine3} an object with "vector" and "origin".
  */
-export const pointsToLine2 = (origin, point2) => ({
-	vector: subtract2(point2, origin),
-	origin: resize2(origin),
+export const pointsToLine3 = (a, b) => ({
+	vector: subtract3(b, a),
+	origin: resize3(a),
 });
+
+/**
+ * @description Given two points, create a vector-origin line representation
+ * of a line that passes through both points. This will work in n-dimensions.
+ * If there are more than two points, the rest will be ignored.
+ * @param {[number, number]|[number, number, number]} a
+ * one point, this will become the origin
+ * @param {[number, number]|[number, number, number]} b
+ * one point
+ * @returns {VecLine} an object with "vector" and "origin".
+ */
+export const pointsToLine = (a, b) => (a.length === 3 && b.length === 3
+	? pointsToLine3(a, b)
+	: pointsToLine2(a, b)
+);
 
 /**
  * @description Convert a line from one parameterization into another.

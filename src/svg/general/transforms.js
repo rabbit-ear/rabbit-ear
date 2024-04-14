@@ -1,8 +1,8 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import { svg_multiplyMatrices2 } from './algebra.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 /** SVG transforms are in DEGREES ! */

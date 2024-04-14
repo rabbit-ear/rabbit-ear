@@ -61,7 +61,7 @@ test("planarize, bird base with duplicate vertices", () => {
 
 test("planarize, svg import", () => {
 	const svg = fs.readFileSync("./tests/files/svg/maze-8x8.svg", "utf-8");
-	const graph = ear.convert.svgToFold.svgEdgeGraph(svg);
+	const graph = ear.convert.svgEdgeGraph(svg);
 	const result = ear.graph.planarize(graph);
 	fs.writeFileSync("./tests/tmp/svg-to-fold-maze.fold", JSON.stringify(result, null, 2), "utf8");
 	fs.writeFileSync(
@@ -81,7 +81,7 @@ test("overlapping edge assignments", () => {
 		<rect x="0" y="3" width="2" height="2" stroke="blue" />
 		<line x1="0" y1="-1" x2="0" y2="2.5" stroke="black" />
 	</svg>`;
-	const graph = ear.convert.svgToFold.svgEdgeGraph(svg);
+	const graph = ear.convert.svgEdgeGraph(svg);
 	const result = ear.graph.planarize(graph);
 	fs.writeFileSync(
 		"./tests/tmp/planarize-overlapping-edges.fold",

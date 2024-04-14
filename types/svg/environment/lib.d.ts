@@ -1,5 +1,5 @@
 export { lib as default };
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 declare const lib: {};

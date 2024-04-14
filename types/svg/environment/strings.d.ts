@@ -1,7 +1,7 @@
 export const str_arrow: "arrow";
 export const str_boolean: "boolean";
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 export const str_class: "class";
 export const str_fill: "fill";

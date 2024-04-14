@@ -1,6 +1,6 @@
 export { extensions as default };
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 /**
  * in each of these instances, arguments maps the arguments to attributes
@@ -95,15 +95,6 @@ declare const extensions: {
     };
     mask: {
         args: (...args: any[]) => any[];
-        /**
-         * in each of these instances, arguments maps the arguments to attributes
-         * as the attributes are listed in the "attributes" folder.
-         *
-         * arguments: function. this should convert the array of arguments into
-         * an array of (processed) arguments. 1:1. arguments into arguments.
-         * make sure it is returning an array.
-         *
-         */
         methods: {
             appendTo: (element: any, parent: any) => any;
             removeChildren: (element: any) => any;

@@ -1,10 +1,10 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import NS from '../../../spec/namespace.js';
 import RabbitEarWindow from '../../../environment/window.js';
 import lib from '../../../environment/lib.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 const init = (graph, ...args) => {

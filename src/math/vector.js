@@ -446,6 +446,17 @@ export const parallel2 = (v, u, epsilon = EPSILON) => Math
 	.abs(cross2(v, u)) < epsilon;
 
 /**
+ * @description check if two 3D vectors are parallel to each other within an epsilon
+ * @param {[number, number, number]} v one 3D vector
+ * @param {[number, number, number]} u one 3D vector
+ * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
+ * @returns {boolean} are the two vectors parallel within an epsilon?
+ */
+export const parallel3 = (v, u, epsilon = EPSILON) => (
+	(magnitude3(cross3(v, u))) < epsilon
+);
+
+/**
  * @description Resize a vector to a particular length (duplicating it
  * in memory in the process) by either lengthening or shortening it.
  * In the case of lengthening, fill 0.

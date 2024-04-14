@@ -1,4 +1,4 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 /**
  * Rabbit Ear (c) Kraft
  */

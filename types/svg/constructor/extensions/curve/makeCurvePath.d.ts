@@ -1,5 +1,5 @@
 export { makeCurvePath as default };
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 declare function makeCurvePath(endpoints?: any[], bend?: number, pinch?: number): string;

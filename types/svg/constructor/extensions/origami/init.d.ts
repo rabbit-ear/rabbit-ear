@@ -1,5 +1,5 @@
 export { init as default };
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 declare function init(graph: any, ...args: any[]): any;

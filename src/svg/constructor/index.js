@@ -1,4 +1,4 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import RabbitEarWindow from '../environment/window.js';
 import NS from '../spec/namespace.js';
 import nodes_children from '../spec/nodes_children.js';
@@ -7,7 +7,7 @@ import { toCamel } from '../general/string.js';
 import extensions from './extensions/index.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 const passthroughArgs = (...args) => args;

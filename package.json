@@ -16,7 +16,7 @@
 	"scripts": {
 		"build": "npm run clean && rollup -c && npm run docs && npm run types",
 		"clean": "node tests/clean.js",
-		"docs": "typedoc --entryPointStrategy expand ./src",
+		"docs": "typedoc --options typedoc.config.json",
 		"test": "vitest",
 		"types": "tsc"
 	},

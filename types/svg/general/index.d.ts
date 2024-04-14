@@ -1,6 +1,6 @@
 export { general as default };
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 declare const general: {
     convertToViewBox: (svg: any, x: any, y: any) => any[];
@@ -42,7 +42,9 @@ declare const general: {
     flattenDomTree: (el: Element | ChildNode) => (Element | ChildNode)[];
     flattenDomTreeWithStyle: (element: Element | ChildNode, attributes?: any) => {
         element: Element | ChildNode;
-        attributes: any;
+        attributes: {
+            [key: string]: string;
+        };
     }[];
     getRootParent: (el: Element) => Element;
     xmlStringToElement: (input: string, mimeType?: string) => Element;

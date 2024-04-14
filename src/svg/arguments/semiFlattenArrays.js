@@ -1,8 +1,8 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import { str_string, str_function } from '../environment/strings.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 const svgIsIterable = (obj) => obj != null

@@ -101,7 +101,9 @@ declare const SVG: ((...args: any[]) => SVGElement) & {
     flattenDomTree: (el: Element | ChildNode) => (Element | ChildNode)[];
     flattenDomTreeWithStyle: (element: Element | ChildNode, attributes?: any) => {
         element: Element | ChildNode;
-        attributes: any;
+        attributes: {
+            [key: string]: string;
+        };
     }[];
     getRootParent: (el: Element) => Element;
     xmlStringToElement: (input: string, mimeType?: string) => Element;

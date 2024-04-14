@@ -1,4 +1,4 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import NS from '../../../spec/namespace.js';
 import RabbitEarWindow from '../../../environment/window.js';
 import makeViewBox from '../../../arguments/makeViewBox.js';
@@ -6,11 +6,11 @@ import makeCoordinates from '../../../arguments/makeCoordinates.js';
 import methods from './methods.js';
 import TouchEvents from './touch.js';
 import Animation from './animation.js';
+// import applyControlsToSVG from './controls.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
-// import Controls from "./controls.js";
 
 const svgDef = {
 	svg: {
@@ -27,7 +27,7 @@ const svgDef = {
 				.forEach(parent => parent.appendChild(element));
 			TouchEvents(element);
 			Animation(element);
-			// Controls(element);
+			// applyControlsToSVG(element);
 			return element;
 		},
 	},

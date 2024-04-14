@@ -1,11 +1,11 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import RabbitEarWindow from '../environment/window.js';
 import { str_svg } from '../environment/strings.js';
 import { nodeNames } from '../spec/nodes.js';
 import Constructor from './index.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 /**

@@ -3,8 +3,8 @@
  */
 // import count from "../graph/count.js";
 import clone from "../general/clone.js";
-import foldToSvg from "../convert/foldToSvg/index.js";
-import foldToObj from "../convert/foldToObj/index.js";
+import { foldToSvg } from "../convert/foldToSvg.js";
+import { foldToObj } from "../convert/foldToObj.js";
 import clean from "../graph/clean.js";
 import planarize from "../graph/planarize.js";
 import populate from "../graph/populate.js";

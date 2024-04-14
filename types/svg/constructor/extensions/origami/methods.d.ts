@@ -1,6 +1,6 @@
 export { methods as default };
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 declare const methods: {
     appendTo: (element: any, parent: any) => any;

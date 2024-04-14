@@ -4,8 +4,16 @@
 import { getEpsilon } from "../../graph/epsilon.js";
 import { boundingBox } from "../../graph/boundary.js";
 import { cleanNumber } from "../../general/number.js";
+
 /**
- *
+ * @description Given an options object, typically the final parameter in
+ * a method's parameters, look for an epsilon value which may be located inside
+ * the object under an "epsilon" parameter, or if the object itself is a number.
+ * @param {FOLD} graph a FOLD object
+ * @param {object|number} object the options object
+ * @param {string} key the key under which this epsilon value might lie.
+ * @returns {number} an epsilon value, either from the user, or found via
+ * analysis by looking at the vertices of the graph.
  */
 export const findEpsilonInObject = (graph, object, key = "epsilon") => {
 	if (typeof object === "object" && typeof object[key] === "number") {
@@ -15,9 +23,13 @@ export const findEpsilonInObject = (graph, object, key = "epsilon") => {
 		? object
 		: getEpsilon(graph);
 };
+
 /**
  * @description Invert the vertices and re-center them to
  * be inside the same bounding box as before.
+ * @param {[number, number][]|[number, number, number][]} vertices_coords,
+ * modified in place
+ * @returns {undefined}
  */
 export const invertVertical = (vertices_coords) => {
 	const box = boundingBox({ vertices_coords });

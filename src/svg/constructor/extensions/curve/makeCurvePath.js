@@ -1,8 +1,8 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import { svg_sub2, svg_add2, svg_scale2 } from '../../../general/algebra.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 // endpoints is an array of 4 numbers

@@ -1,2 +1,2 @@
-export function findEpsilonInObject(graph: any, object: any, key?: string): any;
-export function invertVertical(vertices_coords: any): void;
+export function findEpsilonInObject(graph: FOLD, object: object | number, key?: string): number;
+export function invertVertical(vertices_coords: [number, number][] | [number, number, number][]): undefined;

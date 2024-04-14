@@ -1,4 +1,4 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import { setWindow } from './environment/window.js';
 import NS from './spec/namespace.js';
 import nodes_attributes from './spec/nodes_attributes.js';
@@ -9,7 +9,7 @@ import extensions from './constructor/extensions/index.js';
 import { constructors, svg } from './constructor/elements.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 const library = {

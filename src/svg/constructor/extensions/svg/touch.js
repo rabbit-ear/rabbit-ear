@@ -1,9 +1,9 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import { capitalized } from '../../../general/string.js';
 import { convertToViewBox } from '../../../general/viewBox.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 const eventNameCategories = {

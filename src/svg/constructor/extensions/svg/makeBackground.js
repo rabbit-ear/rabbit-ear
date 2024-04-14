@@ -1,9 +1,13 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import RabbitEarWindow from '../../../environment/window.js';
 import { str_class, str_stroke, str_none, str_fill } from '../../../environment/strings.js';
 import NS from '../../../spec/namespace.js';
 import nodes_attributes from '../../../spec/nodes_attributes.js';
 import getSVGFrame from './getSVGFrame.js';
+
+/**
+ * Rabbit Ear (c) Kraft
+ */
 
 const bgClass = "svg-background-rectangle";
 

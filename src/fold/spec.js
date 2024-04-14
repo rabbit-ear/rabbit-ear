@@ -395,7 +395,6 @@ export const getDimension = ({ vertices_coords }, epsilon = EPSILON) => {
  * @description Infer the dimensions of (the vertices of) a graph
  * by querying the first point in vertices_coords. This also works
  * when the vertices_coords array has holes (ie: index 0 is not set).
- * This method is O(1).
  * @param {FOLD} graph a FOLD object
  * @returns {number | undefined} the dimension of the vertices, or
  * undefined if no vertices exist. number should be 2 or 3 in most cases.

@@ -1,4 +1,4 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import cssColors from './cssColors.js';
 import { hexToRgb, hslToRgb, rgbToHex } from './convert.js';
 

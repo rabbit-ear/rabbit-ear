@@ -1,5 +1,5 @@
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 /** @param {[number, number]} a @param {[number, number]} b @returns {[number, number]} */
 export function svg_add2(a: [number, number], b: [number, number]): [number, number];

@@ -1,8 +1,8 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import { svg_polar_to_cart } from '../../../general/algebra.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 const arcPath = (x, y, radius, startAngle, endAngle, includeCenter = false) => {

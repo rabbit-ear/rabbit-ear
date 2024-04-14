@@ -1,9 +1,9 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import makeCoordinates from '../../../arguments/makeCoordinates.js';
 import makeCurvePath from './makeCurvePath.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 const curveArguments = (...args) => [

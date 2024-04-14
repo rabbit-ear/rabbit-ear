@@ -12,6 +12,6 @@ declare namespace arcDef {
 }
 import { str_path } from '../../../environment/strings.js';
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 declare function arcArguments(a: any, b: any, c: any, d: any, e: any): string[];

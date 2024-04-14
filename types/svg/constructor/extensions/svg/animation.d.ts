@@ -1,5 +1,5 @@
 export { Animation as default };
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 declare function Animation(element: any): void;

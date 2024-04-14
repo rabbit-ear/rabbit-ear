@@ -13,7 +13,7 @@ declare namespace nodes_children {
     export let radialGradient: string[];
 }
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 declare const headerStuff: string[];
 declare const drawingShapes: string[];

@@ -1,4 +1,4 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import makeCoordinates from '../../arguments/makeCoordinates.js';
 import nodes_attributes from '../../spec/nodes_attributes.js';
 import TransformMethods from './shared/transforms.js';
@@ -6,7 +6,7 @@ import methods from './shared/urls.js';
 import * as dom from './shared/dom.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 const setRectSize = (el, rx, ry) => {

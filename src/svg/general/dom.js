@@ -1,10 +1,10 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import RabbitEarWindow from '../environment/window.js';
 import { transformStringToMatrix } from './transforms.js';
 import { svg_multiplyMatrices2 } from './algebra.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 /**
@@ -146,7 +146,7 @@ const attrAssign = (parentAttrs, element) => {
  * "transform", where the parent-child values are computed and merged.
  * @param {Element|ChildNode} element
  * @param {object} attributes key value pairs of attributes
- * @returns {{ element: Element|ChildNode, attributes: object }[]}
+ * @returns {{ element: Element|ChildNode, attributes: { [key: string]: string } }[]}
  * a flat array of objects containing the element and an object describing
  * the attributes.
  */

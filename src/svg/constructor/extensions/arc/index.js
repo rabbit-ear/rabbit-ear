@@ -1,10 +1,10 @@
-/* svg (c) Kraft, MIT License */
+/* SVG (c) Kraft */
 import arcPath from '../shared/makeArcPath.js';
 import { str_path } from '../../../environment/strings.js';
 import TransformMethods from '../shared/transforms.js';
 
 /**
- * SVG (c) Kraft
+ * Rabbit Ear (c) Kraft
  */
 
 const arcArguments = (a, b, c, d, e) => [arcPath(a, b, c, d, e, false)];

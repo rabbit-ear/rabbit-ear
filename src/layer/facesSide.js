@@ -14,7 +14,7 @@ import {
 	pointsToLine,
 } from "../math/convert.js";
 import {
-	edgeToLine,
+	edgeToLine2,
 } from "../graph/edges/lines.js";
 import {
 	makeFacesCenter2DQuick,
@@ -60,7 +60,7 @@ export const makeEdgesFacesSide = ({
  * @description having already pre-computed a the tacos in the form of
  * edges and the edges' adjacent faces, give each face a +1 or -1 based
  * on which side of the edge it is on. "side" determined by the cross-
- * product against the edge's vector.
+ * product against the edge's vector. This method works in 2D only.
  * @param {FOLD} graph the fold graph with faces_center
  * @param {[number, number][]} edgePairs
  * @returns {[[number,number],[number,number]][]}
@@ -73,7 +73,7 @@ export const makeEdgePairsFacesSide = (
 	// we have to use the same origin/vector so that the face-sidedness is
 	// consistent globally, not local to its edge.
 	const edgePairsLine = edgePairs
-		.map(([edge]) => edgeToLine({ vertices_coords, edges_vertices }, edge));
+		.map(([edge]) => edgeToLine2({ vertices_coords, edges_vertices }, edge));
 
 	return edgePairs
 		// convert pairs of edges into pairs of face-pairs (two faces for each edge)

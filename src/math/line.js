@@ -13,15 +13,16 @@ import {
 	cross2,
 	normalize,
 	normalize2,
-	subtract,
 	add2,
+	subtract,
 	subtract2,
+	subtract3,
 	scale2,
 	lerp,
 	flip,
 	flip2,
-	resize2,
-	resize3,
+	parallel2,
+	parallel3,
 } from "./vector.js";
 import {
 	counterClockwiseSubsect2,
@@ -55,26 +56,26 @@ export const clampSegment = (dist) => {
 	return dist;
 };
 
-/**
- * @description Resize an n-dimensional line into 2D.
- * @param {VecLine} line
- * @returns {VecLine2} a 2D line
- */
-export const resizeLine2 = ({ vector, origin }) => ({
-	vector: resize2(vector),
-	origin: resize2(origin),
-});
+// /**
+//  * @description Resize an n-dimensional line into 2D.
+//  * @param {VecLine} line
+//  * @returns {VecLine2} a 2D line
+//  */
+// export const resizeLine2 = ({ vector, origin }) => ({
+// 	vector: resize2(vector),
+// 	origin: resize2(origin),
+// });
 
-/**
- * @description Resize an n-dimensional line into 3D, filling 0 if
- * any fields were previously empty.
- * @param {VecLine} line
- * @returns {VecLine3} a 3D line
- */
-export const resizeLine3 = ({ vector, origin }) => ({
-	vector: resize3(vector),
-	origin: resize3(origin),
-});
+// /**
+//  * @description Resize an n-dimensional line into 3D, filling 0 if
+//  * any fields were previously empty.
+//  * @param {VecLine} line
+//  * @returns {VecLine3} a 3D line
+//  */
+// export const resizeLine3 = ({ vector, origin }) => ({
+// 	vector: resize3(vector),
+// 	origin: resize3(origin),
+// });
 
 /**
  * @description Do three points lie collinear to each other?
@@ -84,7 +85,7 @@ export const resizeLine3 = ({ vector, origin }) => ({
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {boolean} true if the points lies collinear.
  */
-export const isCollinear = (p0, p1, p2, epsilon = EPSILON) => {
+export const collinearPoints = (p0, p1, p2, epsilon = EPSILON) => {
 	const vectors = [[p0, p1], [p1, p2]]
 		.map(pts => subtract(pts[1], pts[0]))
 		.map(vector => normalize(vector));
@@ -110,6 +111,30 @@ export const collinearBetween = (p0, p1, p2, inclusive = false, epsilon = EPSILO
 		.map(vector => normalize(vector));
 	return epsilonEqual(1.0, dot(vectors[0], vectors[1]), EPSILON);
 };
+
+/**
+ * @description Test if two lines are parallel and collinear in 2D
+ * @param {VecLine2} a a line in 2D
+ * @param {VecLine2} b a line in 2D
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {boolean} true if the two lines are parallel and collinear
+ */
+export const collinearLines2 = (a, b, epsilon = EPSILON) => (
+	parallel2(a.vector, b.vector, epsilon)
+	&& parallel2(a.vector, subtract2(b.origin, a.origin), epsilon)
+);
+
+/**
+ * @description Test if two lines are parallel and collinear in 3D
+ * @param {VecLine3} a a line in 3D
+ * @param {VecLine3} b a line in 3D
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {boolean} true if the two lines are parallel and collinear
+ */
+export const collinearLines3 = (a, b, epsilon = EPSILON) => (
+	parallel3(a.vector, b.vector, epsilon)
+	&& parallel3(a.vector, subtract3(b.origin, a.origin), epsilon)
+);
 
 /**
  * @description linear interpolate between two lines
