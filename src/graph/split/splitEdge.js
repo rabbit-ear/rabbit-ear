@@ -8,7 +8,9 @@ import {
 	makeVerticesToEdge,
 	makeVerticesToFace,
 } from "../make/lookup.js";
-import remove from "../remove.js";
+import {
+	remove,
+} from "../remove.js";
 import {
 	makeVerticesFacesFromVerticesVerticesForVertex,
 	makeVerticesFacesFromVerticesEdgesForVertex,

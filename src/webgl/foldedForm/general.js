@@ -6,16 +6,26 @@ import {
 	add3,
 	resize3,
 } from "../../math/vector.js";
-import clone from "../../general/clone.js";
+import {
+	clone,
+} from "../../general/clone.js";
 import {
 	nudgeFacesWithFaceOrders,
 	nudgeFacesWithFacesLayer,
 } from "../../graph/orders.js";
-import count from "../../graph/count.js";
-import countImplied from "../../graph/countImplied.js";
-import { invertFlatMap } from "../../graph/maps.js";
-import { triangulate } from "../../graph/triangulate.js";
-import { explodeFaces } from "../../graph/explode.js";
+import {
+	countEdges,
+	countImpliedEdges,
+} from "../../graph/count.js";
+import {
+	invertFlatMap,
+} from "../../graph/maps.js";
+import {
+	triangulate,
+} from "../../graph/triangulate.js";
+import {
+	explodeFaces,
+} from "../../graph/explode.js";
 
 const LAYER_NUDGE = 5e-6;
 
@@ -28,7 +38,7 @@ export const makeExplodedGraph = (graph, layerNudge = LAYER_NUDGE) => {
 	// doesn't exist, make it with all assignments set to "U".
 	// the user will never see this data, it's just for visualization.
 	if (!copy.edges_assignment) {
-		const edgeCount = count.edges(copy) || countImplied.edges(copy);
+		const edgeCount = countEdges(copy) || countImpliedEdges(copy);
 		copy.edges_assignment = Array(edgeCount).fill("U");
 	}
 	let faces_nudge = [];

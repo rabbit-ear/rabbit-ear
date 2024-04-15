@@ -1,7 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import remove from "../remove.js";
+import {
+	remove,
+} from "../remove.js";
 
 /**
  * @description Get the indices of all vertices which make no appearance in any edge.

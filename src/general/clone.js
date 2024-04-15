@@ -44,8 +44,6 @@ const clonePolyfill = function (o) {
  * @param {object} object
  * @returns {object} a deep copy of the input object
  */
-const clone = (typeof structuredClone === "function"
+export const clone = (typeof structuredClone === "function"
 	? structuredClone
 	: clonePolyfill);
-
-export default clone;

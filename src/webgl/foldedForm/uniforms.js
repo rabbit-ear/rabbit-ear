@@ -10,7 +10,7 @@ import { parseColorToWebGLRgb } from "../general/colors.js";
  * @description Uniforms must exist so there are protections to ensure
  * that at least some value gets passed.
  */
-const makeUniforms = (gl, {
+export const makeUniforms = (gl, {
 	projectionMatrix,
 	modelViewMatrix,
 	frontColor,
@@ -55,5 +55,3 @@ const makeUniforms = (gl, {
 		value: opacity !== undefined ? opacity : 1,
 	},
 });
-
-export default makeUniforms;

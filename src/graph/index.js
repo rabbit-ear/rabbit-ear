@@ -27,7 +27,9 @@ import * as verticesFolded from "./vertices/folded.js";
 import * as verticesIsolated from "./vertices/isolated.js";
 import * as verticesSort from "./vertices/sort.js";
 import * as boundary from "./boundary.js";
+import * as clean from "./clean.js";
 import * as connectedComponents from "./connectedComponents.js";
+import * as count from "./count.js";
 import * as directedGraph from "./directedGraph.js";
 import * as disjoint from "./disjoint.js";
 import * as explodeMethods from "./explode.js";
@@ -36,10 +38,15 @@ import * as intersect from "./intersect.js";
 import * as join from "./join.js";
 import * as maps from "./maps.js";
 import * as nearestMethods from "./nearest.js";
+import * as normalize from "./normalize.js";
 import * as normals from "./normals.js";
 import * as orders from "./orders.js";
 import * as overlap from "./overlap.js";
+import * as planarize from "./planarize.js";
 import * as pleat from "./pleat.js";
+import * as populate from "./populate.js";
+import * as remove from "./remove.js";
+import * as replace from "./replace.js";
 import * as subgraphMethods from "./subgraph.js";
 import * as sweep from "./sweep.js";
 import * as transfer from "./transfer.js";
@@ -49,14 +56,6 @@ import * as triangulateMethods from "./triangulate.js";
 import * as walk from "./walk.js";
 import * as validate from "./validate.js";
 import make from "./make/index.js";
-import clean from "./clean.js";
-import count from "./count.js";
-import countImplied from "./countImplied.js";
-import normalize from "./normalize.js";
-import planarize from "./planarize.js";
-import populate from "./populate.js";
-import remove from "./remove.js";
-import replace from "./replace.js";
 
 // these are included via. a backdoor system, in src/index.js, all of these
 // methods are bound to the the prototype, constructor graph(), which already
@@ -86,7 +85,9 @@ export default {
 	...verticesIsolated,
 	...verticesSort,
 	...boundary,
+	...clean,
 	...connectedComponents,
+	...count,
 	...directedGraph,
 	...disjoint,
 	...explodeMethods,
@@ -96,10 +97,15 @@ export default {
 	...make,
 	...maps,
 	...nearestMethods,
+	...normalize,
 	...normals,
 	...orders,
 	...overlap,
+	...planarize,
 	...pleat,
+	...populate,
+	...remove,
+	...replace,
 	...splitEdge,
 	...splitFace,
 	...splitLine,
@@ -112,12 +118,4 @@ export default {
 	...triangulateMethods,
 	...walk,
 	...validate,
-	count,
-	countImplied,
-	clean,
-	populate,
-	remove,
-	replace,
-	normalize,
-	planarize,
 };

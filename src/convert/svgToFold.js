@@ -282,6 +282,15 @@ export const svgEdgeGraph = (svg, options) => {
  * document element node, or as a string
  * @param {number | object} options an options object or an epsilon number
  * @returns {FOLD} a FOLD representation of the SVG
+ * @example
+ * const svgFile = fs.readFileSync("./crane.svg", "utf-8");
+ * const fold = svgToFold(svgFile);
+ * fs.writeFileSync("./crane.fold", JSON.stringify(fold, null, 2));
+ * @example
+ * // with options
+ * const svgFile = fs.readFileSync("./crane.svg", "utf-8");
+ * const fold = svgToFold(svgFile, { boundary: false, epsilon: 0.1, invertVertical: true });
+ * fs.writeFileSync("./crane.fold", JSON.stringify(fold, null, 2));
  */
 export const svgToFold = (file, options) => {
 	const graph = svgEdgeGraph(file, options);

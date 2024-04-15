@@ -25,7 +25,9 @@ import {
 import {
 	addEdge,
 } from "../add/edge.js";
-import remove from "../remove.js";
+import {
+	remove,
+} from "../remove.js";
 import {
 	uniqueElements,
 } from "../../general/array.js";

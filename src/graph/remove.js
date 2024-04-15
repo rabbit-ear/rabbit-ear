@@ -1,7 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import count from "./count.js";
+import {
+	count,
+} from "./count.js";
 import {
 	uniqueSortedNumbers,
 } from "../general/array.js";
@@ -29,8 +31,6 @@ const makeIndexMap = (graph, key, removeIndices) => {
 };
 
 /**
- * @name remove
- * @memberof graph
  * @description Removes vertices, edges, or faces (or anything really)
  * remove elements from inside arrays, shift up remaining components,
  * and updates all relevant references across other arrays due to shifting.
@@ -54,10 +54,8 @@ const makeIndexMap = (graph, key, removeIndices) => {
  * given a geometry array: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
  * map becomes (where _ is undefined): [0, 1, 2, 3, _, 4, _, _, 5, 6]
  */
-const removeGeometryIndices = (graph, key, removeIndices) => {
+export const remove = (graph, key, removeIndices) => {
 	const indexMap = makeIndexMap(graph, key, removeIndices);
 	remapKey(graph, key, indexMap);
 	return indexMap;
 };
-
-export default removeGeometryIndices;

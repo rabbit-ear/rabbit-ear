@@ -1,13 +1,13 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-// import count from "../graph/count.js";
-import clone from "../general/clone.js";
+// import { count } from "../graph/count.js";
+import { clone } from "../general/clone.js";
 import { foldToSvg } from "../convert/foldToSvg.js";
 import { foldToObj } from "../convert/foldToObj.js";
-import clean from "../graph/clean.js";
-import planarize from "../graph/planarize.js";
-import populate from "../graph/populate.js";
+import { clean } from "../graph/clean.js";
+import { planarize } from "../graph/planarize.js";
+import { populate } from "../graph/populate.js";
 // import { flatFold } from "../graph/fold/flatFold.js";
 import * as splitEdge from "../graph/split/splitEdge.js";
 import * as transform from "../graph/transform.js";

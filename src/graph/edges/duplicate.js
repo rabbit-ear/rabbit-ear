@@ -14,7 +14,9 @@ import {
 import {
 	makeVerticesFaces,
 } from "../make/verticesFaces.js";
-import replace from "../replace.js";
+import {
+	replace,
+} from "../replace.js";
 import {
 	invertArrayToFlatMap,
 } from "../maps.js";

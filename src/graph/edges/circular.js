@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { filterKeysWithSuffix } from "../../fold/spec.js";
-import remove from "../remove.js";
+import { remove } from "../remove.js";
 
 /**
  * @description Get the indices of all circular edges. Circular edges are

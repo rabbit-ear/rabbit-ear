@@ -28,7 +28,9 @@ import {
 import {
 	splitEdge,
 } from "../split/splitEdge.js";
-import remove from "../remove.js";
+import {
+	remove,
+} from "../remove.js";
 import Messages from "../../environment/messages.js";
 
 /**

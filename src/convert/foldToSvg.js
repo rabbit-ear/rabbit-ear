@@ -223,6 +223,27 @@ export const renderSVG = (graph, element, options = {}) => {
  * - "string" {boolean} if true, the return value will be a string
  *   otherwise it will be a Javascript DOM element object type.
  * @returns {SVGElement|string} SVG element, containing the rendering of the origami.
+ * @example
+ * // as string
+ * const fold = fs.readFileSync("./crane.fold", "utf-8");
+ * const svg = foldToSvg(fold, { string: true });
+ * fs.writeFileSync("./crane.svg", svg);
+ * @example
+ * // as DOM Element
+ * const birdBase = ear.graph.bird();
+ * const svg = foldToSvg(birdBase);
+ * document.body.appendChild(svg);
+ * @example
+ * // with options
+ * const birdBase = ear.graph.bird();
+ * const svg = foldToSvg(birdBase, {
+ *   string: true,
+ *   vertices: false,
+ *   edges: { mountain: "lightgray", valley: "blue" },
+ *   faces: false,
+ *   boundaries: false,
+ * });
+ * fs.writeFileSync("./bird-base.svg", svg);
  */
 export const foldToSvg = (file, options = {}) => {
 	// render the file into a DOM element type.

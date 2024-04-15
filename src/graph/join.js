@@ -1,8 +1,12 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import count from "./count.js";
-import clone from "../general/clone.js";
+import {
+	count,
+} from "./count.js";
+import {
+	clone,
+} from "../general/clone.js";
 import {
 	remapKey,
 	invertFlatToArrayMap,

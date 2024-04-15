@@ -1,7 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import planarize from "../../graph/planarize.js";
+import {
+	planarize,
+} from "../../graph/planarize.js";
 import {
 	makeVerticesVertices,
 } from "../../graph/make/verticesVertices.js";

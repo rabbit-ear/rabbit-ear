@@ -26,7 +26,7 @@ import {
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object} summary of changes, a nextmap and the indices removed.
  */
-const clean = (graph, epsilon) => {
+export const clean = (graph, epsilon) => {
 	// duplicate vertices has to be done first as it's possible that
 	// this will create circular/duplicate edges.
 	const change_v1 = removeDuplicateVertices(graph, epsilon);
@@ -54,5 +54,3 @@ const clean = (graph, epsilon) => {
 		},
 	};
 };
-
-export default clean;

@@ -1,7 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import createProgram from "../general/createProgram.js";
+import {
+	createProgram,
+} from "../general/program.js";
 import {
 	makeFoldedVertexArrays,
 	makeFoldedElementArrays,
@@ -11,7 +13,9 @@ import {
 import {
 	makeExplodedGraph,
 } from "./general.js";
-import makeUniforms from "./uniforms.js";
+import {
+	makeUniforms,
+} from "./uniforms.js";
 import {
 	model_100_vert,
 	model_100_frag,

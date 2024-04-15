@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { makePolygonCircumradius } from "../math/polygon.js";
-import populate from "../graph/populate.js";
+import { populate } from "../graph/populate.js";
 
 /**
  * @description Create a square or rectangle vertices_coords,

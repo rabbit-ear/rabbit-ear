@@ -42,7 +42,9 @@ import {
 import {
 	splitFaceWithLine,
 } from "./splitFaceWithLine.js";
-import populate from "../populate.js";
+import {
+	populate,
+} from "../populate.js";
 
 /**
  * @description this determines which side of a line (using cross product)

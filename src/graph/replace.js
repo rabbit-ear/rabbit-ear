@@ -3,7 +3,7 @@
  */
 import { uniqueSortedNumbers } from "../general/array.js";
 import Messages from "../environment/messages.js";
-import count from "./count.js";
+import { count } from "./count.js";
 import { remapKey } from "./maps.js";
 
 /**
@@ -28,8 +28,6 @@ const makeIndexMap = (graph, key, replaceIndices, replaces) => {
 };
 
 /**
- * @name replace
- * @memberof graph
  * @description Replaces vertices, edges, or faces (or anything really)
  * replace elements from inside arrays, shift up remaining components,
  * and updates all relevant references across other arrays due to shifting.
@@ -52,7 +50,7 @@ const makeIndexMap = (graph, key, replaceIndices, replaces) => {
  * this can handle removing multiple indices at once; and is faster than
  * otherwise calling this multiple times with only one or a few removals.
  */
-const replaceGeometryIndices = (graph, key, replaceIndices) => {
+export const replace = (graph, key, replaceIndices) => {
 	// make sure replace indices are well-formed. values cannot be larger than keys.
 	// if this is the case, flip the index/value, assuming the two geometry items
 	// are interchangeable and it doesn't matter which one we remove, but warn
@@ -70,5 +68,3 @@ const replaceGeometryIndices = (graph, key, replaceIndices) => {
 	remapKey(graph, key, indexMap);
 	return indexMap;
 };
-
-export default replaceGeometryIndices;

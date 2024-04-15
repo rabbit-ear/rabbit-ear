@@ -28,7 +28,9 @@ import {
 	invertFlatToArrayMap,
 	invertFlatMap,
 } from "./maps.js";
-import remove from "./remove.js";
+import {
+	remove,
+} from "./remove.js";
 import {
 	edgeIsolatedVertices,
 	removeIsolatedVertices,
@@ -129,7 +131,7 @@ const removeCollinearVertex = ({ edges_vertices, vertices_edges }, vertex) => {
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {FOLD} a planarized FOLD object
  */
-const planarize = ({
+export const planarize = ({
 	vertices_coords,
 	edges_vertices,
 	edges_assignment,
@@ -282,5 +284,3 @@ const planarize = ({
 	delete result.vertices_edges;
 	return result;
 };
-
-export default planarize;

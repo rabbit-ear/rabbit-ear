@@ -2,7 +2,9 @@
  * Rabbit Ear (c) Kraft
  */
 import { filterKeysWithPrefix } from "./spec.js";
-import clone from "../general/clone.js";
+import {
+	clone,
+} from "../general/clone.js";
 import Messages from "../environment/messages.js";
 
 /**

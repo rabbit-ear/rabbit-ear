@@ -1,14 +1,18 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import createProgram from "../general/createProgram.js";
+import {
+	createProgram,
+} from "../general/program.js";
 import {
 	makeCPEdgesVertexArrays,
 	makeCPEdgesElementArrays,
 	makeCPFacesVertexArrays,
 	makeCPFacesElementArrays,
 } from "./arrays.js";
-import makeUniforms from "./uniforms.js";
+import {
+	makeUniforms,
+} from "./uniforms.js";
 import {
 	cp_100_vert,
 	cp_100_frag,

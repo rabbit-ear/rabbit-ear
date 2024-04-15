@@ -1,8 +1,8 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import createProgram from "./general/createProgram.js";
-import initialize from "./general/initialize.js";
+import * as generalProgram from "./general/program.js";
+import * as initialize from "./general/initialize.js";
 import * as view from "./general/view.js";
 import * as program from "./program.js";
 //
@@ -21,11 +21,11 @@ import * as cpPrograms from "./creasePattern/programs.js";
  * @description WebGL methods
  */
 export default {
-	createProgram,
-	initialize,
 	foldedForm,
 	creasePattern,
 	// webGLHelpers,
+	...generalProgram,
+	...initialize,
 	...view,
 	...program,
 	...foldedArrays,

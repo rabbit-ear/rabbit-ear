@@ -140,7 +140,7 @@ const buildFacesIfNeeded = (graph, reface) => {
  * faces be rebuilt by walking 2D planar faces, specify { "faces": true }.
  * @return {FOLD} graph the same input graph object
  */
-const populate = (graph, options = {}) => {
+export const populate = (graph, options = {}) => {
 	if (typeof graph !== "object") { return graph; }
 	if (!graph.edges_vertices) { return graph; }
 
@@ -197,5 +197,3 @@ const populate = (graph, options = {}) => {
 	}
 	return graph;
 };
-
-export default populate;

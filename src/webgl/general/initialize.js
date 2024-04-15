@@ -3,7 +3,7 @@
  */
 import Messages from "../../environment/messages.js";
 
-const initializeWebGL = (canvasElement, preferredVersion) => {
+export const initializeWebGL = (canvasElement, preferredVersion) => {
 	const contextName = [null, "webgl", "webgl2"];
 	// set the size of the drawingBuffer to include retina display level pixels (if exist),
 	// the size can still change after, even with CSS, this only matters for getContext
@@ -23,5 +23,3 @@ const initializeWebGL = (canvasElement, preferredVersion) => {
 	if (gl1) { return { gl: gl1, version: 1 }; }
 	throw new Error(Messages.noWebGL);
 };
-
-export default initializeWebGL;

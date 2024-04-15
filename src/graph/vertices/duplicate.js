@@ -5,7 +5,7 @@ import { EPSILON } from "../../math/constant.js";
 import { average } from "../../math/vector.js";
 import { getDimensionQuick } from "../../fold/spec.js";
 import { getVerticesClusters } from "./clusters.js";
-import replace from "../replace.js";
+import { replace } from "../replace.js";
 
 /**
  * @description Get the indices of all vertices which

@@ -6,7 +6,7 @@ import graphPrototype from "./graph.js";
 // import origamiPrototype from "./origami.js";
 import { file_spec, file_creator } from "../fold/rabbitear.js";
 import * as bases from "../fold/bases.js";
-import populate from "../graph/populate.js";
+import { populate } from "../graph/populate.js";
 
 /**
  * @description Create a FOLD object that inherits from the Graph prototype

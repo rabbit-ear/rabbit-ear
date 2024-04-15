@@ -1,7 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import implied from "../countImplied.js";
+import {
+	countImpliedVertices,
+} from "../count.js";
 import {
 	makeVerticesToFace,
 } from "./lookup.js";
@@ -20,7 +22,7 @@ export const makeVerticesFacesUnsorted = ({ vertices_coords, vertices_edges, fac
 	// the length of something like vertices_coords or vertices_edges)
 	const vertices_faces = vertArray !== undefined
 		? vertArray.map(() => [])
-		: Array.from(Array(implied.vertices({ faces_vertices }))).map(() => []);
+		: Array.from(Array(countImpliedVertices({ faces_vertices }))).map(() => []);
 	// iterate over every face, then iterate over each of the face's vertices
 	faces_vertices.forEach((face, f) => {
 		// in the case that one face visits the same vertex multiple times,

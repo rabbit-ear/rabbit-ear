@@ -239,8 +239,6 @@ export const flipFacesLayer = (faces_layer) => invertArrayToFlatMap(
 // 	return invertMap(topologicalOrder(conditions, graph));
 // };
 
-// export default makeFacesLayer;
-
 /**
  * @description Given a faces_layer ordering of faces in a graph,
  * complute the edges_assignments, including "B", "F", "V", and "M".

@@ -5,12 +5,15 @@ import {
 	identity4x4,
 	multiplyMatrices4,
 } from "../../math/matrix4.js";
-import { parseColorToWebGLRgb } from "../general/colors.js";
+import {
+	parseColorToWebGLRgb,
+} from "../general/colors.js";
+
 /**
  * @description Uniforms must exist so there are protections to ensure
  * that at least some value gets passed.
  */
-const makeUniforms = (gl, {
+export const makeUniforms = (gl, {
 	projectionMatrix,
 	modelViewMatrix,
 	cpColor,
@@ -40,5 +43,3 @@ const makeUniforms = (gl, {
 		value: strokeWidth || 0.05,
 	},
 });
-
-export default makeUniforms;

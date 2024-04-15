@@ -8,7 +8,7 @@
  * @param {string} string a string
  * @returns {number} a unique number
  */
-const hashCode = (string) => {
+export const hashCode = (string) => {
 	let hash = 0;
 	for (let i = 0; i < string.length; i += 1) {
 		hash = ((hash << 5) - hash) + string.charCodeAt(i);
@@ -16,5 +16,3 @@ const hashCode = (string) => {
 	}
 	return hash;
 };
-
-export default hashCode;

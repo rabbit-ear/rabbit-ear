@@ -173,8 +173,10 @@ export const opxEdgeGraph = (file) => {
 /**
  * @description Convert an ORIPA file into a FOLD object
  * @param {string} file an ORIPA file as a string
- * @param {number | object} options an epsilon or an options object
- * used to merge nearby vertices
+ * @param {number | {
+ *   epsilon?: number,
+ *   invertVertical?: boolean,
+ * }} options an epsilon as a number, or an options object with options
  * @returns {FOLD|undefined} a FOLD representation of the ORIPA file
  * @example
  * const opxFile = fs.readFileSync("./crane.opx", "utf-8");
@@ -210,7 +212,10 @@ export const opxToFold = (file, options) => {
 	const file_metadata = parseFileMetadata(parsed);
 	const graph = makeLineGraph(lines);
 
-	if (options && options.invertVertical && graph.vertices_coords) {
+	if (options
+		&& typeof options === "object"
+		&& options.invertVertical
+		&& graph.vertices_coords) {
 		invertVertical(graph.vertices_coords);
 	}
 	// analysis on vertices_coords to find an appropriate epsilon

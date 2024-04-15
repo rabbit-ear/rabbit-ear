@@ -47,10 +47,8 @@ const createProgramAndAttachShaders = (gl, vertexShader, fragmentShader) => {
  * @param {string} fragmentSource fragment shader as raw text
  * @returns {!WebGLProgram} a WebGL program
  */
-const createProgram = (gl, vertexSource, fragmentSource) => {
+export const createProgram = (gl, vertexSource, fragmentSource) => {
 	const vertexShader = compileShader(gl, vertexSource, gl.VERTEX_SHADER);
 	const fragmentShader = compileShader(gl, fragmentSource, gl.FRAGMENT_SHADER);
 	return createProgramAndAttachShaders(gl, vertexShader, fragmentShader);
 };
-
-export default createProgram;

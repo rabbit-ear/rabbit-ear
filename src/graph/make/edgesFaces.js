@@ -5,7 +5,9 @@ import {
 	subtract2,
 	cross2,
 } from "../../math/vector.js";
-import implied from "../countImplied.js";
+import {
+	countImpliedEdges,
+} from "../count.js";
 import {
 	makeFacesVerticesFromEdges,
 } from "./facesVertices.js";
@@ -35,7 +37,7 @@ export const makeEdgesFacesUnsorted = ({ edges_vertices, faces_vertices, faces_e
 	// the length of something like edges_vertices)
 	const edges_faces = edges_vertices !== undefined
 		? edges_vertices.map(() => [])
-		: Array.from(Array(implied.edges({ faces_edges }))).map(() => []);
+		: Array.from(Array(countImpliedEdges({ faces_edges }))).map(() => []);
 	faces_edges.forEach((face, f) => {
 		const hash = [];
 		// in the case that one face visits the same edge multiple times,

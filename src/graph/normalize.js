@@ -1,7 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { remapKey } from "./maps.js";
+import {
+	remapKey,
+} from "./maps.js";
 
 /**
  * @description This method will re-index all component arrays so that
@@ -12,7 +14,7 @@ import { remapKey } from "./maps.js";
  * @param {FOLD} graph a FOLD object
  * @returns {FOLD} a copy of the input FOLD graph, with no array holes.
  */
-const normalize = (graph) => {
+export const normalize = (graph) => {
 	const maps = { vertices: [], edges: [], faces: [] };
 	let v = 0;
 	let e = 0;
@@ -25,5 +27,3 @@ const normalize = (graph) => {
 	remapKey(graph, "faces", maps.faces);
 	return graph;
 };
-
-export default normalize;

@@ -52,7 +52,9 @@ import {
 import {
 	transferPointInFaceBetweenGraphs,
 } from "../transfer.js";
-import clone from "../../general/clone.js";
+import {
+	clone,
+} from "../../general/clone.js";
 
 /**
  * @description Transfer a point from one graph to another, given the

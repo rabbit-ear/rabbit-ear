@@ -19,7 +19,9 @@ import {
 	addClass,
 } from "../../svg/general/dom.js";
 import SVG from "../../svg/index.js";
-import clone from "../../general/clone.js";
+import {
+	clone,
+} from "../../general/clone.js";
 import {
 	setKeysAndValues,
 } from "../general/svg.js";
