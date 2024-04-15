@@ -6,12 +6,14 @@ import {
 	multiplyMatrices4,
 } from "../../math/matrix4.js";
 import {
-	parseColorToWebGLRgb,
+	parseColorToWebGLColor,
 } from "../general/colors.js";
 
 /**
  * @description Uniforms must exist so there are protections to ensure
  * that at least some value gets passed.
+ * @param {WebGLRenderingContext|WebGL2RenderingContext} gl a WebGL context
+ * @return {{ [key: string]: WebGLUniform }}
  */
 export const makeUniforms = (gl, {
 	projectionMatrix,
@@ -36,7 +38,7 @@ export const makeUniforms = (gl, {
 	},
 	u_cpColor: {
 		func: "uniform3fv",
-		value: parseColorToWebGLRgb(cpColor || "white"),
+		value: parseColorToWebGLColor(cpColor || "white"),
 	},
 	u_strokeWidth: {
 		func: "uniform1f",

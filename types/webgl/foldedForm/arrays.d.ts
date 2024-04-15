@@ -1,24 +1,4 @@
-export function makeFoldedVertexArrays(gl: object, program: object, { vertices_coords, edges_vertices, edges_assignment, faces_vertices, faces_edges, faces_normal, }?: FOLD, options?: {}): {
-    location: any;
-    buffer: any;
-    type: any;
-    length: any;
-    data: Float32Array;
-}[];
-export function makeFoldedElementArrays(gl: any, version?: number, graph?: {}): {
-    mode: any;
-    buffer: any;
-    data: Uint16Array | Uint32Array;
-}[];
-export function makeThickEdgesVertexArrays(gl: any, program: any, graph: any, options?: {}): {
-    location: any;
-    buffer: any;
-    type: any;
-    length: any;
-    data: Float32Array;
-}[];
-export function makeThickEdgesElementArrays(gl: any, version?: number, graph?: {}): {
-    mode: any;
-    buffer: any;
-    data: Uint16Array | Uint32Array;
-}[];
+export function makeFoldedVertexArrays(gl: WebGLRenderingContext | WebGL2RenderingContext, program: object, { vertices_coords, edges_vertices, edges_assignment, faces_vertices, faces_edges, faces_normal, }?: FOLD, options?: {}): WebGLVertexArray[];
+export function makeFoldedElementArrays(gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD): WebGLElementArray[];
+export function makeThickEdgesVertexArrays(gl: WebGLRenderingContext | WebGL2RenderingContext, program: object, graph: FOLD, options?: {}): WebGLVertexArray[];
+export function makeThickEdgesElementArrays(gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD): WebGLElementArray[];

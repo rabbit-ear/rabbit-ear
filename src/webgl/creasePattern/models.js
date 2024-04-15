@@ -3,7 +3,7 @@
  */
 import {
 	createProgram,
-} from "../general/program.js";
+} from "../general/webgl.js";
 import {
 	makeCPEdgesVertexArrays,
 	makeCPEdgesElementArrays,
@@ -22,6 +22,12 @@ import {
 	thick_edges_300_vert,
 } from "./shaders.js";
 
+/**
+ * @param {WebGLRenderingContext|WebGL2RenderingContext} gl The WebGL Context.
+ * @param {FOLD} graph a FOLD object
+ * @param {object} options
+ * @returns {WebGLModel}
+ */
 export const cpFacesV1 = (gl, graph = {}, options = undefined) => {
 	const program = createProgram(gl, cp_100_vert, cp_100_frag);
 	return {
@@ -33,6 +39,12 @@ export const cpFacesV1 = (gl, graph = {}, options = undefined) => {
 	};
 };
 
+/**
+ * @param {WebGLRenderingContext|WebGL2RenderingContext} gl The WebGL Context.
+ * @param {FOLD} graph a FOLD object
+ * @param {object} options
+ * @returns {WebGLModel}
+ */
 export const cpEdgesV1 = (gl, graph = {}, options = undefined) => {
 	const program = createProgram(gl, thick_edges_100_vert, cp_100_frag);
 	return {
@@ -44,6 +56,12 @@ export const cpEdgesV1 = (gl, graph = {}, options = undefined) => {
 	};
 };
 
+/**
+ * @param {WebGLRenderingContext|WebGL2RenderingContext} gl The WebGL Context.
+ * @param {FOLD} graph a FOLD object
+ * @param {object} options
+ * @returns {WebGLModel}
+ */
 export const cpFacesV2 = (gl, graph = {}, options = undefined) => {
 	const program = createProgram(gl, cp_300_vert, cp_300_frag);
 	return {
@@ -55,6 +73,12 @@ export const cpFacesV2 = (gl, graph = {}, options = undefined) => {
 	};
 };
 
+/**
+ * @param {WebGLRenderingContext|WebGL2RenderingContext} gl The WebGL Context.
+ * @param {FOLD} graph a FOLD object
+ * @param {object} options
+ * @returns {WebGLModel}
+ */
 export const cpEdgesV2 = (gl, graph = {}, options = undefined) => {
 	const program = createProgram(gl, thick_edges_300_vert, cp_300_frag);
 	return {
@@ -64,4 +88,21 @@ export const cpEdgesV2 = (gl, graph = {}, options = undefined) => {
 		flags: [],
 		makeUniforms,
 	};
+};
+
+/**
+ * @param {WebGLRenderingContext|WebGL2RenderingContext} gl The WebGL Context.
+ * @param {number} version the version of the WebGL
+ * @param {FOLD} graph a FOLD object
+ * @param {object} options
+ * @returns {WebGLModel[]}
+ */
+export const creasePattern = (gl, version = 1, graph = {}, options = undefined) => {
+	switch (version) {
+	case 1:
+		return [cpFacesV1(gl, graph, options), cpEdgesV1(gl, graph, options)];
+	case 2:
+	default:
+		return [cpFacesV2(gl, graph, options), cpEdgesV2(gl, graph, options)];
+	}
 };

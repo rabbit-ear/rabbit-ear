@@ -44,4 +44,4 @@ export namespace light {
     let u_1: number[];
     export { u_1 as u };
 }
-export function parseColorToWebGLRgb(color: any): any[];
+export function parseColorToWebGLColor(color: number[] | string): [number, number, number] | undefined;

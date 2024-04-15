@@ -29,6 +29,17 @@ import {
 
 const LAYER_NUDGE = 5e-6;
 
+/**
+ * @description This explodes a graph so that faces which otherwise share
+ * vertices are separated (creating more vertices). This method will also
+ * nudge coplanar faces away from each other, based on their layer ordering
+ * (via. faceOrders or faces_layer) by a tiny amount in the cross axis to
+ * prevent z-fighting between coplanar faces.
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [layerNudge=5e-6] a small amount to nudge
+ * the faces in the cross axis to prevent Z-fighting
+ * @returns {FOLD} a copy of the input FOLD graph, with exploded faces
+ */
 export const makeExplodedGraph = (graph, layerNudge = LAYER_NUDGE) => {
 	// todo: remove the structured clone as long as everything is working.
 	// update: shallow copy is not working. the input parameter is still modified.

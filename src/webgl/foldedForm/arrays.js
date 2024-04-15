@@ -10,9 +10,10 @@ import {
 } from "../../graph/make/facesEdges.js";
 
 /**
- * @param {object} gl WebGL context
+ * @param {WebGLRenderingContext|WebGL2RenderingContext} gl WebGL context
  * @param {object} program
  * @param {FOLD} graph a FOLD object
+ * @returns {WebGLVertexArray[]}
  */
 export const makeFoldedVertexArrays = (gl, program, {
 	vertices_coords, edges_vertices, edges_assignment,
@@ -59,8 +60,16 @@ export const makeFoldedVertexArrays = (gl, program, {
 		// 	data: new Float32Array(rawEdges.flat()) },
 	].filter(el => el.location !== -1);
 };
+
 /**
  * WebGL 2 can handle Uint32Array. WebGL 1 cannot and must use 16 bit.
+ */
+
+/**
+ * @param {WebGLRenderingContext|WebGL2RenderingContext} gl WebGL context
+ * @param {number} version the WebGL version
+ * @param {FOLD} graph a FOLD object
+ * @returns {WebGLElementArray[]}
  */
 export const makeFoldedElementArrays = (gl, version = 1, graph = {}) => {
 	if (!graph || !graph.vertices_coords || !graph.faces_vertices) { return []; }
@@ -75,6 +84,12 @@ export const makeFoldedElementArrays = (gl, version = 1, graph = {}) => {
 
 // thick edges
 
+/**
+ * @param {WebGLRenderingContext|WebGL2RenderingContext} gl WebGL context
+ * @param {object} program
+ * @param {FOLD} graph a FOLD object
+ * @returns {WebGLVertexArray[]}
+ */
 export const makeThickEdgesVertexArrays = (gl, program, graph, options = {}) => {
 	if (!graph || !graph.vertices_coords || !graph.edges_vertices) {
 		return [];
@@ -116,6 +131,12 @@ export const makeThickEdgesVertexArrays = (gl, program, graph, options = {}) => 
 	}].filter(el => el.location !== -1);
 };
 
+/**
+ * @param {WebGLRenderingContext|WebGL2RenderingContext} gl WebGL context
+ * @param {number} version the WebGL version
+ * @param {FOLD} graph a FOLD object
+ * @returns {WebGLElementArray[]}
+ */
 export const makeThickEdgesElementArrays = (gl, version = 1, graph = {}) => {
 	if (!graph || !graph.edges_vertices) { return []; }
 	const edgesTriangles = graph.edges_vertices

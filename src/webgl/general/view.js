@@ -11,11 +11,14 @@ import {
 	midpoint,
 	resize,
 } from "../../math/vector.js";
-import { boundingBox } from "../../graph/boundary.js";
+import {
+	boundingBox,
+} from "../../graph/boundary.js";
+
 /**
  * @description Initialize a viewport for a WebGL context
  * based on the dimensions of the canvas.
- * @param {object} gl a WebGL instance
+ * @param {WebGLRenderingContext|WebGL2RenderingContext} gl a WebGL instance
  * @param {HTMLCanvasElement} canvas an HTML canvas
  */
 export const rebuildViewport = (gl, canvas) => {
@@ -29,10 +32,11 @@ export const rebuildViewport = (gl, canvas) => {
 	}
 	gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 };
+
 /**
  * @description Create a 4x4 projection matrix for either a
  * perspective or orthographic view.
- * @param {object} canvas an HTML canvas
+ * @param {HTMLCanvasElement} canvas an HTML canvas
  * @param {string} perspective "orthographic" or "perspective"
  * @param {number} fov the field of view (perspective only)
  */
@@ -50,19 +54,21 @@ export const makeProjectionMatrix = (canvas, perspective = "perspective", fov = 
 		? makeOrthographicMatrix4(side[1], side[0], -side[1], -side[0], ORTHO_FAR, ORTHO_NEAR)
 		: makePerspectiveMatrix4(fov * (Math.PI / 180), bounds[0] / bounds[1], Z_NEAR, Z_FAR);
 };
+
 /**
  * @description build an aspect-fit model matrix
  * (possibly an inverse-model matrix)
  * which brings the vertices inside of a 2x2x2 origin-centered bounding box.
  * @param {FOLD} graph a FOLD object
+ * @returns {number[]} a 4x4 model matrix
  */
 export const makeModelMatrix = (graph) => {
-	if (!graph) { return identity4x4; }
+	if (!graph) { return [...identity4x4]; }
 	const bounds = boundingBox(graph);
-	if (!bounds) { return identity4x4; }
+	if (!bounds) { return [...identity4x4]; }
 	const scale = Math.max(...bounds.span); // * Math.SQRT2;
-	if (scale === 0) { return identity4x4; }
+	if (scale === 0) { return [...identity4x4]; }
 	const center = resize(3, midpoint(bounds.min, bounds.max));
 	const scalePositionMatrix = [scale, 0, 0, 0, 0, scale, 0, 0, 0, 0, scale, 0, ...center, 1];
-	return invertMatrix4(scalePositionMatrix) || identity4x4;
+	return invertMatrix4(scalePositionMatrix) || [...identity4x4];
 };

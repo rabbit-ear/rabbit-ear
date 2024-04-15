@@ -3,16 +3,16 @@
  */
 import {
 	createProgram,
-} from "../general/program.js";
+} from "../general/webgl.js";
+import {
+	makeExplodedGraph,
+} from "../general/graph.js";
 import {
 	makeFoldedVertexArrays,
 	makeFoldedElementArrays,
 	makeThickEdgesVertexArrays,
 	makeThickEdgesElementArrays,
 } from "./arrays.js";
-import {
-	makeExplodedGraph,
-} from "./general.js";
 import {
 	makeUniforms,
 } from "./uniforms.js";
@@ -31,6 +31,13 @@ import {
 	simple_300_frag,
 } from "./shaders.js";
 
+/**
+ * @param {WebGLRenderingContext|WebGL2RenderingContext} gl The WebGL Context.
+ * @param {number} version the version of WebGL (1 or 2)
+ * @param {FOLD} graph a FOLD object
+ * @param {object} options
+ * @returns {WebGLModel}
+ */
 export const foldedFormFaces = (gl, version = 1, graph = {}, options = {}) => {
 	const exploded = makeExplodedGraph(graph, options.layerNudge);
 	const program = version === 1
@@ -45,6 +52,13 @@ export const foldedFormFaces = (gl, version = 1, graph = {}, options = {}) => {
 	};
 };
 
+/**
+ * @param {WebGLRenderingContext|WebGL2RenderingContext} gl The WebGL Context.
+ * @param {number} version the version of WebGL (1 or 2)
+ * @param {FOLD} graph a FOLD object
+ * @param {object} options
+ * @returns {WebGLModel}
+ */
 export const foldedFormEdges = (gl, version = 1, graph = {}, options = {}) => {
 	const program = version === 1
 		? createProgram(gl, thick_edges_100_vert, simple_100_frag)
@@ -58,6 +72,13 @@ export const foldedFormEdges = (gl, version = 1, graph = {}, options = {}) => {
 	};
 };
 
+/**
+ * @param {WebGLRenderingContext|WebGL2RenderingContext} gl The WebGL Context.
+ * @param {number} version the version of WebGL (1 or 2)
+ * @param {FOLD} graph a FOLD object
+ * @param {object} options
+ * @returns {WebGLModel}
+ */
 export const foldedFormFacesOutlined = (gl, version = 1, graph = {}, options = {}) => {
 	const exploded = makeExplodedGraph(graph, options.layerNudge);
 	const program = version === 1
@@ -70,4 +91,28 @@ export const foldedFormFacesOutlined = (gl, version = 1, graph = {}, options = {
 		flags: [gl.DEPTH_TEST],
 		makeUniforms,
 	};
+};
+
+/**
+ * @param {WebGLRenderingContext|WebGL2RenderingContext} gl The WebGL Context.
+ * @param {number} version the version of the WebGL
+ * @param {FOLD} graph a FOLD object
+ * @param {object} options
+ * @returns {WebGLModel[]}
+ */
+export const foldedForm = (gl, version = 1, graph = {}, options = {}) => {
+	const programs = [];
+	// either Faces, or FacesOutlined
+	if (options.faces !== false) {
+		if (options.outlines === false) {
+			programs.push(foldedFormFaces(gl, version, graph, options));
+		} else {
+			programs.push(foldedFormFacesOutlined(gl, version, graph, options));
+		}
+	}
+	// if edges option is on, also add thick edges
+	if (options.edges === true) {
+		programs.push(foldedFormEdges(gl, version, graph, options));
+	}
+	return programs;
 };

@@ -27,24 +27,24 @@ initialize and draw:
 
 ```javascript
 // gl is the WebGL context. version is either 1 or 2.
-const { gl, version } = ear.webgl.initialize(canvas);
+const { gl, version } = ear.webgl.initializeWebGL(canvas);
 
 // Initialize a WebGL viewport based on the dimensions of the canvas
 ear.webgl.rebuildViewport(gl, canvas);
 
 // draw creasePattern style, or foldedForm style
-program = ear.webgl.creasePattern(gl, version, FOLD);
-// program = ear.webgl.foldedForm(gl, version, FOLD);
+const models = ear.webgl.creasePattern(gl, version, FOLD);
+// models = ear.webgl.foldedForm(gl, version, FOLD);
 
-projectionMatrix = ear.webgl.makeProjectionMatrix(canvas);
-modelViewMatrix = ear.webgl.makeModelMatrix(FOLD);
+const projectionMatrix = ear.webgl.makeProjectionMatrix(canvas);
+const modelViewMatrix = ear.webgl.makeModelMatrix(FOLD);
 
 gl.enable(gl.BLEND);
 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 // prepare the uniforms and draw the frame
-const uniforms = program.makeUniforms(gl, {
+const modelUniforms = models.map(model => model.makeUniforms(gl, {
 	projectionMatrix,
 	modelViewMatrix,
 	canvas,
@@ -53,15 +53,17 @@ const uniforms = program.makeUniforms(gl, {
 	cpColor: "white",
 	strokeWidth: 0.05,
 	opacity: 1,
-});
+}));
 
-ear.webgl.drawProgram(gl, version, program, uniforms);
+models.forEach((model, i) => {
+	ear.webgl.drawModel(gl, version, model, modelUniforms[i]);
+});
 ```
 
 dealloc:
 
 ```javascript
-ear.webgl.deallocProgram(gl, program);
+models.forEach(model => ear.webgl.deallocModel(gl, model));
 ```
 
 # uniforms

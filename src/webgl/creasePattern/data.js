@@ -1,8 +1,13 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { makeEdgesVector } from "../../graph/make/edges.js";
-import { light, dark } from "../general/colors.js";
+import {
+	makeEdgesVector,
+} from "../../graph/make/edges.js";
+import {
+	light,
+	dark,
+} from "../general/colors.js";
 
 const make2D = (coords) => coords
 	.map(coord => [0, 1]

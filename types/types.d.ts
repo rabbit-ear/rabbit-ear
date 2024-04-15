@@ -74,6 +74,31 @@ type SweepEvent = {
     start: number[];
     end: number[];
 };
+type WebGLVertexArray = {
+    location: number;
+    buffer: WebGLBuffer;
+    type: number;
+    length: number;
+    data: Float32Array;
+};
+type WebGLElementArray = {
+    mode: number;
+    buffer: WebGLBuffer;
+    data: Uint16Array | Uint32Array;
+};
+type WebGLUniform = {
+    func: string;
+    value: any;
+};
+type WebGLModel = {
+    program: WebGLProgram;
+    vertexArrays: WebGLVertexArray[];
+    elementArrays: WebGLElementArray[];
+    flags: number[];
+    makeUniforms: (gl: WebGLRenderingContext | WebGL2RenderingContext, options: object) => {
+        [key: string]: WebGLUniform;
+    };
+};
 type TacoTacoConstraint = [number, number, number, number];
 type TacoTortillaConstraint = [number, number, number];
 type TortillaTortillaConstraint = [number, number, number, number];

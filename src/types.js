@@ -201,6 +201,48 @@
  */
 
 /**
+ * @typedef WebGLVertexArray
+ * @type {{
+ *   location: number,
+ *   buffer: WebGLBuffer,
+ *   type: number,
+ *   length: number,
+ *   data: Float32Array,
+ * }}
+ *
+ * @typedef WebGLElementArray
+ * @type {{
+ *   mode: number,
+ *   buffer: WebGLBuffer,
+ *   data: Uint16Array | Uint32Array,
+ * }}
+ *
+ * @typedef WebGLUniform
+ * @type {{
+ *   func: string,
+ *   value: any
+ * }}
+ *
+ * @typedef WebGLModel
+ * @type {{
+ *   program: WebGLProgram,
+ *   vertexArrays: WebGLVertexArray[],
+ *   elementArrays: WebGLElementArray[],
+ *   flags: number[],
+ *   makeUniforms: (
+ *     gl: WebGLRenderingContext|WebGL2RenderingContext,
+ *     options: object,
+ *   ) => ({ [key: string]: WebGLUniform }),
+ * }}
+ * @property {WebGLProgram} program
+ * @property {WebGLVertexArray[]} vertexArrays
+ * @property {WebGLElementArray[]} elementArrays
+ * @property {number[]} flags these flags will be enabled at the beginning of
+ * the model's rendering process via gl.enable, and then gl.disable at the end.
+ * @property {Function} makeUniforms
+ */
+
+/**
  * @typedef TacoTacoConstraint
  * @type {[number, number, number, number]}
  * @description four face indices involved
@@ -288,7 +330,6 @@
  * }
  *
  */
-
 
 /**
  * @typedef FaceOrdersBranch

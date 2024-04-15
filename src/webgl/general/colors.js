@@ -1,7 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { parseColorToRgb } from "../../svg/colors/parseColor.js";
+import {
+	parseColorToRgb,
+} from "../../svg/colors/parseColor.js";
 
 export const dark = {
 	B: [0.5, 0.5, 0.5],
@@ -36,12 +38,25 @@ export const light = {
 	U: [0.6, 0.25, 0.9],
 	u: [0.6, 0.25, 0.9],
 };
+
 /**
  * @description Convert a color into a WebGL RGB with three
- * float values between 0 and 1
+ * float values,, red, green, and blue, between 0.0 and 1.0.
+ * @param {number[]|string} color a color as an array of 0-255 values,
+ * or a RGB/HSL/hex encoded string
+ * @returns {[number, number, number]|undefined} list of three numbers
+ * red, green, blue, each value between 0.0 and 1.0.
  */
-export const parseColorToWebGLRgb = (color) => (
-	color !== undefined && color.constructor === Array
-		? color.slice(0, 3)
-		: parseColorToRgb(color).slice(0, 3).map(n => n / 255)
-);
+export const parseColorToWebGLColor = (color) => {
+	if (typeof color === "string") {
+		const [r, g, b] = parseColorToRgb(color).slice(0, 3).map(n => n / 255);
+		return [r, g, b];
+	}
+
+	// assuming the three values are already in WebGL format (0...1) not (0...255)
+	if (color && color.constructor === Array) {
+		const [r, g, b] = color;
+		return [r, g, b];
+	}
+	return undefined;
+};

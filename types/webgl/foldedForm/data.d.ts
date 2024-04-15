@@ -5,9 +5,9 @@ export function makeFacesVertexData({ vertices_coords, edges_assignment, faces_v
     faces_edges: any;
     faces_normal: any;
 }, options?: {}): {
-    vertices_coords: any;
+    vertices_coords: [number, number][] | [number, number, number][];
     vertices_normal: number[][];
-    vertices_barycentric: any;
+    vertices_barycentric: [number, number, number][];
 };
 export function makeThickEdgesVertexData(graph: any, options: any): {
     vertices_coords: any;

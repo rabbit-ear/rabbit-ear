@@ -1,4 +1,4 @@
-export function makeUniforms(gl: any, { projectionMatrix, modelViewMatrix, frontColor, backColor, outlineColor, strokeWidth, opacity, }: {
+export function makeUniforms(gl: WebGLRenderingContext | WebGL2RenderingContext, { projectionMatrix, modelViewMatrix, frontColor, backColor, outlineColor, strokeWidth, opacity, }: {
     projectionMatrix: any;
     modelViewMatrix: any;
     frontColor: any;
@@ -7,36 +7,5 @@ export function makeUniforms(gl: any, { projectionMatrix, modelViewMatrix, front
     strokeWidth: any;
     opacity: any;
 }): {
-    u_matrix: {
-        func: string;
-        value: number[];
-    };
-    u_projection: {
-        func: string;
-        value: any;
-    };
-    u_modelView: {
-        func: string;
-        value: any;
-    };
-    u_frontColor: {
-        func: string;
-        value: any[];
-    };
-    u_backColor: {
-        func: string;
-        value: any[];
-    };
-    u_outlineColor: {
-        func: string;
-        value: any[];
-    };
-    u_strokeWidth: {
-        func: string;
-        value: any;
-    };
-    u_opacity: {
-        func: string;
-        value: any;
-    };
+    [key: string]: WebGLUniform;
 };

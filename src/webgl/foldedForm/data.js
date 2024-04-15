@@ -6,6 +6,13 @@ import { makeVerticesNormal } from "../../graph/normals.js";
 import { makeEdgesVector } from "../../graph/make/edges.js";
 import { light, dark } from "../general/colors.js";
 
+/**
+ * @returns {{
+ *   vertices_coords: [number, number][]|[number, number, number][],
+ *   vertices_normal: number[][],
+ *   vertices_barycentric: [number, number, number][],
+ * }}
+ */
 export const makeFacesVertexData = ({
 	vertices_coords, edges_assignment, faces_vertices, faces_edges, faces_normal,
 }, options = {}) => {

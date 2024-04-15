@@ -1,13 +1,21 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { makeCPEdgesVertexData } from "./data.js";
-import { triangulateConvexFacesVertices } from "../../graph/triangulate.js";
+import {
+	triangulateConvexFacesVertices,
+} from "../../graph/triangulate.js";
+import {
+	resize2,
+} from "../../math/vector.js";
+import {
+	makeCPEdgesVertexData,
+} from "./data.js";
 
 /**
- * @param {object} gl WebGL context
+ * @param {WebGLRenderingContext|WebGL2RenderingContext} gl WebGL context
  * @param {object} program
  * @param {FOLD} graph a FOLD object
+ * @returns {WebGLVertexArray[]}
  */
 export const makeCPEdgesVertexArrays = (gl, program, graph, options) => {
 	if (!graph || !graph.vertices_coords || !graph.edges_vertices) {
@@ -49,6 +57,12 @@ export const makeCPEdgesVertexArrays = (gl, program, graph, options) => {
 	}].filter(el => el.location !== -1);
 };
 
+/**
+ * @param {WebGLRenderingContext|WebGL2RenderingContext} gl WebGL context
+ * @param {number} version the WebGL version
+ * @param {FOLD} graph a FOLD object
+ * @returns {WebGLElementArray[]}
+ */
 export const makeCPEdgesElementArrays = (gl, version = 1, graph = {}) => {
 	if (!graph || !graph.edges_vertices) { return []; }
 	const edgesTriangles = graph.edges_vertices
@@ -63,10 +77,12 @@ export const makeCPEdgesElementArrays = (gl, version = 1, graph = {}) => {
 	}];
 };
 
-const make2D = (coords) => coords
-	.map(coord => [0, 1]
-		.map(i => coord[i] || 0));
-
+/**
+ * @param {WebGLRenderingContext|WebGL2RenderingContext} gl WebGL context
+ * @param {object} program
+ * @param {FOLD} graph a FOLD object
+ * @returns {WebGLVertexArray[]}
+ */
 export const makeCPFacesVertexArrays = (gl, program, graph) => {
 	if (!graph || !graph.vertices_coords) { return []; }
 	return [{
@@ -74,10 +90,16 @@ export const makeCPFacesVertexArrays = (gl, program, graph) => {
 		buffer: gl.createBuffer(),
 		type: gl.FLOAT,
 		length: 2,
-		data: new Float32Array(make2D(graph.vertices_coords).flat()),
+		data: new Float32Array(graph.vertices_coords.flatMap(resize2)),
 	}].filter(el => el.location !== -1);
 };
 
+/**
+ * @param {WebGLRenderingContext|WebGL2RenderingContext} gl WebGL context
+ * @param {number} version the WebGL version
+ * @param {FOLD} graph a FOLD object
+ * @returns {WebGLElementArray[]}
+ */
 export const makeCPFacesElementArrays = (gl, version = 1, graph = {}) => {
 	if (!graph || !graph.vertices_coords || !graph.faces_vertices) { return []; }
 	return [{
