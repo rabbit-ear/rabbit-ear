@@ -70,10 +70,10 @@ export const splitLineToSegments = (
 	const edgeVertex = {};
 
 	segments.edges_vertices = faces.map((el, face) => {
-		const vertsVerts = el.vertices.map(({ a, point, vertex }) => {
+		const vertsVerts = el.vertices.map(({ a, vertex }) => {
 			const index = segments.vertices.length;
 			if (vertexVertex[vertex] !== undefined) { return vertexVertex[vertex]; }
-			segments.vertices.push({ a, point, vertex });
+			segments.vertices.push({ a, vertex, point: [...vertices_coords[vertex]] });
 			vertexVertex[vertex] = index;
 			return index;
 		});

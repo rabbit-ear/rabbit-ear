@@ -171,7 +171,7 @@ export const makeVerticesCoordsFlatFolded = (
  * assume all edges are flat-folded (except boundary) and will fold everything.
  * @param {FOLD} graph a FOLD object
  * @param {number[]} [rootFaces=[]] the indices of the faces that will remain in place
- * @returns {([number, number]|[number, number, number])[]} a new set of
+ * @returns {[number, number][]|[number, number, number][]} a new set of
  * `vertices_coords` with the new positions.
  */
 export const makeVerticesCoordsFolded = (graph, rootFaces) => (

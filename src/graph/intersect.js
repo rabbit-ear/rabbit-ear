@@ -77,7 +77,7 @@ export const intersectLineVertices = (
  * @param {Function} lineDomain the function which characterizes "line"
  * parameter into a line, ray, or segment.
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {{ vertices: (number|undefined)[], edges: (object|undefined)[]}} an object
+ * @returns {{ vertices: number[], edges: LineLineEvent[] }} an object
  * summarizing the intersections with edges and vertices:
  * - vertices: for every vertex, a number or undefined. If there is an
  *   intersection with the line, the number is the parameter along the line's
@@ -169,8 +169,8 @@ export const intersectLineVerticesEdges = (
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {{
  *   vertices: number[],
- *   edges: (object|undefined)[],
- *   faces: (object|undefined)[],
+ *   edges: LineLineEvent[],
+ *   faces: (FaceEdgeEvent | FaceVertexEvent)[][],
  * }} an object summarizing the intersections with vertices, edges, and faces:
  * - vertices: for every vertex, true or false, does the vertex overlap the line
  * - edges: a list of intersections, undefined if no intersection or collinear,
@@ -264,8 +264,12 @@ export const intersectLine = (
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {{
  *   vertices: number[],
- *   edges: (object|undefined)[],
- *   faces: (object|undefined)[],
+ *   edges: LineLineEvent[],
+ *   faces: {
+ *     vertices: FaceVertexEvent[],
+ *     edges: FaceEdgeEvent[],
+ *     points: FacePointEvent[],
+ *   }[],
  * }} an object summarizing the intersections with vertices, edges, and faces:
  * - vertices: for every vertex, true or false, does the vertex overlap the line
  * - edges: a list of intersections, undefined if no intersection or collinear,
@@ -308,7 +312,7 @@ export const intersectLineAndPoints = (
 	);
 
 	if (!vertices_coords || !faces_vertices) {
-		return { vertices, edges, faces };
+		return { vertices, edges, faces: [] };
 	}
 
 	// If there are ray or segment points, we have to query every single face,
@@ -316,6 +320,7 @@ export const intersectLineAndPoints = (
 	// The result is an object containing a "point" {number[]} and "t" {number[]}
 	// this "t" parameter can be used later to trilaterate the position again.
 	const vertices_coords2 = vertices_coords.map(resize2);
+	/** @type {{ point: [number, number], overlap: boolean, t: number[] }[][]} */
 	const facesInteriorPoints = !interiorPoints.length
 		? faces.map(() => [])
 		: faces.map((_, face) => {
@@ -333,8 +338,12 @@ export const intersectLineAndPoints = (
 	// - vertices: intersections that cross exactly over a vertex
 	// - point: an object describing a point lying interior to the face
 	const newFacesData = faces.map((intersections, f) => ({
-		edges: intersections.filter(el => el.edge !== undefined),
-		vertices: intersections.filter(el => el.vertex !== undefined),
+		edges: intersections
+			.map(el => ("edge" in el && "a" in el && "b" in el && "point" in el ? el : undefined))
+			.filter(a => a !== undefined),
+		vertices: intersections
+			.map(el => ("vertex" in el && "a" in el ? el : undefined))
+			.filter(a => a !== undefined),
 		points: facesInteriorPoints[f],
 	}));
 
@@ -349,7 +358,15 @@ export const intersectLineAndPoints = (
  * but vertices are, so it will filter out pairs of vertices which
  * form a collinear edge.
  * @param {FOLD} graph a FOLD object
- * @param {object} the result of intersectLineAndPoints, modified in place
+ * @param {{
+ *   vertices: number[],
+ *   edges: LineLineEvent[],
+ *   faces: {
+ *     vertices: FaceVertexEvent[],
+ *     edges: FaceEdgeEvent[],
+ *     points: FacePointEvent[],
+ *   }[],
+ * }} the result of intersectLineAndPoints, modified in place
  */
 export const filterCollinearFacesData = ({ edges_vertices }, { vertices, faces }) => {
 	// For the upcoming filtering, we need a list of collinear edges, but in

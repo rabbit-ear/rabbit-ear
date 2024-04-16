@@ -8,11 +8,12 @@ import {
 	includeS,
 } from "../math/compare.js";
 import {
-	dot2,
+	magSquared2,
 	scale2,
+	dot2,
 	add2,
 	subtract2,
-	magSquared2,
+	resize2,
 } from "../math/vector.js";
 import {
 	intersectLineLine,
@@ -90,10 +91,11 @@ const getLinesIntersections = (lines, epsilon = EPSILON) => {
 const removeCollinearVertex = ({ edges_vertices, vertices_edges }, vertex) => {
 	// edges[0] will remain. edges[1] will be removed
 	const edges = vertices_edges[vertex].sort((a, b) => a - b);
-	const newEdgeVertices = edges
+	const otherVertices = edges
 		.flatMap(e => edges_vertices[e])
 		.filter(v => v !== vertex)
-		.slice(0, 2);
+	/** @type {[number, number]} */
+	const newEdgeVertices = [otherVertices[0], otherVertices[1]];
 	edges_vertices[edges[0]] = newEdgeVertices;
 	edges_vertices[edges[1]] = undefined;
 	newEdgeVertices.forEach(v => {
@@ -186,6 +188,7 @@ export const planarize = ({
 	// create an alternative form of the graph for the sweep method.
 	const sweepScalars = lines_edges
 		.map(edges => edges.flatMap(edge => edges_scalars[edge]));
+	/** @type {[number, number][][]} */
 	const sweepEdgesVertices = lines_edges
 		.map(edges => invertFlatMap(edges)
 			.map(e => [e * 2, e * 2 + 1]));
@@ -239,7 +242,8 @@ export const planarize = ({
 			return vertices;
 		})
 		.flatMap((edges, i) => edges
-			.filter((_, j) => lineSweeps_edges[i][j].length));
+			.filter((_, j) => lineSweeps_edges[i][j].length))
+		.map(resize2);
 	const result = {
 		vertices_coords: new_vertices_coords,
 		edges_vertices: new_edges_vertices,

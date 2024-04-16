@@ -1,7 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { makeFacesEdgesFromVertices } from "./make/facesEdges.js";
+import {
+	makeFacesEdgesFromVertices,
+} from "./make/facesEdges.js";
 
 /**
  * @description Create a modified graph which contains vertices, edges,
@@ -72,7 +74,8 @@ export const explodeEdges = ({
 	// duplicate vertices are simply duplicate references, changing
 	// one will still change the others. we need to deep copy the array
 	const result = {
-		edges_vertices: edges_vertices.map(edge => edge.map(() => e++)),
+		/** @type {[number, number][]} */
+		edges_vertices: edges_vertices.map(() => [e++, e++]),
 	};
 	if (edges_assignment) { result.edges_assignment = edges_assignment; }
 	if (edges_foldAngle) { result.edges_foldAngle = edges_foldAngle; }

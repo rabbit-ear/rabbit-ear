@@ -8,7 +8,7 @@
  * For creasePatterns, call planarize() to fix the graph.
  * For foldedForms, use an alternate method like splitFaceWithEdge.
  * @param {FOLD} graph a FOLD object
- * @param {number[]} vertices the two vertices to connect and make a new edge
+ * @param {[number, number]} vertices the two vertices to connect and make a new edge
  * @param {number[]} [faces=[]] two faces to become the edges_faces
  * @param {string} [assignment="U"] this will become edges_assignment
  * @param {number} [foldAngle=0] this will become edges_foldAngle

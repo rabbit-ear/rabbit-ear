@@ -22,13 +22,18 @@ import {
  * @description This is a subroutine of splitEdge(). This will build two
  * edges that share one vertex, returning an array of two objects containing:
  * { edges_vertices, edges_assignment, edges_foldAngle }
- * @param {object} graph a FOLD object, modified in place
+ * @param {FOLD} graph a FOLD object, modified in place
  * @param {number} edgeIndex the index of the edge that will be split by the new vertex
  * @param {number} newVertex the index of the new vertex
- * @returns {object[]} array of two edge objects, containing edge data as FOLD keys
+ * @returns {{
+ *   edges_vertices: [number, number],
+ *   edges_assignment?: string,
+ *   edges_foldAngle?: number,
+ * }[]} array of two edge objects, containing edge data as FOLD keys
  */
 const makeNewEdges = (graph, edgeIndex, newVertex) => {
 	const edge_vertices = graph.edges_vertices[edgeIndex];
+	/** @type {{ edges_vertices: [number, number] }[]} */
 	const new_edges = [
 		{ edges_vertices: [edge_vertices[0], newVertex] },
 		{ edges_vertices: [newVertex, edge_vertices[1]] },
@@ -271,7 +276,14 @@ const updateFacesFaces = ({ faces_vertices, faces_faces }, vertex, faces) => {
  * @param {number} oldEdge index of old edge to be split
  * @param {number[]} [coords=undefined] coordinates of the new vertex to be
  * added, if omitted, a vertex will be generated at the edge's midpoint.
-d * @returns {object} a summary of the changes with keys "vertex", "edges"
+ * @returns {{
+ *   vertex: number,
+ *   edges: {
+ *     map: (number|number[])[],
+ *     add: number[],
+ *     remove: number,
+ *   },
+ * }} a summary of the changes with keys "vertex", "edges"
  * "vertex" is the index of the new vertex (or old index, if similar)
  * "edge" is a summary of changes to edges, with "map" and "remove",
  * where "map" is a nextmap (I believe)
@@ -288,11 +300,8 @@ export const splitEdge = (
 	// if the user did not supply any coordinate parameter,
 	// as a convenience, select the the midpoint of the two points
 	if (!coords) {
-		// coords = midpoint(...incidentVertices.map(v => graph.vertices_coords[v]));
-		coords = midpoint(
-			graph.vertices_coords[incidentVertices[0]],
-			graph.vertices_coords[incidentVertices[1]],
-		);
+		const [a, b] = incidentVertices.map(v => graph.vertices_coords[v]);
+		coords = midpoint(a, b);
 	}
 
 	// the index of the new vertex, added to the end of the existing vertex list

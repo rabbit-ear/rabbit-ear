@@ -5,6 +5,8 @@
 // todo:
 // should vertices coords be like this?
 //   vertices_coords?: ([number, number] | [number, number, number])[],
+// or
+//   vertices_coords?: [number, number][]|[number, number, number][],
 
 /**
  * @typedef FOLDFrame
@@ -19,7 +21,7 @@
  *   vertices_vertices?: number[][],
  *   vertices_edges?: number[][],
  *   vertices_faces?: (number | null | undefined)[][],
- *   edges_vertices?: number[][],
+ *   edges_vertices?: [number, number][],
  *   edges_faces?: (number | null | undefined)[][],
  *   edges_assignment?: string[],
  *   edges_foldAngle?: number[],
@@ -36,12 +38,12 @@
  * @property {string[]} [frame_classes] metadata
  * @property {string[]} [frame_attributes] metadata
  * @property {string} [frame_unit] metadata
- * @property {[number, number][]|[number, number, number][]} [vertices_coords]
+ * @property {([number, number] | [number, number, number])[]} [vertices_coords]
  * xy or xyz coordinates of the vertices
  * @property {number[][]} [vertices_vertices] for each vertex all adjacent vertices
  * @property {number[][]} [vertices_edges] for each vertex all adjacent edges
  * @property {(number | null | undefined)[][]} [vertices_faces] for each vertex all adjacent faces
- * @property {number[][]} [edges_vertices] each edge connects two vertex indices
+ * @property {[number, number][]} [edges_vertices] each edge connects two vertex indices
  * @property {(number | null | undefined)[][]} [edges_faces] for each edge all adjacent faces
  * @property {string[]} [edges_assignment] single-character fold assignment of each edge
  * @property {number[]} [edges_foldAngle] in degrees, the fold angle of each edge
@@ -198,6 +200,27 @@
  * @property {number[]} vertices - a list of indices currently overlapping this region
  * @property {number[]} start - a list of indices beginning to overlap at this event
  * @property {number[]} end - a list of indices no longer overlapping after this event
+ */
+
+/**
+ * Intersection related events
+ *
+ * @typedef LineLineEvent
+ * @type {{ a: number, b: number, point: [number, number] }}
+ * the result of intersectLineAndPoints
+ *
+ * @typedef FaceVertexEvent
+ * @type {{ a: number, vertex: number }}
+ * the result of intersectLineAndPoints
+ *
+ * @typedef FaceEdgeEvent
+ * @type {{ a: number, b: number, point: [number, number], edge: number }}
+ * the result of intersectLineAndPoints
+ *
+ * @typedef FacePointEvent
+ * @type {{ point: [number, number], overlap: boolean, t: number[] }}
+ * the result of intersectLineAndPoints
+ *
  */
 
 /**

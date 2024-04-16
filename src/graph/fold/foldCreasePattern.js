@@ -10,6 +10,7 @@ import {
 import {
 	scale2,
 	add2,
+	resize2,
 } from "../../math/vector.js";
 import {
 	invertAssignment,
@@ -102,8 +103,13 @@ export const foldCreasePattern = ({
 	// only keep simple, convex faces
 	faces.forEach((arr, f) => { if (arr.length !== 2) { delete faces[f]; } });
 
+	/**
+	 * @param {({ edge: number, a: number, b: number, point: [number, number], vertex?: never }
+	 *   | { a: number, vertex: number, b?: never, edge?: never })} el
+	 * @returns {[number, number]} a point in 2D
+	 */
 	const remapPoint = ({ vertex, edge, b }) => (vertex !== undefined
-		? vertices_coords[vertex]
+		? resize2(vertices_coords[vertex])
 		: add2(scale2(edges_line[edge].vector, b), edges_line[edge].origin));
 
 	// the return object will be, for every intersected face,

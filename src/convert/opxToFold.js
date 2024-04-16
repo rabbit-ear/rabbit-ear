@@ -146,6 +146,7 @@ const makeLineGraph = (lines) => {
 	/** @type {[number, number][]} */
 	const vertices_coords = lines
 		.flatMap(line => [[line[1], line[3]], [line[2], line[4]]]);
+	/** @type {[number, number][]} */
 	const edges_vertices = lines.map((_, i) => [i * 2, i * 2 + 1]);
 	const edges_assignment = lines.map(line => opxAssignment[line[0]]);
 	const edges_foldAngle = makeEdgesFoldAngle({ edges_assignment });

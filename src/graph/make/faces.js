@@ -147,7 +147,7 @@ export const makeFacesCenter3DQuick = ({ vertices_coords, faces_vertices }) => (
  * @description For every face, get the average of the face's vertices.
  * This is not not precise, and only relevant for faces which are convex.
  * @param {FOLD} graph a FOLD graph, with vertices_coords, faces_vertices
- * @returns {[number, number][] | [number, number, number][]} array of points,
+ * @returns {[number, number][]|[number, number, number][]} array of points,
  * where each point is an array of either 2 or 3 numbers.
  */
 export const makeFacesCenterQuick = ({ vertices_coords, faces_vertices }) => {

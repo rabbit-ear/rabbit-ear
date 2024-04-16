@@ -40,7 +40,6 @@ import {
 	splitArrayWithLeaf,
 	getAdjacencySpliceIndex,
 	makeVerticesToEdgeLookup,
-	makeVerticesToFacesLookup,
 } from "./generalOld.js";
 
 /**
@@ -81,11 +80,12 @@ const updateFacesVerticesSplit = ({ faces_vertices }, face, vertices) => (
 	).map((face_vertices) => faces_vertices.push(face_vertices)));
 
 /**
-* @description Internal
-* @param {FOLD} graph a FOLD object
-* @param {number} face the index of the face to be split into two faces
-* @param {number[]} vertices two vertices, members of this face's vertices,
-* which will become a new edge and split the face into two faces.
+ * @description Internal
+ * @param {FOLD} graph a FOLD object
+ * @param {number} face the index of the face to be split into two faces
+ * @param {number[]} vertices two vertices, members of this face's vertices,
+ * which will become a new edge and split the face into two faces.
+ * @param {number[]} verticesIndexOfFace
  */
 const updateFacesVerticesLeaf = (
 	{ faces_vertices },
@@ -569,6 +569,12 @@ const updateFacesFaces = (
  * with any face. This will create a new edge between the two vertices, which
  * the faces_edges will traverse twice, and this face's faces_vertices will
  * visit the faceVertex twice, going to and returning from the new leaf vertex.
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} face
+ * @param {number} vertexFace
+ * @param {number} vertexLeaf
+ * @param {string} [assignment="U"]
+ * @param {number} [foldAngle=0]
  */
 export const cutFaceToVertex = (
 	graph,
@@ -579,6 +585,7 @@ export const cutFaceToVertex = (
 	foldAngle = 0,
 ) => {
 	// validate inputs
+	/** @type {[number, number]} */
 	const vertices = [vertexFace, vertexLeaf];
 
 	// construct edge
@@ -639,7 +646,7 @@ export const cutFaceToPoint = (
  * @param {FOLD} graph a FOLD object, modified in place, must contain
  * vertices_coords, edges_vertices, and faces_vertices to work.
  * @param {number} face index of face to split
- * @param {number[]} vertices the vertices which will create a new edge
+ * @param {[number, number]} vertices the vertices which will create a new edge
  * @param {string} [assignment="U"] the assignment of the new edge
  * @param {number} [foldAngle=0] the fold angle of the new edge
  * @returns {object} a summary of changes to the FOLD object
@@ -756,10 +763,13 @@ const splitFaceIsolatedEdge = (graph, vertices, assignment, foldAngle) => {
  * @param {FOLD} graph a FOLD object, modified in place, must contain
  * vertices_coords, edges_vertices, and faces_vertices to work.
  * @param {number} face index of face to split
- * @param {number[]} vertices the vertices which will create a new edge
+ * @param {[number, number]} vertices the vertices which will create a new edge
  * @param {string} [assignment="U"] the assignment of the new edge
  * @param {number} [foldAngle=0] the fold angle of the new edge
- * @returns {object} a summary of changes to the FOLD object
+ * @returns {{
+ *   edge?: number,
+ *   faces?: { map?: (number|number[])[], new?: number[], remove?: number },
+ * }} a summary of changes to the FOLD object
  */
 export const splitFace = (
 	graph,

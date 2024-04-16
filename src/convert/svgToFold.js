@@ -11,6 +11,9 @@ import {
 	file_creator,
 } from "../fold/rabbitear.js";
 import {
+	resize2,
+} from "../math/vector.js";
+import {
 	multiplyMatrix2Vector2,
 } from "../math/matrix2.js";
 import {
@@ -92,7 +95,8 @@ const transformSegment = (segment, transform) => {
 /**
  * @description Get a flat array of all elements in the tree, with all
  * styles also flattened (nested transformed computed, for example)
- * convert all elements <path> <rect> etc into arrays of line segments
+ * convert all elements <path> <rect> etc into arrays of line segments.
+ * @param {Element} svgElement
  * @returns {{
  *   element: Element,
  *   segment: [number, number][],
@@ -107,6 +111,7 @@ const flatSegments = (svgElement) => flattenDomTreeWithStyle(svgElement)
 
 /**
  * @description does an Element contain a <style> as a child somewhere?
+ * @param {Element} svgElement
  * @returns {boolean}
  */
 const containsStylesheet = (svgElement) => flattenDomTree(svgElement)
@@ -264,7 +269,8 @@ export const svgEdgeGraph = (svg, options) => {
 	/** @type {[number, number][]} */
 	const vertices_coords = segments
 		.flatMap(el => el.segment)
-		.map(([a, b]) => [fixNumber(a, 12), fixNumber(b, 12)])
+		.map(([a, b]) => [fixNumber(a, 12), fixNumber(b, 12)]);
+	/** @type {[number, number][]} */
 	const edges_vertices = segments.map((_, i) => [i * 2, i * 2 + 1]);
 	return {
 		vertices_coords,
@@ -304,7 +310,8 @@ export const svgToFold = (file, options) => {
 	// to turn this off, options.fast = true
 	const fixNumber = options && options.fast ? passthrough : cleanNumber;
 	planarGraph.vertices_coords = planarGraph.vertices_coords
-		.map(coord => coord.map(n => fixNumber(n, 12)));
+		.map(coord => coord.map(n => fixNumber(n, 12)))
+		.map(resize2);
 	// optionally, discover the boundary by walking.
 	if (typeof options !== "object" || options.boundary !== false) {
 		// clear all previous boundary assignments and set them to flat.

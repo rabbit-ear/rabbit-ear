@@ -64,14 +64,18 @@ declare const _default: {
     subgraph: (graph: FOLD, indicesToKeep?: any) => FOLD;
     subgraphWithFaces: (graph: FOLD, faces: number[]) => FOLD;
     subgraphWithVertices: (graph: any, vertices?: any[]) => FOLD;
-    splitGraphWithLineAndPoints: (graph: FOLD, { vector, origin }: VecLine2, lineDomain?: Function, interiorPoints?: [number, number][], epsilon?: number) => any;
-    splitGraphWithLine: (graph: FOLD, line: VecLine2, epsilon?: number) => any;
-    splitGraphWithRay: (graph: FOLD, ray: VecLine2, epsilon?: number) => any;
-    splitGraphWithSegment: (graph: FOLD, segment: [number, number][], epsilon?: number) => any;
+    splitGraphWithLineAndPoints: (graph: FOLD, { vector, origin }: VecLine2, lineDomain?: Function, interiorPoints?: [number, number][], epsilon?: number) => splitGraph.GraphLineEvent;
+    splitGraphWithLine: (graph: FOLD, line: VecLine2, epsilon?: number) => splitGraph.GraphLineEvent;
+    splitGraphWithRay: (graph: FOLD, ray: VecLine2, epsilon?: number) => splitGraph.GraphLineEvent;
+    splitGraphWithSegment: (graph: FOLD, segment: [number, number][], epsilon?: number) => splitGraph.GraphLineEvent;
     splitLineToSegments: ({ vertices_coords, edges_vertices, faces_vertices, faces_edges }: FOLD, { vector, origin }: VecLine2, lineDomain?: Function, interiorPoints?: [number, number][], epsilon?: number) => {
         vertices: number[];
-        edges: any[];
-        faces: any[];
+        edges: LineLineEvent[];
+        faces: {
+            vertices: FaceVertexEvent[];
+            edges: FaceEdgeEvent[];
+            points: FacePointEvent[];
+        }[];
         segments: {
             vertices: any[];
         };
@@ -82,7 +86,7 @@ declare const _default: {
         edges_collinear?: boolean[];
         edges_face?: number[][];
     };
-    cutFaceToVertex: (graph: any, face: any, vertexFace: any, vertexLeaf: any, assignment?: string, foldAngle?: number) => {
+    cutFaceToVertex: (graph: FOLD, face: number, vertexFace: number, vertexLeaf: number, assignment?: string, foldAngle?: number) => {
         edge: number;
         faces: {};
     };
@@ -90,9 +94,23 @@ declare const _default: {
         edge: number;
         faces: {};
     };
-    splitFaceWithEdge: (graph: FOLD, face: number, vertices: number[], assignment?: string, foldAngle?: number) => any;
-    splitFace: (graph: FOLD, face: number, vertices: number[], assignment?: string, foldAngle?: number) => any;
-    splitEdge: (graph: FOLD, oldEdge: number, coords?: number[]) => any;
+    splitFaceWithEdge: (graph: FOLD, face: number, vertices: [number, number], assignment?: string, foldAngle?: number) => any;
+    splitFace: (graph: FOLD, face: number, vertices: [number, number], assignment?: string, foldAngle?: number) => {
+        edge?: number;
+        faces?: {
+            map?: (number | number[])[];
+            new?: number[];
+            remove?: number;
+        };
+    };
+    splitEdge: (graph: FOLD, oldEdge: number, coords?: number[]) => {
+        vertex: number;
+        edges: {
+            map: (number | number[])[];
+            add: number[];
+            remove: number;
+        };
+    };
     replace: (graph: FOLD, key: string, replaceIndices: number[]) => number[];
     remove: (graph: FOLD, key: string, removeIndices: number[]) => number[];
     populate: (graph: FOLD, options?: any) => FOLD;
@@ -179,19 +197,31 @@ declare const _default: {
     intersectLineVertices: ({ vertices_coords }: FOLD, { vector, origin }: VecLine2, lineDomain?: Function, epsilon?: number) => number[];
     intersectLineVerticesEdges: ({ vertices_coords, edges_vertices }: FOLD, { vector, origin }: VecLine2, lineDomain?: Function, epsilon?: number) => {
         vertices: number[];
-        edges: any[];
+        edges: LineLineEvent[];
     };
     intersectLine: ({ vertices_coords, edges_vertices, faces_vertices, faces_edges }: FOLD, { vector, origin }: VecLine2, lineDomain?: Function, epsilon?: number) => {
         vertices: number[];
-        edges: any[];
-        faces: any[];
+        edges: LineLineEvent[];
+        faces: (FaceVertexEvent | FaceEdgeEvent)[][];
     };
     intersectLineAndPoints: ({ vertices_coords, edges_vertices, faces_vertices, faces_edges }: FOLD, { vector, origin }: VecLine2, lineDomain?: Function, interiorPoints?: [number, number][], epsilon?: number) => {
         vertices: number[];
-        edges: any[];
-        faces: any[];
+        edges: LineLineEvent[];
+        faces: {
+            vertices: FaceVertexEvent[];
+            edges: FaceEdgeEvent[];
+            points: FacePointEvent[];
+        }[];
     };
-    filterCollinearFacesData: ({ edges_vertices }: FOLD, { vertices, faces }: any) => void;
+    filterCollinearFacesData: ({ edges_vertices }: FOLD, { vertices, faces }: {
+        vertices: number[];
+        edges: LineLineEvent[];
+        faces: {
+            vertices: FaceVertexEvent[];
+            edges: FaceEdgeEvent[];
+            points: FacePointEvent[];
+        }[];
+    }) => void;
     explodeFaces: ({ vertices_coords, edges_vertices, edges_assignment, edges_foldAngle, faces_vertices, faces_edges, }: FOLD) => FOLD;
     explodeEdges: ({ vertices_coords, edges_vertices, edges_assignment, edges_foldAngle, }: FOLD) => FOLD;
     disjointGraphsIndices: (graph: FOLD) => {
@@ -238,7 +268,7 @@ declare const _default: {
     removeIsolatedVertices: (graph: FOLD, remove_indices?: number[]) => any;
     makeVerticesCoords3DFolded: ({ vertices_coords, vertices_faces, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, faces_matrix, }: FOLD, rootFaces?: number[]) => [number, number, number][];
     makeVerticesCoordsFlatFolded: ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, }: FOLD, rootFaces?: number[]) => [number, number][];
-    makeVerticesCoordsFolded: (graph: FOLD, rootFaces?: number[]) => ([number, number] | [number, number, number])[];
+    makeVerticesCoordsFolded: (graph: FOLD, rootFaces?: number[]) => [number, number][] | [number, number, number][];
     makeVerticesCoordsFoldedFromMatrix2: ({ vertices_coords, vertices_faces, faces_vertices, }: FOLD, faces_matrix: number[][]) => [number, number][];
     duplicateVertices: ({ vertices_coords }: FOLD, epsilon?: number) => number[][];
     removeDuplicateVertices: (graph: FOLD, epsilon?: number, makeAverage?: boolean) => any;
@@ -248,10 +278,10 @@ declare const _default: {
     foldFoldedForm: (graph: any, { vector, origin }: {
         vector: any;
         origin: any;
-    }, lineDomain?: (_: number, __?: number) => boolean, interiorPoints?: any[], vertices_coordsFolded?: any, assignment?: string, foldAngle?: any, epsilon?: number) => any;
-    foldFoldedLine: (graph: any, line: any, vertices_coordsFolded?: any, assignment?: string, foldAngle?: any, epsilon?: number) => any;
-    foldFoldedRay: (graph: any, ray: any, vertices_coordsFolded?: any, assignment?: string, foldAngle?: any, epsilon?: number) => any;
-    foldFoldedSegment: (graph: any, segment: any, vertices_coordsFolded?: any, assignment?: string, foldAngle?: any, epsilon?: number) => any;
+    }, lineDomain?: (_: number, __?: number) => boolean, interiorPoints?: any[], vertices_coordsFolded?: any, assignment?: string, foldAngle?: any, epsilon?: number) => splitGraph.GraphLineEvent;
+    foldFoldedLine: (graph: any, line: any, vertices_coordsFolded?: any, assignment?: string, foldAngle?: any, epsilon?: number) => splitGraph.GraphLineEvent;
+    foldFoldedRay: (graph: any, ray: any, vertices_coordsFolded?: any, assignment?: string, foldAngle?: any, epsilon?: number) => splitGraph.GraphLineEvent;
+    foldFoldedSegment: (graph: any, segment: any, vertices_coordsFolded?: any, assignment?: string, foldAngle?: any, epsilon?: number) => splitGraph.GraphLineEvent;
     foldGraphWithLineMethod: (graph: any, { vector, origin }: {
         vector: any;
         origin: any;
@@ -352,9 +382,9 @@ declare const _default: {
     removeDuplicateEdges: (graph: FOLD, replace_indices?: number[]) => any;
     circularEdges: ({ edges_vertices }: FOLD) => number[];
     removeCircularEdges: (graph: FOLD, remove_indices?: number[]) => any;
-    addEdge: (graph: FOLD, vertices: number[], faces?: number[], assignment?: string, foldAngle?: number) => number;
+    addEdge: (graph: FOLD, vertices: [number, number], faces?: number[], assignment?: string, foldAngle?: number) => number;
     addVertex: (graph: FOLD, coords: [number, number] | [number, number, number], vertices?: number[], edges?: number[], faces?: number[]) => number;
-    addVertices: (graph: FOLD, points?: ([number, number] | [number, number, number])[]) => number[];
+    addVertices: (graph: FOLD, points?: [number, number][] | [number, number, number][]) => number[];
     foldKeys: {
         file: string[];
         frame: string[];
@@ -459,3 +489,4 @@ declare const _default: {
 };
 export default _default;
 import * as trees from "./trees.js";
+import * as splitGraph from "./split/splitGraph.js";

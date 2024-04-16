@@ -207,9 +207,11 @@ export const foldGraphWithLineMethod = (
 			// - intersected vertices
 			// - vertices created by intersected edges
 			// - isolated points inside of the face
-			const newEdgeVertices = vertices.map(({ vertex }) => vertex)
+			const allNewVertices = vertices.map(({ vertex }) => vertex)
 				.concat(splitEdgesVertices)
 				.concat(isolatedPointVertices);
+			/** @type {[number, number]} */
+			const newEdgeVertices = [allNewVertices[0], allNewVertices[1]];
 
 			// split face, make one new edge, this changes the face indice to the
 			// point of needing a map. new edge simply added to end of edge arrays

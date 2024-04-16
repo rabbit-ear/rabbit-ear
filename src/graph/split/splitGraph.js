@@ -30,6 +30,30 @@ import {
 } from "../add/vertex.js";
 
 /**
+ * @typedef GraphLineEvent
+ * @type {{
+ *   vertices?: {
+ *     intersect: number[],
+ *     source: ((FacePointEvent & { face:number })|(FaceEdgeEvent & { vertices:number[] }))[],
+ *   },
+ *   edges?: {
+ *     intersect: LineLineEvent[],
+ *     new: number[],
+ *     map: (number|number[])[],
+ *     source: { face: number, faces: number[] }[],
+ *   },
+ *   faces?: {
+ *     intersect: {
+ *       vertices: FaceVertexEvent[],
+ *       edges: FaceEdgeEvent[],
+ *       points: FacePointEvent[],
+ *     }[],
+ *     map: (number|number[])[],
+ *   },
+ * }}
+ */
+
+/**
  * @param {...any[]} arrays a list of arrays
  * @returns {number} the maximum length of all the array lengths
  */
@@ -45,7 +69,7 @@ const arraysLengthSum = (...arrays) => arrays
  * @param {[number, number][]} interiorPoints if the line is a segment or ray,
  * place its endpoints here
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {object} an object describing the changes
+ * @returns {GraphLineEvent} an object describing the changes
  */
 export const splitGraphWithLineAndPoints = (
 	graph,
@@ -70,12 +94,17 @@ export const splitGraphWithLineAndPoints = (
 	// was created, which will be 1 of 2 ways:
 	// - splitting an edge: { a, b, vertices, point }
 	// - interior point in face: { face, point }
-	const vertexSource = [];
+	/**
+	 * @type {((FacePointEvent & { face: number, vertices?: never })|
+	 * (FaceEdgeEvent & { vertices: number[], face?: never }))[]}
+	 */
+	const verticesSource = [];
 
 	// for each new edge (index), an object that describes how that edge
 	// was created. this does not include edges split from 1 into 2, but
 	// does include entirely new edges made to split a face.
-	const edgeSource = [];
+	/** @type {{ face: number, faces: number[] }[]} */
+	const edgesSource = [];
 
 	// split all edges and create a list of new vertices
 	// for each face that has a new edge crossing it, re-build the face
@@ -115,7 +144,7 @@ export const splitGraphWithLineAndPoints = (
 			const { vertex, edges: { map } } = splitEdge(graph, newEdge, point);
 
 			// the intersection information that created this vertex
-			vertexSource[vertex] = { a, b, vertices, inEdge: edge, point };
+			verticesSource[vertex] = { a, b, vertices, edge, point };
 
 			// edge indices were heavily modified, update the edge map
 			edgeMap = mergeNextmaps(edgeMap, map);
@@ -142,16 +171,21 @@ export const splitGraphWithLineAndPoints = (
 
 			// for faces containing an isolated point inside it, add this point(s)
 			// to the graph as a new vertex (or vertices).
-			const isolatedPointVertices = addVertices(graph, points);
+			const isolatedPointVertices = addVertices(
+				graph,
+				points.map(({ point }) => point),
+			);
 
 			// the list of all vertices involved in splitting this face,
 			// which will sum to length 2, comes from one of three places:
 			// - overlapped, pre-existing vertices
 			// - vertices created by intersected edges
 			// - isolated points inside of the face
-			const newEdgeVertices = vertices.map(({ vertex }) => vertex)
+			const allNewVertices = vertices.map(({ vertex }) => vertex)
 				.concat(splitEdgesVertices)
 				.concat(isolatedPointVertices);
+			/** @type {[number, number]} */
+			const newEdgeVertices = [allNewVertices[0], allNewVertices[1]];
 
 			// split face, make one new edge, this changes the face indice to the
 			// point of needing a map. new edge simply added to end of edge arrays.
@@ -166,9 +200,10 @@ export const splitGraphWithLineAndPoints = (
 
 			// new edge (and possibly new vertices) were just created, update
 			// the source information that created these new components.
-			edgeSource[newEdgeIndex] = { faces: face };
+			// I THINK: this is temporarily a single face, to become multiple faces later
+			edgesSource[newEdgeIndex] = { face, faces: undefined };
 			isolatedPointVertices.forEach((vertex, i) => {
-				vertexSource[vertex] = { ...points[i], face };
+				verticesSource[vertex] = { ...points[i], face };
 			});
 
 			// face indices were heavily modified, update the face map
@@ -177,11 +212,12 @@ export const splitGraphWithLineAndPoints = (
 		});
 
 	// these were set to the old face indices and need updating
-	vertexSource.forEach(({ face }, i) => {
-		if (face !== undefined) { vertexSource[i].face = faceMap[face][0]; }
+	verticesSource.forEach(({ face }, i) => {
+		if (face !== undefined) { verticesSource[i].face = faceMap[face][0]; }
 	});
-	edgeSource.forEach(({ faces }, i) => {
-		if (faces !== undefined) { edgeSource[i].faces = faceMap[faces][0]; }
+	edgesSource.forEach(({ face }, i) => {
+		// if (faces !== undefined) { edgesSource[i].faces = faceMap[faces][0]; }
+		if (face !== undefined) { edgesSource[i].faces = faceMap[face]; }
 	});
 
 	// // using the overlapped vertices, make a list of edges collinear to the line
@@ -199,13 +235,13 @@ export const splitGraphWithLineAndPoints = (
 	return {
 		vertices: {
 			intersect: intersections.vertices,
-			source: vertexSource,
+			source: verticesSource,
 		},
 		edges: {
 			intersect: intersections.edges,
 			new: Object.values(oldFaceNewEdge),
 			map: edgeMap,
-			source: edgeSource,
+			source: edgesSource,
 			// collinear: collinearEdges,
 		},
 		faces: {
@@ -221,7 +257,7 @@ export const splitGraphWithLineAndPoints = (
  * @param {FOLD} graph a FOLD object, modified in place
  * @param {VecLine2} line a splitting line
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {object} an object describing the changes
+ * @returns {GraphLineEvent} an object describing the changes
  */
 export const splitGraphWithLine = (graph, line, epsilon = EPSILON) => (
 	splitGraphWithLineAndPoints(
@@ -238,7 +274,7 @@ export const splitGraphWithLine = (graph, line, epsilon = EPSILON) => (
  * @param {FOLD} graph a FOLD object, modified in place
  * @param {VecLine2} ray a splitting ray
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {object} an object describing the changes
+ * @returns {GraphLineEvent} an object describing the changes
  */
 export const splitGraphWithRay = (graph, ray, epsilon = EPSILON) => (
 	splitGraphWithLineAndPoints(
@@ -255,7 +291,7 @@ export const splitGraphWithRay = (graph, ray, epsilon = EPSILON) => (
  * @param {FOLD} graph a FOLD object, modified in place
  * @param {[number, number][]} segment a pair of points forming a line segment
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {object} an object describing the changes
+ * @returns {GraphLineEvent} an object describing the changes
  */
 export const splitGraphWithSegment = (graph, segment, epsilon = EPSILON) => (
 	splitGraphWithLineAndPoints(

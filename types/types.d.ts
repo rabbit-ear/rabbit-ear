@@ -9,7 +9,7 @@ type FOLDFrame = {
     vertices_vertices?: number[][];
     vertices_edges?: number[][];
     vertices_faces?: (number | null | undefined)[][];
-    edges_vertices?: number[][];
+    edges_vertices?: [number, number][];
     edges_faces?: (number | null | undefined)[][];
     edges_assignment?: string[];
     edges_foldAngle?: number[];
@@ -73,6 +73,38 @@ type SweepEvent = {
     t: number;
     start: number[];
     end: number[];
+};
+/**
+ * the result of intersectLineAndPoints
+ */
+type LineLineEvent = {
+    a: number;
+    b: number;
+    point: [number, number];
+};
+/**
+ * the result of intersectLineAndPoints
+ */
+type FaceVertexEvent = {
+    a: number;
+    vertex: number;
+};
+/**
+ * the result of intersectLineAndPoints
+ */
+type FaceEdgeEvent = {
+    a: number;
+    b: number;
+    point: [number, number];
+    edge: number;
+};
+/**
+ * the result of intersectLineAndPoints
+ */
+type FacePointEvent = {
+    point: [number, number];
+    overlap: boolean;
+    t: number[];
 };
 type WebGLVertexArray = {
     location: number;

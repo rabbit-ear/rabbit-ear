@@ -9,6 +9,9 @@ import {
  * @description create a vertices_faces entry for a single vertex by
  * matching the winding order with vertices_vertices.
  * @param {FOLD} graph a FOLD object
+ * @param {number} vertex
+ * @param {{ [key: string]: number }} verticesToFace,
+ * @returns {number[]} face indices
  */
 export const makeVerticesFacesFromVerticesVerticesForVertex = (
 	{ vertices_vertices },
@@ -22,6 +25,9 @@ export const makeVerticesFacesFromVerticesVerticesForVertex = (
  * @description For a single vertex, rebuild its vertices_faces entry,
  * having already
  * @param {FOLD} graph a FOLD object
+ * @param {number} vertex
+ * @param {{ [key: string]: number }} verticesToFace,
+ * @returns {number[]} face indices
  */
 export const makeVerticesFacesFromVerticesEdgesForVertex = (
 	{ edges_vertices, vertices_edges },
@@ -37,6 +43,9 @@ export const makeVerticesFacesFromVerticesEdgesForVertex = (
 /**
  * @description For a
  * @param {FOLD} graph a FOLD object
+ * @param {number[]} faces
+ * @param {{ [key: string]: number }} verticesToEdge
+ * @return {number[][]}
  */
 export const makeFacesEdgesFromFacesVerticesForVertex = (
 	{ faces_vertices },
@@ -56,13 +65,19 @@ export const makeFacesEdgesFromFacesVerticesForVertex = (
  * and make sure the list only contains unique numbers, as it's possible for
  * a face to visit a vertex twice, make sure vertices are unique and check if
  * the number of matching vertices in this face is 2.
+ * @param {FOLD} graph a FOLD object
+ * @param {number[]} faces
+ * @param {{ [key: number]: boolean }} verticesHash
+ * @returns {number[]} face indices
  */
 const filterFacesWithTwoMatches = ({ faces_vertices }, faces, verticesHash) => (faces
-	.filter(face => faces_vertices[face]
-		.map(vertices => vertices.filter(v => verticesHash[v]))
-		.map(subset => new Set(subset))
-		.map(set => set.size === 2)
-		.reduce((a, b) => a || b, false)));
+	.filter(face => new Set(faces_vertices[face].filter(v => verticesHash[v])).size === 2));
+// const filterFacesWithTwoMatches = ({ faces_vertices }, faces, verticesHash) => (faces
+// 	.filter(face => faces_vertices[face]
+// 		.map(vvv => vvv.filter(v => verticesHash[v]))
+// 		.map(subset => new Set(subset))
+// 		.map(set => set.size === 2)
+// 		.reduce((a, b) => a || b, false)));
 
 /**
   * @description Get an edge's adjacent face(s). This does not follow the FOLD

@@ -123,14 +123,17 @@ export const foldFoldedForm = (
 		vertices_coords: vertices_coordsFoldedNew,
 	};
 
+	const splitGraphVerticesSource = splitGraphResult.vertices.source
+		.map((intersect, vertex) => ({ ...intersect, vertex }));
+
 	// at this point, the crease pattern coords have been returned to the graph,
 	// but it's still missing the additional vertices that were created during
 	// the splitFace / splitEdge methods. the splitGraph method result contains
 	// information on how these points were made in folded form space,
 	// transfer these points into cp space, via the paramters that created them.
-	splitGraphResult.vertices.source
-		.map((intersect, vertex) => ({ ...intersect, vertex }))
-		.filter(({ face }) => face !== undefined)
+	splitGraphVerticesSource
+		.map(el => ("point" in el && "face" in el && "vertex" in el ? el : undefined))
+		.filter(a => a !== undefined)
 		.forEach(({ point, face, vertex }) => {
 			console.log("transfer in face", point, face, vertex);
 			graph.vertices_coords[vertex] = transferPointInFaceBetweenGraphs(
@@ -143,9 +146,9 @@ export const foldFoldedForm = (
 
 	// these points were made along an edge, instead of using trilateration,
 	// we can use the edge vector intersection parameter for more precision.
-	splitGraphResult.vertices.source
-		.map((intersect, vertex) => ({ ...intersect, vertex }))
-		.filter(({ vertices }) => vertices !== undefined)
+	splitGraphVerticesSource
+		.map(el => ("vertices" in el && "vertex" in el && "b" in el ? el : undefined))
+		.filter(a => a !== undefined)
 		.forEach(({ b, vertices, vertex }) => {
 			graph.vertices_coords[vertex] = recalculatePointBetweenPoints(
 				vertices.map(v => graph.vertices_coords[v]),
