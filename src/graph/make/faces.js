@@ -82,7 +82,7 @@ export const makePlanarFaces = ({
  * ensure that each polygon has 0 collinear vertices.
  * this can result in a polygon with fewer vertices than is contained
  * in that polygon's faces_vertices array.
- * @param {FOLD} graph a FOLD graph, with vertices_coords, faces_vertices
+ * @param {FOLD} graph a FOLD object, with vertices_coords, faces_vertices
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {([number, number] | [number, number, number])[][]} an array
  * of array of points, where each point is an array of 2 or 3 numbers
@@ -97,7 +97,7 @@ export const makeFacesPolygon = ({ vertices_coords, faces_vertices }, epsilon) =
  * @description map vertices_coords onto each face's set of vertices,
  * turning each face into an array of points. "Quick" meaning collinear vertices
  * are not removed, which in some cases, this will be the preferred method.
- * @param {FOLD} graph a FOLD graph, with vertices_coords, faces_vertices
+ * @param {FOLD} graph a FOLD object, with vertices_coords, faces_vertices
  * @returns {([number, number] | [number, number, number])[][]} an
  * array of array of points, where each point is an array of numbers
  */
@@ -107,7 +107,7 @@ export const makeFacesPolygonQuick = ({ vertices_coords, faces_vertices }) => (
 
 /**
  * @description For every face, get the face's centroid.
- * @param {FOLD} graph a FOLD graph, with vertices_coords, faces_vertices
+ * @param {FOLD} graph a FOLD object, with vertices_coords, faces_vertices
  * @returns {[number, number][]} array of points, where each point is an array of numbers
  */
 export const makeFacesCentroid2D = ({ vertices_coords, faces_vertices }) => (
@@ -120,7 +120,7 @@ export const makeFacesCentroid2D = ({ vertices_coords, faces_vertices }) => (
 /**
  * @description For every face, get the average of the face's vertices.
  * This is not not precise, and only relevant for faces which are convex.
- * @param {FOLD} graph a FOLD graph, with vertices_coords, faces_vertices
+ * @param {FOLD} graph a FOLD object, with vertices_coords, faces_vertices
  * @returns {[number, number][]} array of points, where each point is an array of numbers
  */
 export const makeFacesCenter2DQuick = ({ vertices_coords, faces_vertices }) => (
@@ -132,7 +132,7 @@ export const makeFacesCenter2DQuick = ({ vertices_coords, faces_vertices }) => (
 /**
  * @description For every face, get the average of the face's vertices.
  * This is not not precise, and only relevant for faces which are convex.
- * @param {FOLD} graph a FOLD graph, with vertices_coords, faces_vertices
+ * @param {FOLD} graph a FOLD object, with vertices_coords, faces_vertices
  * @returns {[number, number, number][]} array of points, where each point is an array of numbers
  */
 export const makeFacesCenter3DQuick = ({ vertices_coords, faces_vertices }) => (
@@ -146,7 +146,7 @@ export const makeFacesCenter3DQuick = ({ vertices_coords, faces_vertices }) => (
 /**
  * @description For every face, get the average of the face's vertices.
  * This is not not precise, and only relevant for faces which are convex.
- * @param {FOLD} graph a FOLD graph, with vertices_coords, faces_vertices
+ * @param {FOLD} graph a FOLD object, with vertices_coords, faces_vertices
  * @returns {[number, number][]|[number, number, number][]} array of points,
  * where each point is an array of either 2 or 3 numbers.
  */

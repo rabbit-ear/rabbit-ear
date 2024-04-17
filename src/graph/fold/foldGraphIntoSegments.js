@@ -38,7 +38,9 @@ import {
  * @description Given a flat-foldable crease pattern, perform a fold through
  * its folded form and return a list of new crease edges as edges in the
  * crease pattern space.
- * @param {FOLD} graph a FOLD object, in crease pattern form
+ * This method does not modify the input graph, it returns the fold line
+ * as a list of segments, mapped to the face inside which they lie.
+ * @param {FOLD} graph a FOLD object in crease pattern form
  * @param {VecLine2} line a fold line
  * @param {string} assignment the segment's assignment through the first face
  * @param {number} [epsilon=1e-6] an optional epsilon
@@ -51,7 +53,7 @@ import {
  * - assignment: the assignment of the new segment
  * - points: the new segment's two endpoints
  */
-export const foldGraphPolyline = ({
+export const foldGraphIntoSegments = ({
 	vertices_coords, edges_vertices, edges_foldAngle, edges_assignment,
 	faces_vertices, faces_edges, faces_faces,
 }, { vector, origin }, assignment = "V", epsilon = EPSILON) => {

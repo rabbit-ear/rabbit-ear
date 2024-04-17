@@ -12,10 +12,10 @@ import * as edgesLines from "./edges/lines.js";
 import * as facesPlanes from "./faces/planes.js";
 import * as facesMatrix from "./faces/matrix.js";
 import * as facesWinding from "./faces/winding.js";
-import * as foldGraphPolyline from "./fold/foldGraphPolyline.js";
 import * as flatFold from "./fold/flatFold.js";
-import * as foldLine from "./fold/foldLine.js";
-import * as foldFoldedForm from "./fold/foldFoldedForm.js";
+import * as foldGraph from "./fold/foldGraph.js";
+import * as foldGraphIntoSegments from "./fold/foldGraphIntoSegments.js";
+import * as foldGraphIntoSubgraph from "./fold/foldGraphIntoSubgraph.js";
 import * as splitEdge from "./split/splitEdge.js";
 import * as splitFace from "./split/splitFace.js";
 import * as splitLine from "./split/splitLine.js";
@@ -45,6 +45,7 @@ import * as overlap from "./overlap.js";
 import * as planarize from "./planarize.js";
 import * as pleat from "./pleat.js";
 import * as populate from "./populate.js";
+import * as raycast from "./raycast.js";
 import * as remove from "./remove.js";
 import * as replace from "./replace.js";
 import * as subgraphMethods from "./subgraph.js";
@@ -74,10 +75,10 @@ export default {
 	...facesPlanes,
 	...facesMatrix,
 	...facesWinding,
-	...foldGraphPolyline,
 	...flatFold,
-	...foldLine,
-	...foldFoldedForm,
+	...foldGraph,
+	...foldGraphIntoSegments,
+	...foldGraphIntoSubgraph,
 	...verticesClusters,
 	...verticesCollinear,
 	...verticesDuplicate,
@@ -104,6 +105,7 @@ export default {
 	...planarize,
 	...pleat,
 	...populate,
+	...raycast,
 	...remove,
 	...replace,
 	...splitEdge,

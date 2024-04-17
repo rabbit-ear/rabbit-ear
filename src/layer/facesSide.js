@@ -96,7 +96,7 @@ export const makeEdgePairsFacesSide = (
  * which side of the edge this face lies along. "Sidedness" is simply local
  * to each edge, similar or collinear edges will not have a consistent side
  * between them.
- * @param {FOLD} graph a FOLD graph where, if faces_center exists then
+ * @param {FOLD} graph a FOLD object where, if faces_center exists then
  * only edges_faces is needed, otherwise vertices and face data is needed.
  * @param {{
  *   lines: VecLine[],
@@ -134,7 +134,7 @@ export const makeEdgesFacesSide2D = (
  * get which side of the edge this face lies on. All collinear edges
  * are established to have a similar direction for sidedness, and this
  * method works in 3D.
- * @param {FOLD} graph a FOLD graph where, if faces_center exists then
+ * @param {FOLD} graph a FOLD object where, if faces_center exists then
  * only edges_faces is needed, otherwise vertices and face data is needed.
  * @param {{
  *   lines: VecLine[],

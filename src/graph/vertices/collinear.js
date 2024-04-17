@@ -8,7 +8,7 @@ import { makeVerticesEdgesUnsorted } from "../make/verticesEdges.js";
 /**
  * @description Given one vertex, and a list of edges which contain this vertex,
  * get one vertex for every edge which is not the input parameter vertex.
- * @param {FOLD} graph a FOLD graph with edges_vertices
+ * @param {FOLD} graph a FOLD object with edges_vertices
  * @param {number} vertex one vertex index
  * @param {number[]} edges a list of edge indices
  * @returns {number[]} for every edge, one vertex that is the opposite vertex

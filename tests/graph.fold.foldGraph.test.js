@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 import fs from "fs";
 import ear from "../src/index.js";
 
-test("foldFoldedForm, segment, along a collinear edge", () => {
+test("foldGraph, segment, along a collinear edge", () => {
 	const graph = ear.graph.squareFish();
 	const vertices_coordsFolded = ear.graph.makeVerticesCoordsFlatFolded(graph);
 
@@ -21,7 +21,7 @@ test("foldFoldedForm, segment, along a collinear edge", () => {
 		[0.7071067811865475, -0.2928932188134526],
 		[0.4644660940672622, 0.2928932188134527],
 	];
-	const result = ear.graph.foldFoldedForm(
+	const result = ear.graph.foldGraph(
 		graph,
 		line,
 		ear.math.includeS,
@@ -45,22 +45,22 @@ test("foldFoldedForm, segment, along a collinear edge", () => {
 	};
 
 	fs.writeFileSync(
-		"./tests/tmp/foldFoldedForm-collinear-flat-segment-cp.fold",
+		"./tests/tmp/foldGraph-collinear-flat-segment-cp.fold",
 		JSON.stringify(graph),
 		"utf8",
 	);
 	fs.writeFileSync(
-		"./tests/tmp/foldFoldedForm-collinear-flat-segment-folded.fold",
+		"./tests/tmp/foldGraph-collinear-flat-segment-folded.fold",
 		JSON.stringify(folded),
 		"utf8",
 	);
 });
 
-test("foldFoldedForm, sparse graph", () => {
+test("foldGraph, sparse graph", () => {
 	const FOLD = fs.readFileSync("tests/files/fold/crane-cp.fold", "utf-8");
 	const graph = JSON.parse(FOLD);
 	const vertices_coordsFolded = ear.graph.makeVerticesCoordsFlatFolded(graph);
-	const result = ear.graph.foldFoldedForm(
+	const result = ear.graph.foldGraph(
 		graph,
 		{ vector: [0, 1], origin: [0.75, 0.5] },
 		ear.math.includeL,
@@ -70,17 +70,17 @@ test("foldFoldedForm, sparse graph", () => {
 	);
 	// console.log("result", result);
 	fs.writeFileSync(
-		"./tests/tmp/foldFoldedForm-crane-line.fold",
+		"./tests/tmp/foldGraph-crane-line.fold",
 		JSON.stringify(graph),
 		"utf8",
 	);
 });
 
-test("foldFoldedForm, sparse graph, segment", () => {
+test("foldGraph, sparse graph, segment", () => {
 	const FOLD = fs.readFileSync("tests/files/fold/crane-cp.fold", "utf-8");
 	const graph = JSON.parse(FOLD);
 	const vertices_coordsFolded = ear.graph.makeVerticesCoordsFlatFolded(graph);
-	const result = ear.graph.foldFoldedForm(
+	const result = ear.graph.foldGraph(
 		graph,
 		{ vector: [0, 1], origin: [0.75, 0.45] },
 		ear.math.includeS,
@@ -90,17 +90,17 @@ test("foldFoldedForm, sparse graph, segment", () => {
 	);
 	// console.log("result", result);
 	fs.writeFileSync(
-		"./tests/tmp/foldFoldedForm-crane-segment.fold",
+		"./tests/tmp/foldGraph-crane-segment.fold",
 		JSON.stringify(graph),
 		"utf8",
 	);
 });
 
-test("foldFoldedForm, populated graph", () => {
+test("foldGraph, populated graph", () => {
 	const FOLD = fs.readFileSync("tests/files/fold/crane-cp.fold", "utf-8");
 	const graph = ear.graph.populate(JSON.parse(FOLD));
 	const vertices_coordsFolded = ear.graph.makeVerticesCoordsFlatFolded(graph);
-	const result = ear.graph.foldFoldedForm(
+	const result = ear.graph.foldGraph(
 		graph,
 		{ vector: [0, 1], origin: [0.75, 0.5] },
 		ear.math.includeL,
@@ -110,17 +110,17 @@ test("foldFoldedForm, populated graph", () => {
 	);
 	// console.log("result", result);
 	fs.writeFileSync(
-		"./tests/tmp/foldFoldedForm-populated-crane-line.fold",
+		"./tests/tmp/foldGraph-populated-crane-line.fold",
 		JSON.stringify(graph),
 		"utf8",
 	);
 });
 
-test("foldFoldedForm, populated graph, segment", () => {
+test("foldGraph, populated graph, segment", () => {
 	const FOLD = fs.readFileSync("tests/files/fold/crane-cp.fold", "utf-8");
 	const graph = ear.graph.populate(JSON.parse(FOLD));
 	const vertices_coordsFolded = ear.graph.makeVerticesCoordsFlatFolded(graph);
-	const result = ear.graph.foldFoldedForm(
+	const result = ear.graph.foldGraph(
 		graph,
 		{ vector: [0, 1], origin: [0.75, 0.45] },
 		ear.math.includeS,
@@ -130,18 +130,18 @@ test("foldFoldedForm, populated graph, segment", () => {
 	);
 	// console.log("result", result);
 	fs.writeFileSync(
-		"./tests/tmp/foldFoldedForm-populated-crane-segment.fold",
+		"./tests/tmp/foldGraph-populated-crane-segment.fold",
 		JSON.stringify(graph),
 		"utf8",
 	);
 });
 
-test("foldFoldedForm, crane", () => {
+test("foldGraph, crane", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const graph = ear.graph.getFramesByClassName(fold, "creasePattern")[0];
 
-	const result = ear.graph.foldFoldedForm(
+	const result = ear.graph.foldGraph(
 		graph,
 		{ vector: [1, -1], origin: [0.45, 0.45] },
 	);
@@ -171,21 +171,21 @@ test("foldFoldedForm, crane", () => {
 	expect(ear.graph.countFaces(folded)).toBe(88);
 
 	fs.writeFileSync(
-		"./tests/tmp/foldFoldedForm-crane-cp.fold",
+		"./tests/tmp/foldGraph-crane-cp.fold",
 		JSON.stringify(graph),
 	);
 	fs.writeFileSync(
-		"./tests/tmp/foldFoldedForm-crane-folded.fold",
+		"./tests/tmp/foldGraph-crane-folded.fold",
 		JSON.stringify(folded),
 	);
 });
 
-test("foldFoldedForm through vertex, crane", () => {
+test("foldGraph through vertex, crane", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const graph = ear.graph.getFramesByClassName(fold, "creasePattern")[0];
 
-	ear.graph.foldFoldedForm(
+	ear.graph.foldGraph(
 		graph,
 		{ vector: [0, 1], origin: [0.6464466094063558, 0.6464466094063558] },
 		ear.math.includeL,
@@ -201,21 +201,21 @@ test("foldFoldedForm through vertex, crane", () => {
 	};
 
 	fs.writeFileSync(
-		"./tests/tmp/foldFoldedForm-through-vertex-crane-cp.fold",
+		"./tests/tmp/foldGraph-through-vertex-crane-cp.fold",
 		JSON.stringify(graph),
 	);
 	fs.writeFileSync(
-		"./tests/tmp/foldFoldedForm-through-vertex-crane-folded.fold",
+		"./tests/tmp/foldGraph-through-vertex-crane-folded.fold",
 		JSON.stringify(folded),
 	);
 });
 
-test("foldFoldedForm 3D folded through vertex, crane", () => {
+test("foldGraph 3D folded through vertex, crane", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const graph = ear.graph.getFramesByClassName(fold, "creasePattern")[0];
 
-	ear.graph.foldFoldedForm(
+	ear.graph.foldGraph(
 		graph,
 		{ vector: [0, 1], origin: [0.6464466094063558, 0.6464466094063558] },
 		ear.math.includeL,
@@ -231,16 +231,16 @@ test("foldFoldedForm 3D folded through vertex, crane", () => {
 	};
 
 	fs.writeFileSync(
-		"./tests/tmp/foldFoldedForm-3D-through-vertex-crane-cp.fold",
+		"./tests/tmp/foldGraph-3D-through-vertex-crane-cp.fold",
 		JSON.stringify(graph),
 	);
 	fs.writeFileSync(
-		"./tests/tmp/foldFoldedForm-3D-through-vertex-crane-folded.fold",
+		"./tests/tmp/foldGraph-3D-through-vertex-crane-folded.fold",
 		JSON.stringify(folded),
 	);
 });
 
-test("foldFoldedForm 3D folded edge collinear, crane", () => {
+test("foldGraph 3D folded edge collinear, crane", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const crane = ear.graph.getFramesByClassName(fold, "creasePattern")[0];
@@ -255,7 +255,7 @@ test("foldFoldedForm 3D folded edge collinear, crane", () => {
 		{ vector: [0, 1], origin: [0.6755766511796801, 0.6755766511796801] },
 	].forEach((line, i) => {
 		const graph = structuredClone(crane);
-		ear.graph.foldFoldedForm(
+		ear.graph.foldGraph(
 			graph,
 			line,
 			ear.math.includeL,
@@ -270,11 +270,11 @@ test("foldFoldedForm 3D folded edge collinear, crane", () => {
 			frame_classes: ["foldedForm"],
 		};
 		fs.writeFileSync(
-			`./tests/tmp/foldFoldedForm-3D-edge-collinear-crane-cp-${i}.fold`,
+			`./tests/tmp/foldGraph-3D-edge-collinear-crane-cp-${i}.fold`,
 			JSON.stringify(graph),
 		);
 		fs.writeFileSync(
-			`./tests/tmp/foldFoldedForm-3D-edge-collinear-crane-folded-${i}.fold`,
+			`./tests/tmp/foldGraph-3D-edge-collinear-crane-folded-${i}.fold`,
 			JSON.stringify(folded),
 		);
 	});

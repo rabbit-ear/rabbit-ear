@@ -7,8 +7,9 @@ export type GraphLineEvent = {
         intersect: number[];
         source: ((FacePointEvent & {
             face: number;
+            faces: number[];
         }) | (FaceEdgeEvent & {
-            vertices: number[];
+            vertices: [number, number];
         }))[];
     };
     edges?: {

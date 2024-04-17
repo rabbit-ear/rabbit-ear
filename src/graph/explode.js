@@ -13,7 +13,7 @@ import {
  * Edge assignments and foldAngles will remain and be correctly re-indexed.
  * Additionally, if you only provide a graph with only vertices_coords and
  * faces_vertices, then a simple face-vertex only graph will be calculated.
- * @param {FOLD} graph a FOLD graph. not modified.
+ * @param {FOLD} graph a FOLD object. not modified.
  * @returns {FOLD|undefined} a new FOLD graph with exploded faces,
  * or undefined if no faces_vertices entry exists.
  */
@@ -62,7 +62,7 @@ export const explodeFaces = ({
  * vertices_coords and edges_vertices but that for every edge,
  * vertices_coords has been duplicated so that edges
  * do not share vertices.
- * @param {FOLD} graph a FOLD graph. not modified.
+ * @param {FOLD} graph a FOLD object. not modified.
  * @returns {FOLD|undefined} a new FOLD graph with exploded faces,
  * or undefined if no faces_vertices entry exists.
  */

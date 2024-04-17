@@ -1,6 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+import Messages from "../../environment/messages.js";
 import { EPSILON } from "../../math/constant.js";
 import {
 	includeL,
@@ -31,7 +32,6 @@ import {
 import {
 	remove,
 } from "../remove.js";
-import Messages from "../../environment/messages.js";
 
 /**
  * @description intersect a convex face with a line and return the location
@@ -50,7 +50,7 @@ import Messages from "../../environment/messages.js";
  * @returns {object|undefined} "vertices" and "edges" keys, indices of the
  * components which intersect the line. or undefined if no intersection
  */
-export const intersectConvexFaceLine = ({
+const intersectConvexFaceLine = ({
 	vertices_coords, edges_vertices, faces_vertices, faces_edges,
 }, face, { vector, origin }, epsilon = EPSILON) => {
 	const vertices_coords2 = vertices_coords.map(resize2);
@@ -265,7 +265,7 @@ const split_at_intersections = (graph, { vertices, edges }) => {
  * @param {object} FOLD object
  * @param {number} edge index of the newly-added edge
  */
-export const update_vertices_vertices = ({
+const update_vertices_vertices = ({
 	vertices_coords, vertices_vertices, edges_vertices,
 }, edge) => {
 	const v0 = edges_vertices[edge][0];
@@ -289,7 +289,7 @@ export const update_vertices_vertices = ({
  * vertices_edges should be up to date, except for the addition
  * of this one new edge at both ends of
  */
-export const update_vertices_edges = ({
+const update_vertices_edges = ({
 	edges_vertices, vertices_edges, vertices_vertices,
 }, edge) => {
 	// the expensive way, rebuild all arrays
@@ -312,7 +312,7 @@ export const update_vertices_edges = ({
  * needs to be put in its place by checking faces_vertices
  * by way of this map we build at the beginning.
  */
-export const update_vertices_faces = (graph, old_face, new_faces) => {
+const update_vertices_faces = (graph, old_face, new_faces) => {
 	// for each of the vertices (only the vertices involved in this split),
 	// use the new faces_vertices data (built in the previous method) to get
 	// a list of the new faces to be added to this vertex's vertices_faces.
@@ -342,7 +342,7 @@ export const update_vertices_faces = (graph, old_face, new_faces) => {
  * figure out which of the new faces (or both) need to be added and
  * substitute the old index with the new face's index/indices.
  */
-export const update_edges_faces = (graph, old_face, new_edge, new_faces) => {
+const update_edges_faces = (graph, old_face, new_edge, new_faces) => {
 	// for each of the edges (only the edges involved in this split),
 	// use the new faces_edges data (built in the previous method) to get
 	// a list of the new faces to be added to this edge's edges_faces.
@@ -391,7 +391,7 @@ export const update_edges_faces = (graph, old_face, new_edge, new_faces) => {
  * @param {number} old_face
  * @param {number[]} new_faces
  */
-export const update_faces_faces = ({ faces_vertices, faces_faces }, old_face, new_faces) => {
+const update_faces_faces = ({ faces_vertices, faces_faces }, old_face, new_faces) => {
 	// this is presuming that new_faces have their updated faces_vertices by now
 	const incident_faces = faces_faces[old_face];
 	const new_faces_vertices = new_faces.map(f => faces_vertices[f]);

@@ -4,7 +4,7 @@
 
 /**
  * @description Make `faces_vertices` from `faces_edges`.
- * @param {FOLD} graph a FOLD graph, with faces_edges, edges_vertices
+ * @param {FOLD} graph a FOLD object, with faces_edges, edges_vertices
  * @returns {number[][]} a `faces_vertices` array
  */
 export const makeFacesVerticesFromEdges = ({ edges_vertices, faces_edges }) => faces_edges

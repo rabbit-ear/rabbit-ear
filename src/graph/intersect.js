@@ -35,7 +35,7 @@ import {
 /**
  * @description Intersect a line/ray/segment with a FOLD graph but only
  * consider the graph's vertices.
- * @param {FOLD} graph a fold graph in creasePattern or foldedForm
+ * @param {FOLD} graph a fold object in creasePattern or foldedForm
  * @param {VecLine2} line a line/ray/segment in vector origin form
  * @param {Function} lineDomain the function which characterizes the line
  * into a line, ray, or segment.
@@ -72,7 +72,7 @@ export const intersectLineVertices = (
  * Intersections are endpoint-exclusive, and will not include collinear edges.
  * Vertex intersection information is available under the "vertices" key,
  * and collinear edges can be found by checking if both vertices are overlapped.
- * @param {FOLD} graph a fold graph in creasePattern or foldedForm
+ * @param {FOLD} graph a fold object in creasePattern or foldedForm
  * @param {VecLine2} line a line/ray/segment in vector origin form
  * @param {Function} lineDomain the function which characterizes "line"
  * parameter into a line, ray, or segment.

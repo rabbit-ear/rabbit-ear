@@ -81,7 +81,7 @@ export const makeVerticesToEdgeLookup = ({ edges_vertices }, edges) => {
  * @description For every vertex involved in these face's faces_vertices,
  * create a lookup for every vertex, a list of all of its adjacent faces,
  * where only the faces from "faces" are considered.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number[]} faces a list of face indices
  * @returns {number[][]} for every vertex (index) a list of face indices (value)
  */

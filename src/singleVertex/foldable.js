@@ -34,7 +34,7 @@ import {
  * This method supports 3D or 2D foldings.
  * @attribution Implementation of the algorithm described in
  * the origami foldability paper by belcastro-Hull.
- * @param {FOLD} graph a FOLD graph with vertices in creasePattern layout
+ * @param {FOLD} graph a FOLD object with vertices in creasePattern layout
  * @returns {number[]} for every vertex, 0 if the vertex has
  * a valid folded state, or a number indicating the amount of error.
  */
@@ -122,7 +122,7 @@ export const verticesFoldability = ({
  * This method supports 3D or 2D foldings.
  * @attribution Implementation of the algorithm described in
  * the origami foldability paper by belcastro-Hull.
- * @param {FOLD} graph a FOLD graph with vertices in creasePattern layout
+ * @param {FOLD} graph a FOLD object with vertices in creasePattern layout
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {boolean[]} indices of vertices which have a valid folded state.
  */

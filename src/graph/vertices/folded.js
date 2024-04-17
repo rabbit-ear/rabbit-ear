@@ -190,7 +190,7 @@ export const makeVerticesCoordsFolded = (graph, rootFaces) => (
 /**
  * @description Given a FOLD object and a set of 2x3 matrices, one per face,
  * "fold" the vertices by finding one matrix per vertex and multiplying them.
- * @param {FOLD} graph a FOLD graph with vertices_coords, faces_vertices, and
+ * @param {FOLD} graph a FOLD object with vertices_coords, faces_vertices, and
  * if vertices_faces does not exist it will be built.
  * @param {number[][]} faces_matrix an array of 2x3 matrices. one per face.
  * @returns {[number, number][]} a new set of vertices_coords, transformed.

@@ -16,7 +16,7 @@ import {
 
 /**
  * @description
- * @param {FOLD} graph a fold graph in creasePattern or foldedForm
+ * @param {FOLD} graph a fold object in creasePattern or foldedForm
  * @param {VecLine2} line a line/ray/segment in vector origin form
  * @param {Function} [lineDomain=() => true] the function which characterizes
  * "line" parameter into a line, ray, or segment.
@@ -44,7 +44,6 @@ export const splitLineToSegments = (
 	// any face that contains only 2 intersection events is simple enough
 	// for us to create a new straight edge between the pair of points.
 	// delete all faces which contain anything other than 2 points.
-	// todo: it would be possible to handle cases with more than 2 points.
 	faces
 		.map(face => ["vertices", "edges", "points"]
 			.map(key => face[key].length)
@@ -62,7 +61,14 @@ export const splitLineToSegments = (
 	// - edges_face: for each of these new edges, which face FROM THE INPUT GRAPH
 	//   does this edge lie inside? For example, this is useful to reference the
 	//   winding of the face (flipped or no) and give an assignment based on this
-	const segments = { vertices: [] };
+	/** @type {{ vertices: any[], edges_face: number[], edges_vertices?: any }} */
+	const segments = {
+		vertices: [],
+		// because of the previous delete operation on this faces array, we can do this
+		edges_face: faces
+			.map((_, face) => face)
+			.filter(a => a !== undefined)
+	};
 
 	// keep track of any vertices we have already created and added to the graph,
 	// if one of these exists, use its reference, don't create a duplicate entry.
@@ -94,10 +100,6 @@ export const splitLineToSegments = (
 		return vertsVerts.concat(edgesVerts).concat(pointsVerts);
 	}).filter(a => a !== undefined);
 
-	segments.edges_face = faces
-		.map((_, face) => face)
-		.filter(a => a !== undefined);
-
 	return {
 		vertices, edges, faces, segments,
 	};
@@ -112,7 +114,7 @@ export const splitLineToSegments = (
  * indices. This allows the two graphs to very simply be able to be merged.
  * The edge indices will make use of existing vertices when possible, so,
  * edges_vertices may reference vertex indices from the source graph.
- * @param {FOLD} graph a fold graph in creasePattern or foldedForm
+ * @param {FOLD} graph a fold object in creasePattern or foldedForm
  * @param {VecLine2} line a line/ray/segment in vector origin form
  * @param {Function} [lineDomain=() => true] the function which characterizes
  * "line" parameter into a line, ray, or segment.
@@ -123,7 +125,7 @@ export const splitLineToSegments = (
  *   vertices?: number[],
  *   edges_vertices?: number[][],
  *   edges_collinear?: boolean[],
- *   edges_face?: number[][],
+ *   edges_face?: number[],
  * }} graph a FOLD graph containing only the line's geometry,
  * as a list of vertices and edges, where all new geometry's indices are
  * indexed to start after the input graph's components end, so there is no
@@ -144,12 +146,6 @@ export const splitLineIntoEdges = (
 	interiorPoints = [],
 	epsilon = EPSILON,
 ) => {
-	// !!!
-	// WARNING: DEPRECATED
-	// !!!
-	// I commented out the block with the "remapKeys" calls,
-	// they don't even make sense
-	// not sure what was intended, but this method is being deprecated anyway.
 	if (!vertices_coords || !edges_vertices || !faces_vertices) {
 		return undefined;
 	}
@@ -165,8 +161,12 @@ export const splitLineIntoEdges = (
 
 	// rename "vertices" into any name that includes a "_" so that when
 	// we run "remapKey" it will include this array in the remapping.
-	segments.vertices_info = segments.vertices;
-	delete segments.vertices;
+	// treat is as a FOLD type, so we can pass it into remapKey
+	const segmentsAsFOLD = {
+		...segments,
+		vertices_info: segments.vertices,
+	};
+	delete segmentsAsFOLD.vertices;
 
 	// create a map that moves the vertices and edges so that there is a large
 	// hole at the start of the array and that the indices start after the
@@ -174,26 +174,26 @@ export const splitLineIntoEdges = (
 	// additionally, vertices will be mapped so that the final vertex list
 	// excludes those vertices which are pointing to existing vertex indices
 	// from the input graph; only including vertices which will become new points.
-	// let count = 0;
-	// const vertexMap = segments.vertices_info
-	// 	.map(el => (el.vertex === undefined
-	// 		? vertices_coords.length + (count++)
-	// 		: el.vertex));
-	// const edgeMap = segments.edges_vertices
-	// 	.map((_, i) => edges_vertices.length + i);
-	// remapKey(segments, "vertices", vertexMap);
-	// remapKey(segments, "edges", edgeMap);
+	let count = 0;
+	const vertexMap = segmentsAsFOLD.vertices_info
+		.map(el => (el.vertex === undefined
+			? vertices_coords.length + (count++)
+			: el.vertex));
+	const edgeMap = segmentsAsFOLD.edges_vertices
+		.map((_, i) => edges_vertices.length + i);
+	remapKey(segmentsAsFOLD, "vertices", vertexMap);
+	remapKey(segmentsAsFOLD, "edges", edgeMap);
 
 	// we are done requiring the vertices_ array have an underbar. rename it back
-	segments.vertices = segments.vertices_info;
-	delete segments.vertices_info;
+	segmentsAsFOLD.vertices = segmentsAsFOLD.vertices_info;
+	delete segmentsAsFOLD.vertices_info;
 
 	// this also populates the coords for vertices which already exist in the
 	// input graph, we just need to check the input graph and delete these.
-	segments.vertices
+	segmentsAsFOLD.vertices
 		.map((_, v) => v)
 		.filter(v => vertices_coords[v] !== undefined)
-		.forEach(v => delete segments.vertices[v]);
+		.forEach(v => delete segmentsAsFOLD.vertices[v]);
 
 	// using the overlapped vertices, make a list of edges collinear to the line
 	const verticesCollinear = vertices.map(v => v !== undefined);
@@ -201,7 +201,7 @@ export const splitLineIntoEdges = (
 		.map(verts => verticesCollinear[verts[0]] && verticesCollinear[verts[1]]);
 
 	return {
-		...segments,
+		...segmentsAsFOLD,
 		edges_collinear,
 	};
 };

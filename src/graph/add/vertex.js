@@ -41,7 +41,7 @@ export const addVertex = (
  * This method will maintain that all other arrays in the graph are valid,
  * any "vertices_" arrays that exist in the graph will be filled with
  * empty arrays. The new vertices will be initialized as isolated.
- * @param {FOLD} graph a FOLD graph, modified in place.
+ * @param {FOLD} graph a FOLD object, modified in place.
  * @param {[number, number][]|[number, number, number][]} points
  * array of points to be added to the graph
  * @returns {number[]} index of vertex in new vertices_coords array.

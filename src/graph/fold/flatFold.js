@@ -41,7 +41,7 @@ import {
 } from "../faces/winding.js";
 import {
 	splitFaceWithLine,
-} from "./splitFaceWithLine.js";
+} from "./flatFoldSplitFace.js";
 import {
 	populate,
 } from "../populate.js";

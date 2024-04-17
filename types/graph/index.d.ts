@@ -78,13 +78,15 @@ declare const _default: {
         }[];
         segments: {
             vertices: any[];
+            edges_face: number[];
+            edges_vertices?: any;
         };
     };
     splitLineIntoEdges: ({ vertices_coords, edges_vertices, faces_vertices, faces_edges }: FOLD, line: VecLine2, lineDomain?: Function, interiorPoints?: [number, number][], epsilon?: number) => {
         vertices?: number[];
         edges_vertices?: number[][];
         edges_collinear?: boolean[];
-        edges_face?: number[][];
+        edges_face?: number[];
     };
     cutFaceToVertex: (graph: FOLD, face: number, vertexFace: number, vertexLeaf: number, assignment?: string, foldAngle?: number) => {
         edge: number;
@@ -113,6 +115,7 @@ declare const _default: {
     };
     replace: (graph: FOLD, key: string, replaceIndices: number[]) => number[];
     remove: (graph: FOLD, key: string, removeIndices: number[]) => number[];
+    raycast: (graph: FOLD, ray: VecLine) => void;
     populate: (graph: FOLD, options?: any) => FOLD;
     pleat: ({ vertices_coords, edges_vertices }: FOLD, lineA: VecLine2, lineB: VecLine2, count: number, epsilon?: number) => [[number, number], [number, number]][][];
     pleatEdges: ({ vertices_coords, edges_vertices }: FOLD, edgeA: number, edgeB: number, count: number, epsilon?: number) => number[][][][];
@@ -275,49 +278,22 @@ declare const _default: {
     getOtherVerticesInEdges: ({ edges_vertices }: FOLD, vertex: number, edges: number[]) => number[];
     isVertexCollinear: ({ vertices_coords, vertices_edges, edges_vertices, }: FOLD, vertex: number, epsilon?: number) => boolean;
     getVerticesClusters: ({ vertices_coords }: FOLD, epsilon?: number) => number[][];
-    foldFoldedForm: (graph: FOLD, { vector, origin }: VecLine2, lineDomain?: Function, interiorPoints?: [number, number][], vertices_coordsFolded?: [number, number][] | [number, number, number][], assignment?: string, foldAngle?: number, epsilon?: number) => any;
-    foldFoldedLine: (graph: any, line: any, vertices_coordsFolded?: any, assignment?: string, foldAngle?: any, epsilon?: number) => any;
-    foldFoldedRay: (graph: any, ray: any, vertices_coordsFolded?: any, assignment?: string, foldAngle?: any, epsilon?: number) => any;
-    foldFoldedSegment: (graph: any, segment: any, vertices_coordsFolded?: any, assignment?: string, foldAngle?: any, epsilon?: number) => any;
-    foldGraphWithLineMethod: (graph: any, { vector, origin }: {
-        vector: any;
-        origin: any;
-    }, lineDomain?: (_: number, __?: number) => boolean, interiorPoints?: any[], vertices_coordsFolded?: any, assignment?: string, foldAngle?: any, epsilon?: number) => {
-        edges: {
-            new: any[];
-            map: any;
-        };
-        faces: {
-            map: any;
-        };
+    transferPoint: (from: FOLD, to: FOLD, { vertex, edge, face, point, b }: any) => number[];
+    foldGraphIntoSubgraph: (cp: FOLD, folded: FOLD, line: VecLine2, lineDomain?: Function, interiorPoints?: [number, number][], assignment?: string, foldAngle?: number, epsilon?: number) => {
+        vertices_coords: number[][];
+        edges_vertices: number[][];
+        edges_assignment: string[];
+        edges_foldAngle: number[];
     };
-    foldLine: (graph: any, line: any, vertices_coordsFolded?: any, assignment?: string, foldAngle?: any, epsilon?: number) => {
-        edges: {
-            new: any[];
-            map: any;
-        };
-        faces: {
-            map: any;
-        };
-    };
-    foldRay: (graph: any, ray: any, vertices_coordsFolded?: any, assignment?: string, foldAngle?: any, epsilon?: number) => {
-        edges: {
-            new: any[];
-            map: any;
-        };
-        faces: {
-            map: any;
-        };
-    };
-    foldSegment: (graph: any, segment: any, vertices_coordsFolded?: any, assignment?: string, foldAngle?: any, epsilon?: number) => {
-        edges: {
-            new: any[];
-            map: any;
-        };
-        faces: {
-            map: any;
-        };
-    };
+    foldGraphIntoSegments: ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_edges, faces_faces, }: FOLD, { vector, origin }: VecLine2, assignment?: string, epsilon?: number) => {
+        intersections: (FaceVertexEvent | FaceEdgeEvent)[];
+        assignment: string;
+        points: [number, number][];
+    }[];
+    foldGraph: (graph: FOLD, { vector, origin }: VecLine2, lineDomain?: Function, interiorPoints?: [number, number][], vertices_coordsFolded?: [number, number][] | [number, number, number][], assignment?: string, foldAngle?: number, epsilon?: number) => any;
+    foldLine: (graph: FOLD, line: VecLine2, vertices_coordsFolded?: [number, number][] | [number, number, number][], assignment?: string, foldAngle?: number, epsilon?: number) => any;
+    foldRay: (graph: FOLD, ray: VecLine2, vertices_coordsFolded?: [number, number][] | [number, number, number][], assignment?: string, foldAngle?: number, epsilon?: number) => any;
+    foldSegment: (graph: FOLD, segment: [[number, number], [number, number]], vertices_coordsFolded?: [number, number][] | [number, number, number][], assignment?: string, foldAngle?: number, epsilon?: number) => any;
     getVerticesCollinearToLine: ({ vertices_coords }: {
         vertices_coords: any;
     }, { vector, origin }: {
@@ -331,11 +307,6 @@ declare const _default: {
         faces_crease: VecLine2[];
         faces_side: boolean[];
     }, { vector, origin }: VecLine2, assignment?: string, epsilon?: number) => any;
-    foldGraphPolyline: ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_edges, faces_faces, }: FOLD, { vector, origin }: VecLine2, assignment?: string, epsilon?: number) => {
-        intersections: (FaceVertexEvent | FaceEdgeEvent)[];
-        assignment: string;
-        points: [number, number][];
-    }[];
     makeFacesWinding: ({ vertices_coords, faces_vertices }: FOLD) => boolean[];
     makeFacesWindingFromMatrix: (faces_matrix: number[][]) => boolean[];
     makeFacesWindingFromMatrix2: (faces_matrix2: number[][]) => boolean[];

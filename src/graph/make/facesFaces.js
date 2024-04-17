@@ -4,7 +4,7 @@
 
 /**
  * @description faces_faces is an array of edge-adjacent face indices for each face.
- * @param {FOLD} graph a FOLD graph, with faces_vertices
+ * @param {FOLD} graph a FOLD object, with faces_vertices
  * @returns {number[][]} each index relates to a face, each entry is an array
  * of numbers, each number is an index of an edge-adjacent face to this face.
  */

@@ -2,12 +2,12 @@ import fs from "fs";
 import { expect, test } from "vitest";
 import ear from "../src/index.js";
 
-test("foldCreasePattern, crane", () => {
+test("foldGraphIntoSegments, crane", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const graph = ear.graph.getFramesByClassName(fold, "creasePattern")[0];
 
-	const result = ear.graph.foldGraphPolyline(
+	const result = ear.graph.foldGraphIntoSegments(
 		graph,
 		{ vector: [1, -1], origin: [0.45, 0.45] },
 	);
@@ -23,11 +23,11 @@ test("foldCreasePattern, crane", () => {
 	// expect(ear.graph.countFaces(folded)).toBe(88);
 
 	// fs.writeFileSync(
-	// 	"./tests/tmp/foldCreasePattern-crane-cp.fold",
+	// 	"./tests/tmp/foldGraphIntoSegments-crane-cp.fold",
 	// 	JSON.stringify(graph),
 	// );
 	// fs.writeFileSync(
-	// 	"./tests/tmp/foldCreasePattern-crane-folded.fold",
+	// 	"./tests/tmp/foldGraphIntoSegments-crane-folded.fold",
 	// 	JSON.stringify(folded),
 	// );
 });

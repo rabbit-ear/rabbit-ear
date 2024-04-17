@@ -7,7 +7,7 @@ import {
 
 /**
  * @description Make `faces_edges` from `faces_vertices`.
- * @param {FOLD} graph a FOLD graph, with
+ * @param {FOLD} graph a FOLD object, with
  * edges_vertices and faces_vertices
  * @returns {number[][]} a `faces_edges` array
  */

@@ -8,11 +8,13 @@ export function splitLineToSegments({ vertices_coords, edges_vertices, faces_ver
     }[];
     segments: {
         vertices: any[];
+        edges_face: number[];
+        edges_vertices?: any;
     };
 };
 export function splitLineIntoEdges({ vertices_coords, edges_vertices, faces_vertices, faces_edges }: FOLD, line: VecLine2, lineDomain?: Function, interiorPoints?: [number, number][], epsilon?: number): {
     vertices?: number[];
     edges_vertices?: number[][];
     edges_collinear?: boolean[];
-    edges_face?: number[][];
+    edges_face?: number[];
 };

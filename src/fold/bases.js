@@ -18,7 +18,7 @@ const makeRectCoords = (w, h) => [[0, 0], [w, 0], [w, h], [0, h]];
  * create a fully-populated graph that sets these vertices to be
  * the closed boundary of a polygon.
  * @param {[number, number][]} vertices_coords
- * @returns {FOLD} graph a FOLD graph with the vertices_coords
+ * @returns {FOLD} graph a FOLD object with the vertices_coords
  * as counter-clockwise consecutive points in the boundary forming one face.
  */
 const makeGraphWithBoundaryCoords = (vertices_coords) => ({

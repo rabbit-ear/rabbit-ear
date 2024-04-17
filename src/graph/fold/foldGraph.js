@@ -15,6 +15,7 @@ import {
 import {
 	add2,
 	scale2,
+	resize2,
 } from "../../math/vector.js";
 import {
 	assignmentFlatFoldAngle,
@@ -46,7 +47,8 @@ import {
 } from "../make/edgesFoldAngle.js";
 
 /**
- *
+ * @param {[number, number][]} points
+ * @param {number} parameter
  */
 const recalculatePointBetweenPoints = (points, parameter) => {
 	const edgeLine = pointsToLine2(points[0], points[1]);
@@ -71,7 +73,7 @@ const recalculatePointBetweenPoints = (points, parameter) => {
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {object}
  */
-export const foldFoldedForm = (
+export const foldGraph = (
 	graph,
 	{ vector, origin },
 	lineDomain = includeL,
@@ -157,14 +159,20 @@ export const foldFoldedForm = (
 	// information on how these points were made in folded form space,
 	// transfer these points into cp space, via the paramters that created them.
 	splitGraphVerticesSource
-		.map(el => ("point" in el && "face" in el && "vertex" in el ? el : undefined))
+		.map(el => ("point" in el && "face" in el && "faces" in el && "vertex" in el
+			? el
+			: undefined))
 		.filter(a => a !== undefined)
-		.forEach(({ point, face, vertex }) => {
+		// .forEach(({ point, face, faces, vertex }) => {
+		.forEach(({ point, faces, vertex }) => {
+			// "face" relates to the graph before splitGraphWithLineAndPoints was called.
+			// "faces" indices relate to the new graph, it will have one or two indices.
+			// which of the two face indices should we use?
 			// console.log("transfer in face", point, face, vertex);
 			graph.vertices_coords[vertex] = transferPointInFaceBetweenGraphs(
 				foldedForm,
 				graph,
-				face,
+				faces[0], // todo, ensure that this is okay
 				point,
 			);
 		});
@@ -176,7 +184,7 @@ export const foldFoldedForm = (
 		.filter(a => a !== undefined)
 		.forEach(({ b, vertices, vertex }) => {
 			graph.vertices_coords[vertex] = recalculatePointBetweenPoints(
-				vertices.map(v => graph.vertices_coords[v]),
+				vertices.map(v => graph.vertices_coords[v]).map(resize2),
 				b,
 			);
 		});
@@ -222,6 +230,9 @@ export const foldFoldedForm = (
 		? graph.edges_faces
 		: makeEdgesFacesUnsorted(graph);
 
+	// this maps new face indices (index) to old face indices (values)
+	// const faceOldMap = invertArrayToFlatMap(splitGraphResult.faces.map);
+
 	// This can be done without bothering with assignments, we simply check
 	// edges_faces and proceed if both face's face windings match in orientation.
 	// get the adjacent faces to this edge. initially these are the faces'
@@ -231,6 +242,7 @@ export const foldFoldedForm = (
 		.map(edge => ({
 			edge,
 			faces: edges_faces[edge].filter(a => a !== undefined),
+			// faces: edges_faces[edge].map(f => faceOldMap[f]).filter(a => a !== undefined),
 		}))
 		.filter(({ faces }) => faces.length === 2)
 		.filter(({ faces: [f0, f1] }) => faces_winding[f0] === faces_winding[f1]);
@@ -271,8 +283,14 @@ export const foldFoldedForm = (
 
 /**
  * @description In progress
+ * @param {FOLD} graph a FOLD object
+ * @param {VecLine2} line the fold line
+ * @param {[number, number][]|[number, number, number][]} [vertices_coordsFolded]
+ * @param {string} [assignment="V"]
+ * @param {number} [foldAngle]
+ * @param {number} [epsilon=1e-6]
  */
-export const foldFoldedLine = (
+export const foldLine = (
 	graph,
 	line,
 	vertices_coordsFolded = undefined,
@@ -280,7 +298,7 @@ export const foldFoldedLine = (
 	foldAngle = undefined,
 	epsilon = EPSILON,
 ) => (
-	foldFoldedForm(
+	foldGraph(
 		graph,
 		line,
 		includeL,
@@ -293,8 +311,14 @@ export const foldFoldedLine = (
 
 /**
  * @description In progress
+ * @param {FOLD} graph a FOLD object
+ * @param {VecLine2} ray the fold line as a ray
+ * @param {[number, number][]|[number, number, number][]} [vertices_coordsFolded]
+ * @param {string} [assignment="V"]
+ * @param {number} [foldAngle]
+ * @param {number} [epsilon=1e-6]
  */
-export const foldFoldedRay = (
+export const foldRay = (
 	graph,
 	ray,
 	vertices_coordsFolded = undefined,
@@ -302,7 +326,7 @@ export const foldFoldedRay = (
 	foldAngle = undefined,
 	epsilon = EPSILON,
 ) => (
-	foldFoldedForm(
+	foldGraph(
 		graph,
 		ray,
 		includeR,
@@ -315,8 +339,14 @@ export const foldFoldedRay = (
 
 /**
  * @description In progress
+ * @param {FOLD} graph a FOLD object
+ * @param {[[number, number], [number, number]]} segment the fold segment
+ * @param {[number, number][]|[number, number, number][]} [vertices_coordsFolded]
+ * @param {string} [assignment="V"]
+ * @param {number} [foldAngle]
+ * @param {number} [epsilon=1e-6]
  */
-export const foldFoldedSegment = (
+export const foldSegment = (
 	graph,
 	segment,
 	vertices_coordsFolded = undefined,
@@ -324,7 +354,7 @@ export const foldFoldedSegment = (
 	foldAngle = undefined,
 	epsilon = EPSILON,
 ) => (
-	foldFoldedForm(
+	foldGraph(
 		graph,
 		pointsToLine2(segment[0], segment[1]),
 		includeS,

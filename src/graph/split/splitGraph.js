@@ -34,7 +34,8 @@ import {
  * @type {{
  *   vertices?: {
  *     intersect: number[],
- *     source: ((FacePointEvent & { face:number })|(FaceEdgeEvent & { vertices:number[] }))[],
+ *     source: ((FacePointEvent & { face: number, faces: number[] })
+ *       |(FaceEdgeEvent & { vertices: [number, number] }))[],
  *   },
  *   edges?: {
  *     intersect: LineLineEvent[],
@@ -51,6 +52,11 @@ import {
  *     map: (number|number[])[],
  *   },
  * }}
+ * @description The source info for both edges and vertices will contain
+ * an entry for both "face" and "faces" (vertices, in the case of vertex-face),
+ * where "face" is the index of the face in relation to the graph as it was
+ * before running this method, and "faces" (containing one or two indices)
+ * are indices from the graph after being modified by the method.
  */
 
 /**
@@ -95,8 +101,8 @@ export const splitGraphWithLineAndPoints = (
 	// - splitting an edge: { a, b, vertices, point }
 	// - interior point in face: { face, point }
 	/**
-	 * @type {((FacePointEvent & { face: number, vertices?: never })|
-	 * (FaceEdgeEvent & { vertices: number[], face?: never }))[]}
+	 * @type {((FacePointEvent & { face: number, faces: number[], vertices?: never })|
+	 * (FaceEdgeEvent & { vertices: [number, number], face?: never, faces?: never }))[]}
 	 */
 	const verticesSource = [];
 
@@ -140,7 +146,9 @@ export const splitGraphWithLineAndPoints = (
 		.filter(a => a !== undefined)
 		.forEach(({ a, b, point, edge }) => {
 			const newEdge = edgeMap[edge][0];
-			const vertices = [...graph.edges_vertices[newEdge]];
+			const [v0, v1] = graph.edges_vertices[newEdge];
+			/** @type {[number, number]} */
+			const vertices = [v0, v1];
 			const { vertex, edges: { map } } = splitEdge(graph, newEdge, point);
 
 			// the intersection information that created this vertex
@@ -200,10 +208,12 @@ export const splitGraphWithLineAndPoints = (
 
 			// new edge (and possibly new vertices) were just created, update
 			// the source information that created these new components.
-			// I THINK: this is temporarily a single face, to become multiple faces later
+			// "face" is the index as it relates to the input graph,
+			// "faces" will be set to the finished graph's new indices for
+			// whatever the original face turned into (either one or two faces).
 			edgesSource[newEdgeIndex] = { face, faces: undefined };
 			isolatedPointVertices.forEach((vertex, i) => {
-				verticesSource[vertex] = { ...points[i], face };
+				verticesSource[vertex] = { ...points[i], face, faces: undefined };
 			});
 
 			// face indices were heavily modified, update the face map
@@ -213,10 +223,14 @@ export const splitGraphWithLineAndPoints = (
 
 	// these were set to the old face indices and need updating
 	verticesSource.forEach(({ face }, i) => {
-		if (face !== undefined) { verticesSource[i].face = faceMap[face][0]; }
+		if (face !== undefined) { verticesSource[i].faces = faceMap[face]; }
 	});
+
+	// each edge's new faces, found in faceMap[face], will contain two faces
+	// whenever a segment fully crosses a face and splits it into two. "faces"
+	// will contain only one element if a segment was used as input to this method
+	// and a leaf edge was added to a face, not fully splitting it into two.
 	edgesSource.forEach(({ face }, i) => {
-		// if (faces !== undefined) { edgesSource[i].faces = faceMap[faces][0]; }
 		if (face !== undefined) { edgesSource[i].faces = faceMap[face]; }
 	});
 

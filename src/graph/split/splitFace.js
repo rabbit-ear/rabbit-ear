@@ -569,7 +569,7 @@ const updateFacesFaces = (
  * with any face. This will create a new edge between the two vertices, which
  * the faces_edges will traverse twice, and this face's faces_vertices will
  * visit the faceVertex twice, going to and returning from the new leaf vertex.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * @param {number} face
  * @param {number} vertexFace
  * @param {number} vertexLeaf
