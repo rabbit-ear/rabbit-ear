@@ -75,7 +75,7 @@ type SweepEvent = {
     end: number[];
 };
 /**
- * the result of intersectLineAndPoints
+ * Intersection related events
  */
 type LineLineEvent = {
     a: number;
@@ -83,14 +83,14 @@ type LineLineEvent = {
     point: [number, number];
 };
 /**
- * the result of intersectLineAndPoints
+ * Intersection related events
  */
 type FaceVertexEvent = {
     a: number;
     vertex: number;
 };
 /**
- * the result of intersectLineAndPoints
+ * Intersection related events
  */
 type FaceEdgeEvent = {
     a: number;
@@ -99,7 +99,7 @@ type FaceEdgeEvent = {
     edge: number;
 };
 /**
- * the result of intersectLineAndPoints
+ * Intersection related events
  */
 type FacePointEvent = {
     point: [number, number];

@@ -244,6 +244,8 @@ const updateFacesEdges = (
  * @param {number[]} faces
  */
 const updateFacesFaces = ({ faces_vertices, faces_faces }, vertex, faces) => {
+	if (!faces_vertices || !faces_faces) { return; }
+
 	const facesSpliceIndex = faces
 		.map(f => faces_vertices[f].indexOf(vertex));
 

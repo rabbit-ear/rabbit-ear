@@ -12,7 +12,7 @@ import * as edgesLines from "./edges/lines.js";
 import * as facesPlanes from "./faces/planes.js";
 import * as facesMatrix from "./faces/matrix.js";
 import * as facesWinding from "./faces/winding.js";
-import * as foldCreasePattern from "./fold/foldCreasePattern.js";
+import * as foldGraphPolyline from "./fold/foldGraphPolyline.js";
 import * as flatFold from "./fold/flatFold.js";
 import * as foldLine from "./fold/foldLine.js";
 import * as foldFoldedForm from "./fold/foldFoldedForm.js";
@@ -74,7 +74,7 @@ export default {
 	...facesPlanes,
 	...facesMatrix,
 	...facesWinding,
-	...foldCreasePattern,
+	...foldGraphPolyline,
 	...flatFold,
 	...foldLine,
 	...foldFoldedForm,

@@ -207,20 +207,20 @@
  *
  * @typedef LineLineEvent
  * @type {{ a: number, b: number, point: [number, number] }}
- * the result of intersectLineAndPoints
+ * @description used in line-line intersection and graph edge-line intersection
  *
  * @typedef FaceVertexEvent
  * @type {{ a: number, vertex: number }}
- * the result of intersectLineAndPoints
+ * @description used in face-graph intersection, the vertex-related data
  *
  * @typedef FaceEdgeEvent
  * @type {{ a: number, b: number, point: [number, number], edge: number }}
- * the result of intersectLineAndPoints
+ * @description used in face-graph intersection, the edge-related data
  *
  * @typedef FacePointEvent
  * @type {{ point: [number, number], overlap: boolean, t: number[] }}
- * the result of intersectLineAndPoints
- *
+ * @description used in face-graph intersection, the data that describes
+ * any points that lie inside of faces
  */
 
 /**

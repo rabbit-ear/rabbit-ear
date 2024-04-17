@@ -60,7 +60,6 @@ export const makeFacesEdgesFromFacesVerticesForVertex = (
 		.map(key => verticesToEdge[key])));
 
 /**
- *
  * for each face, filter it's vertices to only include those inside this edge
  * and make sure the list only contains unique numbers, as it's possible for
  * a face to visit a vertex twice, make sure vertices are unique and check if

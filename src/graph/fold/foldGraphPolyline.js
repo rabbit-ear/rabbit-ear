@@ -42,12 +42,16 @@ import {
  * @param {VecLine2} line a fold line
  * @param {string} assignment the segment's assignment through the first face
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {object[]} For each intersected face, a new segment object:
- * - edges: which two edges were intersected
+ * @returns {{
+ *   intersections: (FaceEdgeEvent|FaceVertexEvent)[],
+ *   assignment: string,
+ *   points: [number, number][],
+ * }[]} For each intersected face, a new segment object:
+ * - intersections: information about the intersection events
  * - assignment: the assignment of the new segment
  * - points: the new segment's two endpoints
  */
-export const foldCreasePattern = ({
+export const foldGraphPolyline = ({
 	vertices_coords, edges_vertices, edges_foldAngle, edges_assignment,
 	faces_vertices, faces_edges, faces_faces,
 }, { vector, origin }, assignment = "V", epsilon = EPSILON) => {

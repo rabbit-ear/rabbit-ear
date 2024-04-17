@@ -275,13 +275,10 @@ declare const _default: {
     getOtherVerticesInEdges: ({ edges_vertices }: FOLD, vertex: number, edges: number[]) => number[];
     isVertexCollinear: ({ vertices_coords, vertices_edges, edges_vertices, }: FOLD, vertex: number, epsilon?: number) => boolean;
     getVerticesClusters: ({ vertices_coords }: FOLD, epsilon?: number) => number[][];
-    foldFoldedForm: (graph: any, { vector, origin }: {
-        vector: any;
-        origin: any;
-    }, lineDomain?: (_: number, __?: number) => boolean, interiorPoints?: any[], vertices_coordsFolded?: any, assignment?: string, foldAngle?: any, epsilon?: number) => splitGraph.GraphLineEvent;
-    foldFoldedLine: (graph: any, line: any, vertices_coordsFolded?: any, assignment?: string, foldAngle?: any, epsilon?: number) => splitGraph.GraphLineEvent;
-    foldFoldedRay: (graph: any, ray: any, vertices_coordsFolded?: any, assignment?: string, foldAngle?: any, epsilon?: number) => splitGraph.GraphLineEvent;
-    foldFoldedSegment: (graph: any, segment: any, vertices_coordsFolded?: any, assignment?: string, foldAngle?: any, epsilon?: number) => splitGraph.GraphLineEvent;
+    foldFoldedForm: (graph: FOLD, { vector, origin }: VecLine2, lineDomain?: Function, interiorPoints?: [number, number][], vertices_coordsFolded?: [number, number][] | [number, number, number][], assignment?: string, foldAngle?: number, epsilon?: number) => any;
+    foldFoldedLine: (graph: any, line: any, vertices_coordsFolded?: any, assignment?: string, foldAngle?: any, epsilon?: number) => any;
+    foldFoldedRay: (graph: any, ray: any, vertices_coordsFolded?: any, assignment?: string, foldAngle?: any, epsilon?: number) => any;
+    foldFoldedSegment: (graph: any, segment: any, vertices_coordsFolded?: any, assignment?: string, foldAngle?: any, epsilon?: number) => any;
     foldGraphWithLineMethod: (graph: any, { vector, origin }: {
         vector: any;
         origin: any;
@@ -334,7 +331,11 @@ declare const _default: {
         faces_crease: VecLine2[];
         faces_side: boolean[];
     }, { vector, origin }: VecLine2, assignment?: string, epsilon?: number) => any;
-    foldCreasePattern: ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_edges, faces_faces, }: FOLD, { vector, origin }: VecLine2, assignment?: string, epsilon?: number) => any[];
+    foldGraphPolyline: ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_edges, faces_faces, }: FOLD, { vector, origin }: VecLine2, assignment?: string, epsilon?: number) => {
+        intersections: (FaceVertexEvent | FaceEdgeEvent)[];
+        assignment: string;
+        points: [number, number][];
+    }[];
     makeFacesWinding: ({ vertices_coords, faces_vertices }: FOLD) => boolean[];
     makeFacesWindingFromMatrix: (faces_matrix: number[][]) => boolean[];
     makeFacesWindingFromMatrix2: (faces_matrix2: number[][]) => boolean[];
