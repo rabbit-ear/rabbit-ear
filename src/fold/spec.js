@@ -209,14 +209,24 @@ export const edgeFoldAngleToAssignment = (angle) => {
 };
 
 /**
- * @description Test if a fold angle is a flat fold, which includes
- * -180, 0, 180, and the +/- epsilon around each number.
+ * @description Test if a fold angle is a flat fold, +/- 180.
+ * and the epsilon around either number.
+ * @param {number} angle fold angle in degrees
+ * @returns {boolean} true if the fold angle is flat folded
+ */
+export const edgeFoldAngleIsFlatFolded = (angle) => (
+	epsilonEqual(-180, angle) || epsilonEqual(180, angle)
+);
+
+/**
+ * @description Test if a fold angle is flat, which includes unfolded
+ * (0 angle), as well as +/- 180, and the epsilon around each of these.
  * @param {number} angle fold angle in degrees
  * @returns {boolean} true if the fold angle is flat
  */
-export const edgeFoldAngleIsFlat = (angle) => (epsilonEqual(0, angle)
- || epsilonEqual(-180, angle)
- || epsilonEqual(180, angle));
+export const edgeFoldAngleIsFlat = (angle) => (
+	epsilonEqual(0, angle) || edgeFoldAngleIsFlatFolded(angle)
+);
 
 /**
  * @description Using edges_foldAngle, determine if a FOLD object

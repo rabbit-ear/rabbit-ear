@@ -118,7 +118,7 @@ const rebuildWithNewFaces = (graph) => {
  * specifically by triangulateConvexFacesVertices or
  * triangulateNonConvexFacesVertices.
  * @param {FOLD} graph a FOLD object
- * @returns {number[][]} a nextmap of faces
+ * @returns {number[][]} a nextmap of faces, arrayMap type
  */
 const makeTriangulatedFacesNextMap = ({ faces_vertices }) => {
 	let count = 0;
@@ -139,7 +139,8 @@ const makeTriangulatedFacesNextMap = ({ faces_vertices }) => {
  * @param {FOLD} graph a FOLD object, modified in place.
  * @param {any} earcut an optional reference to the Earcut library
  * by Mapbox, required to operate on a graph with non-convex faces.
- * @returns {object} a summary of changes to the input parameter.
+ * @returns {{ faces?: { map: number[][] }, edges?: { new: number[] }}}
+ * a summary of changes to the input parameter. the faceMap is an arrayMap
  * @todo preserve faceOrders, match preexisting faces against new ones,
  * this may create too much unnecessary data but at least it will work.
  */

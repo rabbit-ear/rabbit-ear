@@ -18,7 +18,7 @@ import {
 	countImpliedEdges,
 } from "../../graph/count.js";
 import {
-	invertFlatMap,
+	invertArrayToFlatMap,
 } from "../../graph/maps.js";
 import {
 	triangulate,
@@ -67,7 +67,7 @@ export const makeExplodedGraph = (graph, layerNudge = LAYER_NUDGE) => {
 	// Object.assign(change, change2);
 
 	if (change.faces) {
-		const backmap = invertFlatMap(change.faces.map);
+		const backmap = invertArrayToFlatMap(change.faces.map);
 		backmap.forEach((oldFace, face) => {
 			const nudge = faces_nudge[oldFace];
 			if (!nudge) { return; }

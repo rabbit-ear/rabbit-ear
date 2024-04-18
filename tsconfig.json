@@ -4,6 +4,7 @@
 		"target": "ES2022", // "target": "ES2015",
 		// "module": "es2015",
 		"lib": ["ES2022", "DOM"], // "lib": ["es2015", "DOM"],
+		"moduleResolution": "node",
 		// Tells TypeScript to read JS files, as
 		// normally they are ignored as source files
 		"allowJs": true,

@@ -127,9 +127,9 @@ type WebGLModel = {
     vertexArrays: WebGLVertexArray[];
     elementArrays: WebGLElementArray[];
     flags: number[];
-    makeUniforms: (gl: WebGLRenderingContext | WebGL2RenderingContext, options: object) => {
+    makeUniforms: (gl: WebGLRenderingContext | WebGL2RenderingContext, options: object) => ({
         [key: string]: WebGLUniform;
-    };
+    });
 };
 type TacoTacoConstraint = [number, number, number, number];
 type TacoTortillaConstraint = [number, number, number];

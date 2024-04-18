@@ -14,4 +14,4 @@ export function makeThickEdgesVertexData(graph: any, options: any): {
     vertices_color: any;
     verticesEdgesVector: any;
     vertices_vector: any;
-};
+} | undefined;

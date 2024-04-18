@@ -49,6 +49,7 @@ export const boundingBox = ({ vertices_coords }, padding) => (
  * @description A vertex is a boundary vertex if it is a member of a boundary
  * edge, as defined by edges_assignment. If edges_assignment is not present,
  * or does not contain boundary edges, this will return an empty array.
+ * If you need *sorted* vertices, use the boundary() or boundaries() method.
  * @param {FOLD} graph a FOLD object
  * @returns {number[]} unsorted list of vertex indices which lie along the boundary.
  */

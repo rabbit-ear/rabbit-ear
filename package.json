@@ -68,6 +68,8 @@
 		"rollup": "^3.28.1",
 		"rollup-plugin-cleanup": "^3.2.1",
 		"typedoc": "^0.25.13",
+		"typedoc-github-wiki-theme": "^1.1.0",
+		"typedoc-plugin-markdown": "^3.17.1",
 		"typescript": "^5.2.2",
 		"vitest": "^0.34.6"
 	}

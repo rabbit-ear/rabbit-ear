@@ -8,6 +8,7 @@ import {
 	includeL,
 	includeR,
 	includeS,
+	epsilonEqual,
 } from "../../math/compare.js";
 import {
 	pointsToLine2,
@@ -20,6 +21,7 @@ import {
 import {
 	assignmentFlatFoldAngle,
 	invertAssignment,
+	edgeFoldAngleIsFlatFolded,
 } from "../../fold/spec.js";
 import {
 	makeEdgesFacesUnsorted,
@@ -56,6 +58,124 @@ const recalculatePointBetweenPoints = (points, parameter) => {
 };
 
 /**
+ * @param {FOLD} graph a FOLD object
+ * @param {object} assignment info about assignment
+ * @param {boolean[]} faces_winding the winding direction for each face
+ * @param {{ vertices?: { intersect: number[] } }} splitGraphResult
+ * @returns {number[]} a list of edge indices which were reassigned
+ */
+const reassignCollinearEdges = (
+	graph,
+	{ assignment, foldAngle, oppositeAssignment, oppositeFoldAngle },
+	faces_winding,
+	splitGraphResult,
+) => {
+	// using the overlapped vertices, make a list of edges collinear to the line
+	// these (old) indices will match with the graph from its original state.
+	const verticesCollinear = splitGraphResult.vertices.intersect
+		.map(v => v !== undefined);
+
+	// these are new edge indices, relating to the graph after modification.
+	const collinearEdges = graph.edges_vertices
+		.map(verts => verticesCollinear[verts[0]] && verticesCollinear[verts[1]])
+		.map((collinear, e) => (collinear ? e : undefined))
+		.filter(a => a !== undefined);
+
+	// this edges_faces maps new edge indices to new face indices
+	const edges_faces = graph.edges_faces
+		? graph.edges_faces
+		: makeEdgesFacesUnsorted(graph);
+
+	// This upcoming section can be done without edges_assignments.
+	// Now, from the list of collinear edges, we need to filter out the ones to
+	// ignore from the ones we need to change. One way of doing this, which works
+	// in 2D at least, is to check the adjacent faces' windings, if they are the
+	// same winding (assuming they lie in the same plane) the crease between them
+	// is flat, and should become folded, in which case we can simply take either
+	// of its adjacent faces to know which assignment direction to assign.
+	const reassignableCollinearEdges = collinearEdges
+		.map(edge => ({
+			edge,
+			faces: edges_faces[edge].filter(a => a !== undefined),
+		}))
+		.filter(({ faces }) => faces.length === 2)
+		.filter(({ faces: [f0, f1] }) => faces_winding[f0] === faces_winding[f1]);
+
+	reassignableCollinearEdges.forEach(({ edge, faces }) => {
+		const winding = faces.map(face => faces_winding[face]).shift();
+		graph.edges_assignment[edge] = winding ? assignment : oppositeAssignment;
+		graph.edges_foldAngle[edge] = winding ? foldAngle : oppositeFoldAngle;
+	});
+
+	// list of edge indices which were reassigned
+	return reassignableCollinearEdges.map(({ edge }) => edge);
+};
+
+/**
+ * @param {number} f0 face index
+ * @param {number} f1 face index
+ * @param {string} assignment
+ * @returns {[number, number, number]|undefined}
+ */
+const adjacentFacesOrdersAssignments = (f0, f1, assignment) => {
+	switch (assignment) {
+	case "V":
+	case "v": return [f0, f1, 1];
+	case "M":
+	case "m": return [f0, f1, -1];
+	default: return undefined;
+	}
+};
+
+/**
+ * @param {number} f0 face index
+ * @param {number} f1 face index
+ * @param {number} foldAngle
+ * @returns {[number, number, number]|undefined}
+ */
+const adjacentFacesOrdersFoldAngles = (f0, f1, foldAngle) => {
+	if (epsilonEqual(foldAngle, 180)) { return [f0, f1, 1]; }
+	if (epsilonEqual(foldAngle, -180)) { return [f0, f1, -1]; }
+	return undefined;
+};
+
+/**
+ * @description all pairs of faces are adjacent faces, so they should have
+ * similar windings if unfolded. so there are only two arrangements:
+ * V: both face's normals point towards the other face. (+1 order)
+ * M: both face's normals point away from the other face. (-1 order)
+ * in both cases, it doesn't matter which face comes first with respect
+ * to the +1 or -1 ordering.
+ * @param {FOLD} graph a FOLD object
+ * @param {number[]} newEdges a list of new edges
+ * @returns {[number, number, number][]} new faceOrders
+ */
+const makeNewFaceOrders = (graph, newEdges) => {
+	const edges_faces = graph.edges_faces
+		? graph.edges_faces
+		: makeEdgesFacesUnsorted(graph);
+
+	const edges = newEdges.filter(e => edges_faces[e].length === 2);
+	const edgesAdjacentFaces = edges.map(e => edges_faces[e]);
+
+	if (graph.edges_assignment) {
+		const assignments = edges.map(e => graph.edges_assignment[e]);
+		return edgesAdjacentFaces
+			.map(([f0, f1], i) => adjacentFacesOrdersAssignments(f0, f1, assignments[i]))
+			.filter(a => a !== undefined);
+	}
+
+	if (graph.edges_foldAngle) {
+		const angles = edges.map(e => graph.edges_foldAngle[e]);
+		return edgesAdjacentFaces
+			.map(([f0, f1], i) => adjacentFacesOrdersFoldAngles(f0, f1, angles[i]))
+			.filter(a => a !== undefined);
+	}
+
+	return [];
+};
+
+/**
  * @description In progress
  * @param {FOLD} graph a FOLD object, in creasePattern form, modified in place
  * @param {VecLine2} foldLine a fold line
@@ -63,24 +183,33 @@ const recalculatePointBetweenPoints = (points, parameter) => {
  * characterizing the line into a line, ray, or segment
  * @param {[number, number][]} interiorPoints in the case of a ray or segement,
  * supply the endpoint(s) here.
- * @param {[number, number][]|[number, number, number][]} vertices_coordsFolded
- * a copy of the vertices_coords, in folded form
  * @param {string} [assignment="V"] the assignment to be applied to the
  * intersected faces with counter-clockwise winding. Clockwise-wound faces
  * will get the opposite assignment
  * @param {number} [foldAngle] the fold angle to be applied, similarly as
  * the assignment
+ * @param {[number, number][]|[number, number, number][]} vertices_coordsFolded
+ * a copy of the vertices_coords, in folded form
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {object}
+ * @returns {{
+ *   edges?: {
+ *     new: number[],
+ *     map: (number|number[])[],
+ *     reassigned: number[],
+ *   },
+ *   faces?: {
+ *     map: (number|number[])[],
+ *   },
+ * }} an object summarizing the changes to the graph
  */
 export const foldGraph = (
 	graph,
 	{ vector, origin },
 	lineDomain = includeL,
 	interiorPoints = [],
-	vertices_coordsFolded = undefined,
 	assignment = "V",
 	foldAngle = undefined,
+	vertices_coordsFolded = undefined,
 	epsilon = EPSILON,
 ) => {
 	// if the user asks for a foldAngle, but edges_foldAngle array does not exist,
@@ -123,8 +252,6 @@ export const foldGraph = (
 		epsilon,
 	);
 
-	// console.log("splitGraphResult", splitGraphResult);
-
 	// now that the split operation is complete and new faces have been built,
 	// capture the winding of the faces while still in folded form.
 	const faces_winding = makeFacesWinding(graph);
@@ -149,15 +276,17 @@ export const foldGraph = (
 		vertices_coords: vertices_coordsFoldedNew,
 	};
 
-	const splitGraphVerticesSource = splitGraphResult.vertices.source
-		.map((intersect, vertex) => ({ ...intersect, vertex }));
-
 	// at this point, the crease pattern coords have been returned to the graph,
 	// aside from the additional vertices that were created during
 	// the splitFace / splitEdge methods. Currently, these are still in
 	// the folded-form space. the splitGraph method result contains
 	// information on how these points were made in folded form space,
 	// transfer these points into cp space, via the paramters that created them.
+	const splitGraphVerticesSource = splitGraphResult.vertices.source
+		.map((intersect, vertex) => ({ ...intersect, vertex }));
+
+	// these points lie somewhere in the inside of a face. use trilateration
+	// to move the point from the same location in the folded face to the cp face.
 	splitGraphVerticesSource
 		.map(el => ("point" in el && "face" in el && "faces" in el && "vertex" in el
 			? el
@@ -189,15 +318,21 @@ export const foldGraph = (
 			);
 		});
 
-	// reassign edges to reflect the winding of the face they were created in
+	// the result of calling splitGraph contains a list of all new edges that
+	// were created, each edge contains a reference to the face(s) it lies inside:
+	// "face": the index of the edge's face before the graph was modified
+	// "faces": the indices of the edge's new faces in the graph after being split
+	// use "faces" to grab the edge's face, look up the winding of this face, and
+	// assign either the assignment or the inverted assignment accordingly.
 	const edgesAttributes = splitGraphResult.edges.source
 		.map(({ faces }) => ({
 			assign: faces_winding[faces[0]] ? assignment : oppositeAssignment,
 			angle: faces_winding[faces[0]] ? foldAngle : oppositeFoldAngle,
 		}));
 
-	// console.log("edgesAttributes", edgesAttributes);
-
+	// only apply the assignment and fold angle if the graph contains these
+	// arrays, this way, a simple flat-folded graph won't be forced to
+	// include edges_foldAngle if it is unnecessary.
 	if (graph.edges_assignment) {
 		edgesAttributes.forEach(({ assign }, edge) => {
 			graph.edges_assignment[edge] = assign;
@@ -213,89 +348,48 @@ export const foldGraph = (
 	// flat edges which lie collinear to the fold line must be folded,
 	// these edges were missed in the edge construction and assignment inside
 	// "splitFace", because these edges already existed.
+	const edgesReassigned = reassignCollinearEdges(
+		graph,
+		{ assignment, foldAngle, oppositeAssignment, oppositeFoldAngle },
+		faces_winding,
+		splitGraphResult,
+	);
 
-	// using the overlapped vertices, make a list of edges collinear to the line
-	// these (old) indices will match with the graph from its original state.
-	const verticesCollinear = splitGraphResult.vertices.intersect
-		.map(v => v !== undefined);
+	if (edgeFoldAngleIsFlatFolded(foldAngle)) {
+		const newEdges = [...splitGraphResult.edges.new, ...edgesReassigned];
+		const newFaceOrders = makeNewFaceOrders(graph, newEdges);
+		graph.faceOrders = graph.faceOrders
+			? graph.faceOrders.concat(newFaceOrders)
+			: newFaceOrders;
+	}
 
-	// these are new edge indices, relating to the graph after modification.
-	const collinearEdges = graph.edges_vertices
-		.map(verts => verticesCollinear[verts[0]] && verticesCollinear[verts[1]])
-		.map((collinear, e) => (collinear ? e : undefined))
-		.filter(a => a !== undefined);
-
-	// this edges_faces maps new edge indices to new face indices
-	const edges_faces = graph.edges_faces
-		? graph.edges_faces
-		: makeEdgesFacesUnsorted(graph);
-
-	// this maps new face indices (index) to old face indices (values)
-	// const faceOldMap = invertArrayToFlatMap(splitGraphResult.faces.map);
-
-	// This can be done without bothering with assignments, we simply check
-	// edges_faces and proceed if both face's face windings match in orientation.
-	// get the adjacent faces to this edge. initially these are the faces'
-	// new indices, but because the faces_winding array is build with
-	// old indices we need to change these face indices to their old versions
-	const reassignableCollinearEdges = collinearEdges
-		.map(edge => ({
-			edge,
-			faces: edges_faces[edge].filter(a => a !== undefined),
-			// faces: edges_faces[edge].map(f => faceOldMap[f]).filter(a => a !== undefined),
-		}))
-		.filter(({ faces }) => faces.length === 2)
-		.filter(({ faces: [f0, f1] }) => faces_winding[f0] === faces_winding[f1]);
-
-	// console.log("reassignableCollinearEdges", reassignableCollinearEdges);
-
-	reassignableCollinearEdges.forEach(({ edge, faces }) => {
-		const winding = faces.map(face => faces_winding[face])[0];
-		// console.log("winding", edge, faces, faces.map(face => faces_winding[face]));
-		graph.edges_assignment[edge] = winding ? assignment : oppositeAssignment;
-		graph.edges_foldAngle[edge] = winding ? foldAngle : oppositeFoldAngle;
-	});
-
-	// console.log("graph", structuredClone(graph));
-	// console.log("folded", structuredClone(folded));
-
-	// console.log("DONE", structuredClone(graph));
-
-	// {
-	// 	vertices: {
-	// 		intersect: intersections.vertices,
-	// 		source: vertexSource,
-	// 	},
-	// 	edges: {
-	// 		intersect: intersections.edges,
-	// 		new: Object.values(oldFaceNewEdge),
-	// 		map: edgeMap,
-	// 		source: edgeSource,
-	// 		collinear: collinearEdges,
-	// 	},
-	// 	faces: {
-	// 		intersect: intersections.faces,
-	// 		map: faceMap,
-	// 	},
-	// }
-	return splitGraphResult;
+	return {
+		edges: {
+			map: splitGraphResult.edges.map,
+			new: splitGraphResult.edges.new,
+			reassigned: edgesReassigned,
+		},
+		faces: {
+			map: splitGraphResult.faces.map,
+		},
+	};
 };
 
 /**
  * @description In progress
  * @param {FOLD} graph a FOLD object
  * @param {VecLine2} line the fold line
- * @param {[number, number][]|[number, number, number][]} [vertices_coordsFolded]
  * @param {string} [assignment="V"]
  * @param {number} [foldAngle]
+ * @param {[number, number][]|[number, number, number][]} [vertices_coordsFolded]
  * @param {number} [epsilon=1e-6]
  */
 export const foldLine = (
 	graph,
 	line,
-	vertices_coordsFolded = undefined,
 	assignment = "V",
 	foldAngle = undefined,
+	vertices_coordsFolded = undefined,
 	epsilon = EPSILON,
 ) => (
 	foldGraph(
@@ -303,9 +397,9 @@ export const foldLine = (
 		line,
 		includeL,
 		[],
-		vertices_coordsFolded,
 		assignment,
 		foldAngle,
+		vertices_coordsFolded,
 		epsilon,
 	));
 
@@ -313,17 +407,17 @@ export const foldLine = (
  * @description In progress
  * @param {FOLD} graph a FOLD object
  * @param {VecLine2} ray the fold line as a ray
- * @param {[number, number][]|[number, number, number][]} [vertices_coordsFolded]
  * @param {string} [assignment="V"]
  * @param {number} [foldAngle]
+ * @param {[number, number][]|[number, number, number][]} [vertices_coordsFolded]
  * @param {number} [epsilon=1e-6]
  */
 export const foldRay = (
 	graph,
 	ray,
-	vertices_coordsFolded = undefined,
 	assignment = "V",
 	foldAngle = undefined,
+	vertices_coordsFolded = undefined,
 	epsilon = EPSILON,
 ) => (
 	foldGraph(
@@ -331,9 +425,9 @@ export const foldRay = (
 		ray,
 		includeR,
 		[ray.origin],
-		vertices_coordsFolded,
 		assignment,
 		foldAngle,
+		vertices_coordsFolded,
 		epsilon,
 	));
 
@@ -341,17 +435,17 @@ export const foldRay = (
  * @description In progress
  * @param {FOLD} graph a FOLD object
  * @param {[[number, number], [number, number]]} segment the fold segment
- * @param {[number, number][]|[number, number, number][]} [vertices_coordsFolded]
  * @param {string} [assignment="V"]
  * @param {number} [foldAngle]
+ * @param {[number, number][]|[number, number, number][]} [vertices_coordsFolded]
  * @param {number} [epsilon=1e-6]
  */
 export const foldSegment = (
 	graph,
 	segment,
-	vertices_coordsFolded = undefined,
 	assignment = "V",
 	foldAngle = undefined,
+	vertices_coordsFolded = undefined,
 	epsilon = EPSILON,
 ) => (
 	foldGraph(
@@ -359,8 +453,8 @@ export const foldSegment = (
 		pointsToLine2(segment[0], segment[1]),
 		includeS,
 		segment,
-		vertices_coordsFolded,
 		assignment,
 		foldAngle,
+		vertices_coordsFolded,
 		epsilon,
 	));

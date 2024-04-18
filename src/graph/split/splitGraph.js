@@ -30,7 +30,7 @@ import {
 } from "../add/vertex.js";
 
 /**
- * @typedef GraphLineEvent
+ * @typedef SplitGraphEvent
  * @type {{
  *   vertices?: {
  *     intersect: number[],
@@ -75,7 +75,7 @@ const arraysLengthSum = (...arrays) => arrays
  * @param {[number, number][]} interiorPoints if the line is a segment or ray,
  * place its endpoints here
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {GraphLineEvent} an object describing the changes
+ * @returns {SplitGraphEvent} an object describing the changes
  */
 export const splitGraphWithLineAndPoints = (
 	graph,
@@ -271,7 +271,7 @@ export const splitGraphWithLineAndPoints = (
  * @param {FOLD} graph a FOLD object, modified in place
  * @param {VecLine2} line a splitting line
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {GraphLineEvent} an object describing the changes
+ * @returns {SplitGraphEvent} an object describing the changes
  */
 export const splitGraphWithLine = (graph, line, epsilon = EPSILON) => (
 	splitGraphWithLineAndPoints(
@@ -288,7 +288,7 @@ export const splitGraphWithLine = (graph, line, epsilon = EPSILON) => (
  * @param {FOLD} graph a FOLD object, modified in place
  * @param {VecLine2} ray a splitting ray
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {GraphLineEvent} an object describing the changes
+ * @returns {SplitGraphEvent} an object describing the changes
  */
 export const splitGraphWithRay = (graph, ray, epsilon = EPSILON) => (
 	splitGraphWithLineAndPoints(
@@ -305,7 +305,7 @@ export const splitGraphWithRay = (graph, ray, epsilon = EPSILON) => (
  * @param {FOLD} graph a FOLD object, modified in place
  * @param {[number, number][]} segment a pair of points forming a line segment
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {GraphLineEvent} an object describing the changes
+ * @returns {SplitGraphEvent} an object describing the changes
  */
 export const splitGraphWithSegment = (graph, segment, epsilon = EPSILON) => (
 	splitGraphWithLineAndPoints(

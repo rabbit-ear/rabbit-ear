@@ -20,15 +20,15 @@
  */
 export const table: {
     taco_taco: {
-        [key: string]: Readonly<boolean | [number, number]>;
+        [key: string]: Readonly<(boolean | [number, number])>;
     };
     taco_tortilla: {
-        [key: string]: Readonly<boolean | [number, number]>;
+        [key: string]: Readonly<(boolean | [number, number])>;
     };
     tortilla_tortilla: {
-        [key: string]: Readonly<boolean | [number, number]>;
+        [key: string]: Readonly<(boolean | [number, number])>;
     };
     transitivity: {
-        [key: string]: Readonly<boolean | [number, number]>;
+        [key: string]: Readonly<(boolean | [number, number])>;
     };
 };

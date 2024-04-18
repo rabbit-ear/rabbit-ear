@@ -15,4 +15,3 @@ export function splitFace(graph: FOLD, face: number, vertices: [number, number],
         remove?: number;
     };
 };
-import { remove } from "../remove.js";

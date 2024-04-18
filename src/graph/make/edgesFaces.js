@@ -25,7 +25,8 @@ import {
  * @description Make `edges_faces` where each edge is paired with its incident faces.
  * This is unsorted, prefer makeEdgesFaces()
  * @param {FOLD} graph a FOLD object, with entries edges_vertices, faces_edges
- * @returns {number[][]} each entry relates to an edge, each array contains indices
+ * @returns {(number | null | undefined)[][]} each entry relates
+ * to an edge, each array contains indices
  * of adjacent faces.
  */
 export const makeEdgesFacesUnsorted = ({ edges_vertices, faces_vertices, faces_edges }) => {
@@ -53,8 +54,8 @@ export const makeEdgesFacesUnsorted = ({ edges_vertices, faces_vertices, faces_e
  * This is sorted according to the FOLD spec, sorting faces on either side of an edge.
  * @param {FOLD} graph a FOLD object, with entries vertices_coords,
  * edges_vertices, faces_vertices, faces_edges
- * @returns {number[][]} each entry relates to an edge, each array contains indices
- * of adjacent faces.
+ * @returns {(number | null | undefined)[][]} each entry relates to an edge,
+ * each array contains indices of adjacent faces.
  */
 export const makeEdgesFaces = ({
 	vertices_coords, edges_vertices, edges_vector, faces_vertices, faces_edges, faces_center,

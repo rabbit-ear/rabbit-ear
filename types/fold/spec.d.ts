@@ -120,6 +120,7 @@ export namespace assignmentIsBoundary {
 }
 export function edgeAssignmentToFoldAngle(assignment: string): number;
 export function edgeFoldAngleToAssignment(angle: number): string;
+export function edgeFoldAngleIsFlatFolded(angle: number): boolean;
 export function edgeFoldAngleIsFlat(angle: number): boolean;
 export function edgesFoldAngleAreAllFlat({ edges_foldAngle }: FOLD): boolean;
 export function filterKeysWithPrefix(obj: object, prefix: string): string[];

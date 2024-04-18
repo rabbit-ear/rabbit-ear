@@ -175,4 +175,13 @@ export const remapKey = (graph, key, indexMap) => {
 	filterKeysWithPrefix(graph, key).forEach(prefix => {
 		graph[prefix] = invertedMap.map(old => graph[prefix][old]);
 	});
+
+	if (key === "faces" && graph.faceOrders) {
+		graph.faceOrders = graph.faceOrders
+			.map(([a, b, order]) => [indexMap[a], indexMap[b], order]);
+	}
+	if (key === "edges" && graph.edgeOrders) {
+		graph.edgeOrders = graph.edgeOrders
+			.map(([a, b, order]) => [indexMap[a], indexMap[b], order]);
+	}
 };

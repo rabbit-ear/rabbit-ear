@@ -6,4 +6,3 @@ export function splitEdge(graph: FOLD, oldEdge: number, coords?: number[]): {
         remove: number;
     };
 };
-import { remove } from "../remove.js";

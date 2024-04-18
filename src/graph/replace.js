@@ -7,7 +7,11 @@ import { count } from "./count.js";
 import { remapKey } from "./maps.js";
 
 /**
- *
+ * @param {FOLD} graph
+ * @param {string} key
+ * @param {number[]} replaceIndices
+ * @param {number[]} replaces
+ * @returns {number[]}
  */
 const makeIndexMap = (graph, key, replaceIndices, replaces) => {
 	const arrayLength = count(graph, key);

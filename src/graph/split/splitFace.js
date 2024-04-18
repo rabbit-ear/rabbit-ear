@@ -564,6 +564,37 @@ const updateFacesFaces = (
 };
 
 /**
+ * @description
+ * @param {FOLD} graph a FOLD graph
+ * @param {number} oldFace
+ * @param {number[]} newFaces
+ */
+const updateFaceOrders = ({ faceOrders }, oldFace, newFaces) => {
+	if (!faceOrders) { return; }
+	// a single new face
+	const newFace = newFaces[0];
+	// all the other new faces besides the first face
+	const faces = newFaces.slice(1);
+	/** @type {[number, number, number][]} */
+	const newFaceOrders = [];
+	faceOrders.forEach(([f0, f1, order], i) => {
+		if (f0 === oldFace) {
+			faceOrders[i] = [newFace, f1, order];
+			/** @type {[number, number, number][]} */
+			const newOrders = faces.map(f => [f, f1, order]);
+			newFaceOrders.push(...newOrders);
+		}
+		if (f1 === oldFace) {
+			faceOrders[i] = [f0, newFace, order];
+			/** @type {[number, number, number][]} */
+			const newOrders = faces.map(f => [f0, f, order]);
+			newFaceOrders.push(...newOrders);
+		}
+	});
+	faceOrders.push(...newFaceOrders);
+};
+
+/**
  * @description Cut a face through one of the face's existing vertices to a
  * new vertex which is intended to be newly created, but not yet associated
  * with any face. This will create a new edge between the two vertices, which
@@ -689,6 +720,7 @@ export const splitFaceWithEdge = (
 	updateVerticesFaces(graph, face, faces, vertices);
 	updateEdgesFaces(graph, face, faces, edge);
 	updateFacesFaces(graph, face, faces);
+	updateFaceOrders(graph, face, faces);
 
 	// remove old data
 	const faceMap = remove(graph, "faces", [face]);

@@ -12,7 +12,10 @@ import {
 } from "./maps.js";
 
 /**
- *
+ * @param {FOLD} graph
+ * @param {string} key
+ * @param {number[]} removeIndices
+ * @returns {number[]}
  */
 const makeIndexMap = (graph, key, removeIndices) => {
 	const sortedIndices = uniqueSortedNumbers(removeIndices);

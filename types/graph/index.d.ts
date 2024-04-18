@@ -22,7 +22,14 @@ declare const _default: {
     }[];
     triangulateConvexFacesVertices: ({ faces_vertices }: FOLD) => number[][];
     triangulateNonConvexFacesVertices: ({ vertices_coords, faces_vertices }: FOLD, earcut: any) => number[][];
-    triangulate: (graph: FOLD, earcut: any) => any;
+    triangulate: (graph: FOLD, earcut: any) => {
+        faces?: {
+            map: number[][];
+        };
+        edges?: {
+            new: number[];
+        };
+    };
     minimumSpanningTrees: (array_array?: number[][], rootIndices?: number[]) => trees.BreadthFirstTreeNode[][][];
     unitize: (graph: FOLD) => FOLD;
     translate2: (graph: FOLD, translation: [number, number] | [number, number, number]) => FOLD;
@@ -64,10 +71,10 @@ declare const _default: {
     subgraph: (graph: FOLD, indicesToKeep?: any) => FOLD;
     subgraphWithFaces: (graph: FOLD, faces: number[]) => FOLD;
     subgraphWithVertices: (graph: any, vertices?: any[]) => FOLD;
-    splitGraphWithLineAndPoints: (graph: FOLD, { vector, origin }: VecLine2, lineDomain?: Function, interiorPoints?: [number, number][], epsilon?: number) => splitGraph.GraphLineEvent;
-    splitGraphWithLine: (graph: FOLD, line: VecLine2, epsilon?: number) => splitGraph.GraphLineEvent;
-    splitGraphWithRay: (graph: FOLD, ray: VecLine2, epsilon?: number) => splitGraph.GraphLineEvent;
-    splitGraphWithSegment: (graph: FOLD, segment: [number, number][], epsilon?: number) => splitGraph.GraphLineEvent;
+    splitGraphWithLineAndPoints: (graph: FOLD, { vector, origin }: VecLine2, lineDomain?: Function, interiorPoints?: [number, number][], epsilon?: number) => splitGraph.SplitGraphEvent;
+    splitGraphWithLine: (graph: FOLD, line: VecLine2, epsilon?: number) => splitGraph.SplitGraphEvent;
+    splitGraphWithRay: (graph: FOLD, ray: VecLine2, epsilon?: number) => splitGraph.SplitGraphEvent;
+    splitGraphWithSegment: (graph: FOLD, segment: [number, number][], epsilon?: number) => splitGraph.SplitGraphEvent;
     splitLineToSegments: ({ vertices_coords, edges_vertices, faces_vertices, faces_edges }: FOLD, { vector, origin }: VecLine2, lineDomain?: Function, interiorPoints?: [number, number][], epsilon?: number) => {
         vertices: number[];
         edges: LineLineEvent[];
@@ -290,10 +297,46 @@ declare const _default: {
         assignment: string;
         points: [number, number][];
     }[];
-    foldGraph: (graph: FOLD, { vector, origin }: VecLine2, lineDomain?: Function, interiorPoints?: [number, number][], vertices_coordsFolded?: [number, number][] | [number, number, number][], assignment?: string, foldAngle?: number, epsilon?: number) => any;
-    foldLine: (graph: FOLD, line: VecLine2, vertices_coordsFolded?: [number, number][] | [number, number, number][], assignment?: string, foldAngle?: number, epsilon?: number) => any;
-    foldRay: (graph: FOLD, ray: VecLine2, vertices_coordsFolded?: [number, number][] | [number, number, number][], assignment?: string, foldAngle?: number, epsilon?: number) => any;
-    foldSegment: (graph: FOLD, segment: [[number, number], [number, number]], vertices_coordsFolded?: [number, number][] | [number, number, number][], assignment?: string, foldAngle?: number, epsilon?: number) => any;
+    foldGraph: (graph: FOLD, { vector, origin }: VecLine2, lineDomain?: Function, interiorPoints?: [number, number][], assignment?: string, foldAngle?: number, vertices_coordsFolded?: [number, number][] | [number, number, number][], epsilon?: number) => {
+        edges?: {
+            new: number[];
+            map: (number | number[])[];
+            reassigned: number[];
+        };
+        faces?: {
+            map: (number | number[])[];
+        };
+    };
+    foldLine: (graph: FOLD, line: VecLine2, assignment?: string, foldAngle?: number, vertices_coordsFolded?: [number, number][] | [number, number, number][], epsilon?: number) => {
+        edges?: {
+            new: number[];
+            map: (number | number[])[];
+            reassigned: number[];
+        };
+        faces?: {
+            map: (number | number[])[];
+        };
+    };
+    foldRay: (graph: FOLD, ray: VecLine2, assignment?: string, foldAngle?: number, vertices_coordsFolded?: [number, number][] | [number, number, number][], epsilon?: number) => {
+        edges?: {
+            new: number[];
+            map: (number | number[])[];
+            reassigned: number[];
+        };
+        faces?: {
+            map: (number | number[])[];
+        };
+    };
+    foldSegment: (graph: FOLD, segment: [[number, number], [number, number]], assignment?: string, foldAngle?: number, vertices_coordsFolded?: [number, number][] | [number, number, number][], epsilon?: number) => {
+        edges?: {
+            new: number[];
+            map: (number | number[])[];
+            reassigned: number[];
+        };
+        faces?: {
+            map: (number | number[])[];
+        };
+    };
     getVerticesCollinearToLine: ({ vertices_coords }: {
         vertices_coords: any;
     }, { vector, origin }: {
@@ -427,6 +470,7 @@ declare const _default: {
     };
     edgeAssignmentToFoldAngle: (assignment: string) => number;
     edgeFoldAngleToAssignment: (angle: number) => string;
+    edgeFoldAngleIsFlatFolded: (angle: number) => boolean;
     edgeFoldAngleIsFlat: (angle: number) => boolean;
     edgesFoldAngleAreAllFlat: ({ edges_foldAngle }: FOLD) => boolean;
     filterKeysWithPrefix: (obj: any, prefix: string) => string[];

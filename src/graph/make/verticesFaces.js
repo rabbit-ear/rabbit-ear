@@ -12,8 +12,9 @@ import {
  * @description Make `vertices_faces` **not sorted** counter-clockwise,
  * which should be used sparingly. Prefer makeVerticesFaces().
  * @param {FOLD} graph a FOLD object, containing vertices_coords, faces_vertices
- * @returns {number[][]} array of array of numbers, where each row corresponds to a
- * vertex index and the values in the inner array are face indices.
+ * @returns {(number | null | undefined)[][]} array of array of numbers,
+ * where each row corresponds to a vertex index
+ * and the values in the inner array are face indices.
  */
 export const makeVerticesFacesUnsorted = ({ vertices_coords, vertices_edges, faces_vertices }) => {
 	const vertArray = vertices_coords || vertices_edges;
@@ -38,8 +39,9 @@ export const makeVerticesFacesUnsorted = ({ vertices_coords, vertices_edges, fac
 /**
  * @description Make `vertices_faces` sorted counter-clockwise.
  * @param {FOLD} graph a FOLD object, containing vertices_coords, vertices_vertices, faces_vertices
- * @returns {number[][]} array of array of numbers, where each row corresponds to a
- * vertex index and the values in the inner array are face indices.
+ * @returns {(number | null | undefined)[][]} array of array of numbers,
+ * where each row corresponds to a vertex index
+ * and the values in the inner array are face indices.
  */
 export const makeVerticesFaces = ({ vertices_coords, vertices_vertices, faces_vertices }) => {
 	if (!faces_vertices) { return vertices_coords.map(() => []); }

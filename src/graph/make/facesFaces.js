@@ -5,8 +5,9 @@
 /**
  * @description faces_faces is an array of edge-adjacent face indices for each face.
  * @param {FOLD} graph a FOLD object, with faces_vertices
- * @returns {number[][]} each index relates to a face, each entry is an array
- * of numbers, each number is an index of an edge-adjacent face to this face.
+ * @returns {(number | null | undefined)[][]} each index relates to a face,
+ * each entry is an array of numbers, each number is an index
+ * of an edge-adjacent face to this face.
  */
 export const makeFacesFaces = ({ faces_vertices }) => {
 	// create a map that relates these space-separated vertex pair strings

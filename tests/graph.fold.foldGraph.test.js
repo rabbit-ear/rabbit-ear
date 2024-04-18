@@ -26,8 +26,9 @@ test("foldGraph, segment, along a collinear edge", () => {
 		line,
 		ear.math.includeS,
 		includePoints,
-		vertices_coordsFolded,
 		"V",
+		undefined,
+		vertices_coordsFolded,
 	);
 
 	const newFlatEdgeCount = graph.edges_assignment
@@ -65,8 +66,9 @@ test("foldGraph, sparse graph", () => {
 		{ vector: [0, 1], origin: [0.75, 0.5] },
 		ear.math.includeL,
 		[],
-		vertices_coordsFolded,
 		"V",
+		undefined,
+		vertices_coordsFolded,
 	);
 	// console.log("result", result);
 	fs.writeFileSync(
@@ -85,8 +87,9 @@ test("foldGraph, sparse graph, segment", () => {
 		{ vector: [0, 1], origin: [0.75, 0.45] },
 		ear.math.includeS,
 		[[0.75, 0.45], [0.75, 1.45]],
-		vertices_coordsFolded,
 		"V",
+		undefined,
+		vertices_coordsFolded,
 	);
 	// console.log("result", result);
 	fs.writeFileSync(
@@ -105,8 +108,9 @@ test("foldGraph, populated graph", () => {
 		{ vector: [0, 1], origin: [0.75, 0.5] },
 		ear.math.includeL,
 		[],
-		vertices_coordsFolded,
 		"V",
+		undefined,
+		vertices_coordsFolded,
 	);
 	// console.log("result", result);
 	fs.writeFileSync(
@@ -125,8 +129,9 @@ test("foldGraph, populated graph, segment", () => {
 		{ vector: [0, 1], origin: [0.75, 0.45] },
 		ear.math.includeS,
 		[[0.75, 0.45], [0.75, 1.45]],
-		vertices_coordsFolded,
 		"V",
+		undefined,
+		vertices_coordsFolded,
 	);
 	// console.log("result", result);
 	fs.writeFileSync(
@@ -190,7 +195,6 @@ test("foldGraph through vertex, crane", () => {
 		{ vector: [0, 1], origin: [0.6464466094063558, 0.6464466094063558] },
 		ear.math.includeL,
 		[],
-		ear.graph.makeVerticesCoordsFlatFolded(graph),
 		"V",
 		// 90,
 	);
@@ -220,7 +224,6 @@ test("foldGraph 3D folded through vertex, crane", () => {
 		{ vector: [0, 1], origin: [0.6464466094063558, 0.6464466094063558] },
 		ear.math.includeL,
 		[],
-		ear.graph.makeVerticesCoordsFlatFolded(graph), // flat
 		"V",
 		90,
 	);
@@ -260,7 +263,6 @@ test("foldGraph 3D folded edge collinear, crane", () => {
 			line,
 			ear.math.includeL,
 			[],
-			ear.graph.makeVerticesCoordsFlatFolded(graph), // flat
 			"V",
 			90,
 		);
