@@ -1,12 +1,18 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+import {
+	file_spec,
+	file_creator,
+} from "../fold/rabbitear.js";
+import * as bases from "../fold/bases.js";
+import * as primitives from "../fold/primitives.js";
+import {
+	populate,
+} from "../graph/populate.js";
 import graphPrototype from "./graph.js";
 // import cpPrototype from "./cp.js";
 // import origamiPrototype from "./origami.js";
-import { file_spec, file_creator } from "../fold/rabbitear.js";
-import * as bases from "../fold/bases.js";
-import { populate } from "../graph/populate.js";
 
 /**
  * @description Create a FOLD object that inherits from the Graph prototype
@@ -81,6 +87,14 @@ graph.prototype.constructor = graph;
 // const origami = (...args) => populate(makeOrigamiInstance(...args));
 // origami.prototype = origamiPrototype;
 // origami.prototype.constructor = origami;
+
+// static constructors for all the primitive FOLD shapes
+Object.keys(primitives).forEach(baseName => {
+	/** @param {...any} args */
+	graph[baseName] = (...args) => makeGraphInstance(primitives[baseName](...args));
+	// cp[baseName] = (...args) => makeCPInstance(primitives[baseName](...args));
+	// origami[baseName] = (...args) => origami(primitives[baseName](...args));
+});
 
 // static constructors for all the origami bases
 Object.keys(bases).forEach(baseName => {

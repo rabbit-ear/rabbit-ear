@@ -13,7 +13,7 @@ import * as splitEdge from "../graph/split/splitEdge.js";
 import * as transform from "../graph/transform.js";
 import * as explode from "../graph/explode.js";
 import * as nearest from "../graph/nearest.js";
-import * as validate from "../graph/validate.js";
+import * as validate from "../graph/validate/validate.js";
 // import {
 // 	getLine,
 // } from "../general/get.js";

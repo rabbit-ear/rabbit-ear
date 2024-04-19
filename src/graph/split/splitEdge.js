@@ -12,9 +12,8 @@ import {
 	remove,
 } from "../remove.js";
 import {
-	makeVerticesFacesFromVerticesVerticesForVertex,
-	makeVerticesFacesFromVerticesEdgesForVertex,
-	makeFacesEdgesFromFacesVerticesForVertex,
+	makeVerticesFacesForVertex,
+	makeFacesEdgesForVertex,
 	makeEdgesFacesForEdge,
 } from "./general.js";
 
@@ -49,8 +48,9 @@ const makeNewEdges = (graph, edgeIndex, newVertex) => {
  * the vertex which was added, and the two vertices adjacent to it.
  * @param {FOLD} graph a FOLD object, modified in place
  * @param {number} vertex index of the new vertex
- * @param {number[]} vertices vertices that made up the edge which was just
- * now split by the addition of our new vertex.
+ * @param {[number, number]} vertices the two vertices that made up the edge
+ * which was just now split by the addition of our new vertex.
+ * @returns {undefined}
  */
 const updateVerticesVertices = (
 	{ vertices_vertices },
@@ -80,9 +80,10 @@ const updateVerticesVertices = (
  * @param {FOLD} graph a FOLD object, modified in place
  * @param {number} oldEdge the index of the old edge
  * @param {number} newVertex the index of the new vertex which split the edge
- * @param {number[]} vertices the old edge's two vertices,
+ * @param {[number, number]} vertices the old edge's two vertices,
  * must be aligned with "newEdges"
- * @param {number[]} newEdges the two new edges, must be aligned with "vertices"
+ * @param {[number, number]} newEdges the two new edges, must be aligned with "vertices"
+ * @returns {undefined}
  */
 const updateVerticesEdges = (
 	{ vertices_edges },
@@ -114,6 +115,7 @@ const updateVerticesEdges = (
  * @param {FOLD} graph a FOLD object, modified in place
  * @param {number} vertex the index of the new vertex
  * @param {number[]} faces a list of faces which were just added to the graph
+ * @returns {undefined}
  */
 const updateVerticesFaces = (
 	{ vertices_vertices, vertices_edges, vertices_faces, edges_vertices, faces_vertices },
@@ -134,35 +136,26 @@ const updateVerticesFaces = (
 
 	// we can use either vertices_vertices or vertices_edges to match winding order
 	// these methods will also include any undefineds in the case of a boundary vertex.
-	if (vertices_vertices) {
-		vertices_faces[vertex] = makeVerticesFacesFromVerticesVerticesForVertex(
-			{ vertices_vertices },
-			vertex,
-			verticesToFace,
-		);
-		return;
-	}
-
-	if (vertices_edges) {
-		vertices_faces[vertex] = makeVerticesFacesFromVerticesEdgesForVertex(
-			{ edges_vertices, vertices_edges },
-			vertex,
-			verticesToFace,
-		);
-		return;
-	}
+	const vertex_faces = makeVerticesFacesForVertex(
+		{ vertices_vertices, vertices_edges, edges_vertices },
+		vertex,
+		verticesToFace,
+	);
 
 	// if neither vertices_vertices or vertices_edges exists, we cannot
 	// respect the winding order anyway, simply add the faces to the entry.
-	vertices_faces[vertex] = [...faces];
+	vertices_faces[vertex] = vertex_faces === undefined
+		? [...faces]
+		: vertex_faces;
 };
 
 /**
  * @description Update the two new edges' edges_faces to include
  * the (0, 1, or 2) faces on either side of the edges.
  * @param {FOLD} graph a FOLD object, modified in place
- * @param {number[]} newEdges array of 2 new edges
+ * @param {[number, number]} newEdges array of 2 new edges
  * @param {number[]} faces array of 0, 1, or 2 incident faces.
+ * @returns {undefined}
  */
 const updateEdgesFaces = ({ edges_faces }, newEdges, faces) => {
 	if (!edges_faces) { return; }
@@ -176,14 +169,16 @@ const updateEdgesFaces = ({ edges_faces }, newEdges, faces) => {
  * splice in the new vertex.
  * @param {FOLD} graph a FOLD object, modified in place
  * @param {number} newVertex index of the new vertex
- * @param {number[]} incidentVertices neighbor vertices
- * @param {number[]} faces the two vertices of the old edge
+ * @param {[number, number]} incidentVertices neighbor vertices
+ * @param {number[]} faces the faces adjacent to the old edge
+ * @returns {undefined}
  */
 const updateFacesVertices = ({ faces_vertices }, newVertex, incidentVertices, faces) => {
 	if (!faces_vertices) { return; }
 
 	// provide two vertices, do these vertices match (in any order) to the
 	// incideVertices which made up the original edge before the splitting?
+	/** @param {number} a @param {number} b @returns {boolean} */
 	const matchFound = (a, b) => (
 		(a === incidentVertices[0] && b === incidentVertices[1])
 		|| (a === incidentVertices[1] && b === incidentVertices[0]));
@@ -211,8 +206,9 @@ const updateFacesVertices = ({ faces_vertices }, newVertex, incidentVertices, fa
  * and faces_edges must be aligned with faces_vertices, we will use
  * faces_vertices to reverse-reference edges and build faces_edges.
  * @param {FOLD} graph a FOLD object, modified in place
- * @param {number[]} faces the two adjacent faces
- * @param {number[]} newEdges the two new edges
+ * @param {number[]} faces the zero, one, or two adjacent faces
+ * @param {[number, number]} newEdges the two new edges
+ * @returns {undefined}
  */
 const updateFacesEdges = (
 	{ edges_vertices, faces_vertices, faces_edges },
@@ -231,17 +227,16 @@ const updateFacesEdges = (
 
 	// iterate through faces vertices, pairwise adjacent vertices, create
 	// keys for the lookup table, convert the keys into edge indices.
-	makeFacesEdgesFromFacesVerticesForVertex(
-		{ faces_vertices, faces_edges },
-		faces,
-		verticesToEdge,
-	).forEach((edges, i) => { faces_edges[faces[i]] = edges; });
+	makeFacesEdgesForVertex({ faces_vertices }, faces, verticesToEdge)
+		.forEach((edges, i) => { faces_edges[faces[i]] = edges; });
 };
 
 /**
+ * @description Update faces_faces for a list of faces.
  * @param {FOLD} graph a FOLD object
  * @param {number} vertex
  * @param {number[]} faces
+ * @returns {undefined}
  */
 const updateFacesFaces = ({ faces_vertices, faces_faces }, vertex, faces) => {
 	if (!faces_vertices || !faces_faces) { return; }
@@ -282,13 +277,16 @@ const updateFacesFaces = ({ faces_vertices, faces_faces }, vertex, faces) => {
  *   vertex: number,
  *   edges: {
  *     map: (number|number[])[],
- *     add: number[],
+ *     add: [number, number],
  *     remove: number,
  *   },
- * }} a summary of the changes with keys "vertex", "edges"
- * "vertex" is the index of the new vertex (or old index, if similar)
- * "edge" is a summary of changes to edges, with "map" and "remove",
- * where "map" is a nextmap (I believe)
+ * }} a summary of the changes to the graph:
+ * - "vertex" is the index of the new vertex (or old index, if similar)
+ * - "edges" object contains:
+ *   - "remove" the index of the edge that was removed
+ *   - "add" the two new edges
+ *   - "map" a nextmap, all values will be numbers except the value at
+ *     the remove index, this will be an array containing both new indices.
  */
 export const splitEdge = (
 	graph,
@@ -315,7 +313,9 @@ export const splitEdge = (
 	// the new edge indices, they will be added to the end of the edges_ arrays.
 	// "newEdges" and "incidentVertices" are aligned in their indices 0 and 1,
 	// so that this vertex is in this edge. This is important for the update methods
-	const newEdges = [0, 1].map(i => i + graph.edges_vertices.length);
+	const [e0, e1] = [0, 1].map(i => i + graph.edges_vertices.length);
+	/** @type {[number, number]} */
+	const newEdges = [e0, e1];
 
 	// make 2 new edges_vertices, edges_assignment, and edges_foldAngle.
 	// add these fields to the graph.
@@ -337,7 +337,8 @@ export const splitEdge = (
 	// note: "incidentFaces" may only include 1 face, in the case of a
 	// boundary edge. this needs to be taken account, for example,
 	// to ensure winding order matches across component arrays.
-	const incidentFaces = makeEdgesFacesForEdge(graph, oldEdge);
+	const incidentFaces = makeEdgesFacesForEdge(graph, oldEdge)
+		.filter(a => a !== undefined);
 	updateFacesVertices(graph, vertex, incidentVertices, incidentFaces);
 	updateFacesEdges(graph, incidentFaces, newEdges);
 	updateVerticesFaces(graph, vertex, incidentFaces);

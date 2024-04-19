@@ -1,5 +1,4 @@
 declare const _default: {
-    validateVerticesWinding: ({ vertices_vertices, vertices_edges, vertices_faces, edges_vertices, faces_vertices, faces_edges, }: FOLD) => string[];
     validate: (graph: FOLD) => string[];
     walkSingleFace: ({ vertices_vertices, vertices_sectors }: FOLD, vertex0: number, vertex1: number, walkedEdges?: any) => {
         vertices: number[];
@@ -95,15 +94,18 @@ declare const _default: {
         edges_collinear?: boolean[];
         edges_face?: number[];
     };
-    cutFaceToVertex: (graph: FOLD, face: number, vertexFace: number, vertexLeaf: number, assignment?: string, foldAngle?: number) => {
+    splitFaceWithLeafEdge: (graph: FOLD, face: number, vertexFace: number, vertexLeaf: number, assignment?: string, foldAngle?: number) => {
         edge: number;
         faces: {};
     };
-    cutFaceToPoint: (graph: any, face: any, vertex: any, point: any, assignment?: string, foldAngle?: number) => {
-        edge: number;
-        faces: {};
+    splitFaceWithEdge: (graph: FOLD, face: number, vertices: [number, number], assignment?: string, foldAngle?: number) => {
+        edge?: number;
+        faces?: {
+            map?: (number | number[])[];
+            new?: number[];
+            remove?: number;
+        };
     };
-    splitFaceWithEdge: (graph: FOLD, face: number, vertices: [number, number], assignment?: string, foldAngle?: number) => any;
     splitFace: (graph: FOLD, face: number, vertices: [number, number], assignment?: string, foldAngle?: number) => {
         edge?: number;
         faces?: {
@@ -116,7 +118,7 @@ declare const _default: {
         vertex: number;
         edges: {
             map: (number | number[])[];
-            add: number[];
+            add: [number, number];
             remove: number;
         };
     };
@@ -398,6 +400,7 @@ declare const _default: {
     circularEdges: ({ edges_vertices }: FOLD) => number[];
     removeCircularEdges: (graph: FOLD, remove_indices?: number[]) => any;
     addEdge: (graph: FOLD, vertices: [number, number], faces?: number[], assignment?: string, foldAngle?: number) => number;
+    addIsolatedEdge: (graph: FOLD, vertices: [number, number], assignment?: string, foldAngle?: number) => number;
     addVertex: (graph: FOLD, coords: [number, number] | [number, number, number], vertices?: number[], edges?: number[], faces?: number[]) => number;
     addVertices: (graph: FOLD, points?: [number, number][] | [number, number, number][]) => number[];
     foldKeys: {

@@ -20,6 +20,7 @@ import * as splitEdge from "./split/splitEdge.js";
 import * as splitFace from "./split/splitFace.js";
 import * as splitLine from "./split/splitLine.js";
 import * as splitGraph from "./split/splitGraph.js";
+import * as validate from "./validate/validate.js";
 import * as verticesClusters from "./vertices/clusters.js";
 import * as verticesCollinear from "./vertices/collinear.js";
 import * as verticesDuplicate from "./vertices/duplicate.js";
@@ -55,7 +56,6 @@ import * as transform from "./transform.js";
 import * as trees from "./trees.js";
 import * as triangulateMethods from "./triangulate.js";
 import * as walk from "./walk.js";
-import * as validate from "./validate.js";
 import make from "./make/index.js";
 
 // these are included via. a backdoor system, in src/index.js, all of these

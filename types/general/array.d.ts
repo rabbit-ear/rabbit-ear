@@ -4,6 +4,7 @@ export function uniqueSortedNumbers(array: number[]): number[];
 export function epsilonUniqueSortedNumbers(array: number[], epsilon?: number): number[];
 export function arrayIntersection(array1: any[], array2: any[]): any[];
 export function rotateCircularArray(array: any[], newStartIndex: number): any[];
+export function splitCircularArray(array: any[], indices: [number, number]): [any[], any[]];
 export function chooseTwoPairs(array: any[]): [any, any][];
 export function setDifferenceSortedNumbers(a: number[], b: number[]): number[];
 export function setDifferenceSortedEpsilonNumbers(a: number[], b: number[], epsilon?: number): number[];

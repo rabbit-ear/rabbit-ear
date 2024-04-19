@@ -11,43 +11,39 @@ import {
  * @param {FOLD} graph a FOLD object
  * @param {number} vertex
  * @param {{ [key: string]: number }} verticesToFace,
- * @returns {number[]} face indices
+ * @returns {number[]|undefined} face indices or undefined if
+ * not enough sufficient input data exists.
  */
-export const makeVerticesFacesFromVerticesVerticesForVertex = (
-	{ vertices_vertices },
+export const makeVerticesFacesForVertex = (
+	{ vertices_vertices, vertices_edges, edges_vertices },
 	vertex,
 	verticesToFace,
-) => (vertices_vertices[vertex]
-	.map(v => [vertex, v].join(" "))
-	.map(key => verticesToFace[key]));
+) => {
+	if (vertices_vertices) {
+		return vertices_vertices[vertex]
+			.map(v => [vertex, v].join(" "))
+			.map(key => verticesToFace[key]);
+	}
+	if (vertices_edges && edges_vertices) {
+		return vertices_edges[vertex]
+			.map(edge => edges_vertices[edge])
+			// for each edge's edges_vertices, get the vertex that isn't "vertex".
+			.map(([a, b]) => (vertex === a ? [vertex, b] : [vertex, a]))
+			.map(pair => pair.join(" "))
+			.map(key => verticesToFace[key]);
+	}
+	return undefined;
+};
 
 /**
- * @description For a single vertex, rebuild its vertices_faces entry,
- * having already
- * @param {FOLD} graph a FOLD object
- * @param {number} vertex
- * @param {{ [key: string]: number }} verticesToFace,
- * @returns {number[]} face indices
- */
-export const makeVerticesFacesFromVerticesEdgesForVertex = (
-	{ edges_vertices, vertices_edges },
-	vertex,
-	verticesToFace,
-) => (vertices_edges[vertex]
-	.map(edge => edges_vertices[edge])
-	// for each edge's edges_vertices, get the vertex that isn't "vertex".
-	.map(([a, b]) => (vertex === a ? [vertex, b] : [vertex, a]))
-	.map(pair => pair.join(" "))
-	.map(key => verticesToFace[key]));
-
-/**
- * @description For a
+ * @description Make a faces_edges entry for a single vertex using
+ * the faces_vertices array, matching winding order.
  * @param {FOLD} graph a FOLD object
  * @param {number[]} faces
  * @param {{ [key: string]: number }} verticesToEdge
  * @return {number[][]}
  */
-export const makeFacesEdgesFromFacesVerticesForVertex = (
+export const makeFacesEdgesForVertex = (
 	{ faces_vertices },
 	faces,
 	verticesToEdge,

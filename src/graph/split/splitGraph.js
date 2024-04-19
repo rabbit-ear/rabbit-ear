@@ -60,8 +60,10 @@ import {
  */
 
 /**
+ * @description Iterate over a list of arrays, return the sum of
+ * the lengths of all the arrays.
  * @param {...any[]} arrays a list of arrays
- * @returns {number} the maximum length of all the array lengths
+ * @returns {number} the sum of all the array lengths
  */
 const arraysLengthSum = (...arrays) => arrays
 	.map(arr => arr.length)

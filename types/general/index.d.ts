@@ -17,6 +17,7 @@ declare const _default: {
     epsilonUniqueSortedNumbers: (array: number[], epsilon?: number) => number[];
     arrayIntersection: (array1: any[], array2: any[]) => any[];
     rotateCircularArray: (array: any[], newStartIndex: number) => any[];
+    splitCircularArray: (array: any[], indices: [number, number]) => [any[], any[]];
     chooseTwoPairs: (array: any[]) => [any, any][];
     setDifferenceSortedNumbers: (a: number[], b: number[]) => number[];
     setDifferenceSortedEpsilonNumbers: (a: number[], b: number[], epsilon?: number) => number[];

@@ -115,6 +115,23 @@ export const rotateCircularArray = (array, newStartIndex) => (
 			.concat(array.slice(0, newStartIndex)));
 
 /**
+ * @description A circular array (data wraps around) requires 2 indices
+ * if you intend to split it into two arrays. The pair of indices can be
+ * provided in any order, they will be sorted, smaller index first.
+ * @param {any[]} array an array that is meant to be thought of as circular
+ * @param {[number, number]} indices two numbers
+ * these indices will divide the array into 2 parts
+ * @returns {[any[], any[]]} the input array split into two arrays
+ */
+export const splitCircularArray = (array, indices) => {
+	indices.sort((a, b) => a - b);
+	return [
+		array.slice(indices[1]).concat(array.slice(0, indices[0] + 1)),
+		array.slice(indices[0], indices[1] + 1),
+	];
+};
+
+/**
  * @description convert a list of items {any} into a list of pairs
  * where each item is uniqely matched with another item (non-ordered)
  * the number of pairs is (length * (length-1)) / 2
@@ -192,7 +209,7 @@ export const setDifferenceSortedEpsilonNumbers = (a, b, epsilon = EPSILON) => {
  * An optional map function parameter can be provided to map the
  * values into another state before searching for the minimum value.
  * @param {any[]} array an array of any comparable type
- * @param {function} [map] an optional map function to run on all elements
+ * @param {Function} [map] an optional map function to run on all elements
  * @returns {number|undefined} an index from the input array,
  * or undefined if the array has no length.
  */
@@ -213,7 +230,7 @@ export const arrayMinimumIndex = (array, map) => {
  * An optional map function parameter can be provided to map the
  * values into another state before searching for the maximum value.
  * @param {any[]} array an array of any comparable type
- * @param {function} [map] an optional map function to run on all elements
+ * @param {Function} [map] an optional map function to run on all elements
  * @returns {number|undefined} an index from the input array,
  * or undefined if the array has no length.
  */
