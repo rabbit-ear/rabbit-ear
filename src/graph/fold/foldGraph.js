@@ -39,12 +39,17 @@ import {
 	clone,
 } from "../../general/clone.js";
 import {
+	makeEdgesFacesUnsorted,
+} from "../make/edgesFaces.js";
+import {
 	makeEdgesFoldAngle,
 } from "../make/edgesFoldAngle.js";
 import {
 	recalculatePointAlongEdge,
 	reassignCollinearEdges,
 	makeNewFaceOrders,
+	updateFlatFoldedInvalidFaceOrders,
+	getInvalidFaceOrders,
 } from "./general.js";
 
 /**
@@ -72,6 +77,7 @@ import {
  *     reassigned: number[],
  *   },
  *   faces?: {
+ *     new: number[],
  *     map: (number|number[])[],
  *   },
  * }} an object summarizing the changes to the graph
@@ -90,6 +96,9 @@ export const foldGraph = (
 	// we have to explicitly add it otherwise it will be skipped later on.
 	if (foldAngle !== undefined && !graph.edges_foldAngle && graph.edges_assignment) {
 		graph.edges_foldAngle = makeEdgesFoldAngle(graph);
+	}
+	if (!graph.edges_faces) {
+		graph.edges_faces = makeEdgesFacesUnsorted(graph);
 	}
 
 	// if user only specifies assignment, fill in the (flat) fold angle for them
@@ -125,6 +134,10 @@ export const foldGraph = (
 		interiorPoints,
 		epsilon,
 	);
+
+	// new faces, used for the return object, and used to update faceOrders
+	const newFaces = Array.from(new Set(splitGraphResult.edges.new
+		.flatMap(e => graph.edges_faces[e])));
 
 	// now that the split operation is complete and new faces have been built,
 	// capture the winding of the faces while still in folded form.
@@ -229,12 +242,43 @@ export const foldGraph = (
 		splitGraphResult,
 	);
 
-	if (edgeFoldAngleIsFlatFolded(foldAngle)) {
+	// true if 180deg "M" or "V", false if flat "F" or 3D.
+	const isFlatFolded = edgeFoldAngleIsFlatFolded(foldAngle);
+	if (!graph.faceOrders && isFlatFolded) { graph.faceOrders = []; }
+
+	// if the assignment is 180 M or V, we generate new face orders between
+	// new faces which were just made by splitting a face with a new edge,
+	// depending on the edge's assignemnt, we can make a new faceOrder.
+	if (isFlatFolded) {
 		const newEdges = [...splitGraphResult.edges.new, ...edgesReassigned];
 		const newFaceOrders = makeNewFaceOrders(graph, newEdges);
-		graph.faceOrders = graph.faceOrders
-			? graph.faceOrders.concat(newFaceOrders)
-			: newFaceOrders;
+		graph.faceOrders = graph.faceOrders.concat(newFaceOrders);
+	}
+
+	// the splitGraph operation created many new faceOrders out of the old ones,
+	// for every old face's orders, each old face became two new faces, so
+	// every one of the old face's orders was replaced with two, referencing the
+	// new indices.
+	// This generates a bunch of relationships between faces which no longer
+	// overlap, we will identify these as "nowInvalidFaceOrders" and do one
+	// of two things with these:
+	// if 3D or "F": we have to delete these faceOrders
+	// if 180deg "M" or "V": we can update these face orders to new orders
+	// based on the crease direction and face winding.
+	if (graph.faceOrders) {
+		const nowInvalidFaceOrders = getInvalidFaceOrders(
+			{ ...graph, vertices_coords: vertices_coordsFoldedNew },
+			{ vector, origin },
+			newFaces,
+		);
+
+		if (isFlatFolded) {
+			updateFlatFoldedInvalidFaceOrders(graph, nowInvalidFaceOrders, assignment, faces_winding);
+		} else {
+			const invalidOrderLookup = {};
+			nowInvalidFaceOrders.forEach(i => { invalidOrderLookup[i] = true; });
+			graph.faceOrders = graph.faceOrders.filter((_, i) => invalidOrderLookup[i]);
+		}
 	}
 
 	return {
@@ -245,6 +289,7 @@ export const foldGraph = (
 		},
 		faces: {
 			map: splitGraphResult.faces.map,
+			new: newFaces,
 		},
 	};
 };

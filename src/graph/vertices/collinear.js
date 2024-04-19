@@ -1,9 +1,15 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../../math/constant.js";
-import { collinearBetween } from "../../math/line.js";
-import { makeVerticesEdgesUnsorted } from "../make/verticesEdges.js";
+import {
+	EPSILON,
+} from "../../math/constant.js";
+import {
+	collinearBetween,
+} from "../../math/line.js";
+import {
+	makeVerticesEdgesUnsorted,
+} from "../make/verticesEdges.js";
 
 /**
  * @description Given one vertex, and a list of edges which contain this vertex,
@@ -27,6 +33,7 @@ export const getOtherVerticesInEdges = ({ edges_vertices }, vertex, edges) => (
  * O(1) if vertices_edges exists, if not, O(n) where n=edges
  * @param {FOLD} graph a FOLD object
  * @param {number} vertex an index of a vertex in the graph
+ * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {boolean} true if the vertex is collinear and can be removed.
  */
 export const isVertexCollinear = ({
@@ -48,9 +55,9 @@ export const isVertexCollinear = ({
 	return collinearBetween(a, b, c, false, epsilon);
 };
 
-/**
- * @description this is located in planarize.js. see if we can generalize
- * it and bring it out here.
- * Also, there is a method makeFacesNonCollinear inside make.js.
- */
+// /**
+//  * @description this is located in planarize.js. see if we can generalize
+//  * it and bring it out here.
+//  * Also, there is a method makeFacesNonCollinear inside make.js.
+//  */
 // export const removeCollinearVertex = ({ edges_vertices, vertices_edges }, vertex) => {};

@@ -21,12 +21,6 @@ import {
  * @description Validate a graph, ensuring that all references across
  * different arrays point to valid data, there are no mismatching
  * array references.
- * @algorithm Inspect every array whose key contains a "_" symbol.
- * Ensure that every matching prefix (all "edges_" arrays) all match
- * in length and contain the same indices.
- * Ensure that every suffix array (all "_edges" arrays) with a matching
- * prefix array (all "edges_" arrays) contain only indices which match
- * with some value in the prefix array.
  * @param {FOLD} graph a FOLD object
  * @returns {string[]} array of error messages. an empty array means no errors.
  */

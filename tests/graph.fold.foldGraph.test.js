@@ -102,6 +102,7 @@ test("foldGraph, sparse graph, segment", () => {
 test("foldGraph, populated graph", () => {
 	const FOLD = fs.readFileSync("tests/files/fold/crane-cp.fold", "utf-8");
 	const graph = ear.graph.populate(JSON.parse(FOLD));
+	// graph.faceOrders = ear.layer(graph).faceOrders();
 	const vertices_coordsFolded = ear.graph.makeVerticesCoordsFlatFolded(graph);
 	const result = ear.graph.foldGraph(
 		graph,
@@ -124,6 +125,7 @@ test("foldGraph, populated graph, segment", () => {
 	const FOLD = fs.readFileSync("tests/files/fold/crane-cp.fold", "utf-8");
 	const graph = ear.graph.populate(JSON.parse(FOLD));
 	const vertices_coordsFolded = ear.graph.makeVerticesCoordsFlatFolded(graph);
+
 	const result = ear.graph.foldGraph(
 		graph,
 		{ vector: [0, 1], origin: [0.75, 0.45] },
@@ -145,6 +147,10 @@ test("foldGraph, crane", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const graph = ear.graph.getFramesByClassName(fold, "creasePattern")[0];
+	graph.faceOrders = ear.layer({
+		...graph,
+		vertices_coords: ear.graph.makeVerticesCoordsFlatFolded(graph),
+	}).faceOrders();
 
 	const result = ear.graph.foldGraph(
 		graph,
@@ -189,6 +195,10 @@ test("foldGraph through vertex, crane", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const graph = ear.graph.getFramesByClassName(fold, "creasePattern")[0];
+	graph.faceOrders = ear.layer({
+		...graph,
+		vertices_coords: ear.graph.makeVerticesCoordsFlatFolded(graph),
+	}).faceOrders();
 
 	ear.graph.foldGraph(
 		graph,
@@ -218,6 +228,10 @@ test("foldGraph 3D folded through vertex, crane", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const graph = ear.graph.getFramesByClassName(fold, "creasePattern")[0];
+	graph.faceOrders = ear.layer({
+		...graph,
+		vertices_coords: ear.graph.makeVerticesCoordsFlatFolded(graph),
+	}).faceOrders();
 
 	ear.graph.foldGraph(
 		graph,
@@ -247,6 +261,10 @@ test("foldGraph 3D folded edge collinear, crane", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const crane = ear.graph.getFramesByClassName(fold, "creasePattern")[0];
+	crane.faceOrders = ear.layer({
+		...crane,
+		vertices_coords: ear.graph.makeVerticesCoordsFlatFolded(crane),
+	}).faceOrders();
 
 	[
 		{ vector: [-1, 1], origin: [0.6464466094063558, 0.6464466094063558] },

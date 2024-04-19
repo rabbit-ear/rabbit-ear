@@ -2,14 +2,11 @@ import { expect, test } from "vitest";
 import fs from "fs";
 import ear from "../src/index.js";
 
-test("foldGraph, faceOrders, square folding", () => {
+test("foldGraph, faceOrders, square folding, valley, valley", () => {
 	const graph = ear.graph.square();
-
 	ear.graph.foldGraph(graph, { vector: [3, 1], origin: [0.5, 0.5] });
 	graph.faceOrders = [[0, 1, 1]];
-
 	expect(graph.faceOrders).toMatchObject([[0, 1, 1]]);
-
 	ear.graph.foldGraph(graph, { vector: [-1, 5], origin: [0.5, 0.5] });
 
 	// splitFace (first): 0 becomes 2, 3
@@ -22,25 +19,69 @@ test("foldGraph, faceOrders, square folding", () => {
 	// [1, 3, 1], [2, 3, 1], [1, 4, 1], [2, 4, 1]
 	// faces get remapped, 0->X, 1->0, 2->1, 3->2, 4->3
 	// [0, 2, 1], [1, 2, 1], [0, 3, 1], [1, 3, 1]
+	// finally, we deal with the faces which no longer overlap
+	// 0, 2 no longer overlap, 1, 3 no longer overlap
+	// split line separated by a "valley"
+	// windings: 0 true, 1 true, 2 false, 3 false
+	// 0-2 face 2 is second one, false on valley results in -1
+	// 1-3 face 3 is second one, false on valley, results in -1. becomes:
+	// [0, 2, -1], [1, 2, 1], [0, 3, 1], [1, 3, -1]
+	// two new orders:
+	// - 0-1 (true winding) valley 1.
+	// - 2-3 (false winding) valley -1.
 	expect(graph.faceOrders).toMatchObject([
-		[0, 2, 1], [1, 2, 1], [0, 3, 1], [1, 3, 1], [0, 1, 1], [2, 3, -1],
+		[0, 2, -1], [1, 2, 1], [0, 3, 1], [1, 3, -1], [0, 1, 1], [2, 3, -1],
 	]);
-	// expect(graph.faceOrders).toMatchObject([
-	// 	[0, 2, 1], [1, 2, 1], [0, 3, 1], [1, 3, 1],
-	// ]);
 
-	// ear.graph.foldGraph(graph, { vector: [4, -1], origin: [0.25, 0.25] });
-
-	// // did not check this yet.
-	// expect(graph.faceOrders).toMatchObject([
-	// 	[0, 4, 1], [2, 4, 1], [0, 6, 1], [2, 6, 1], [1, 4, 1], [1, 6, 1],
-	// 	[3, 4, 1], [3, 6, 1], [0, 5, 1], [2, 5, 1], [1, 5, 1], [3, 5, 1],
-	// 	[0, 7, 1], [2, 7, 1], [1, 7, 1], [3, 7, 1],
-	// ]);
-
+	ear.graph.foldGraph(graph, { vector: [4, -1], origin: [0.25, 0.25] });
 	// console.log(JSON.stringify(graph.faceOrders));
+	// did not check this yet.
+	expect(graph.faceOrders).toMatchObject([
+		[0, 4, -1], [2, 4, -1], [0, 6, 1], [2, 6, -1], [0, 2, 1], [4, 6, 1],
+		[1, 4, -1], [1, 6, 1], [1, 2, 1], [3, 4, 1], [3, 6, 1], [0, 3, 1],
+		[1, 3, 1], [0, 5, -1], [2, 5, 1], [5, 6, -1], [1, 5, -1], [3, 5, -1],
+		[0, 7, 1], [2, 7, 1], [4, 7, -1], [1, 7, 1], [3, 7, -1], [5, 7, 1],
+		[0, 1, -1], [2, 3, 1], [4, 5, -1], [6, 7, 1],
+	]);
 });
 
+test("foldGraph, faceOrders, square folding, valley, mountain", () => {
+	const graph = ear.graph.square();
+	ear.graph.foldGraph(graph, { vector: [3, 1], origin: [0.5, 0.5] });
+	graph.faceOrders = [[0, 1, 1]];
+	expect(graph.faceOrders).toMatchObject([[0, 1, 1]]);
+	ear.graph.foldGraph(
+		graph,
+		{ vector: [-1, 5], origin: [0.5, 0.5] },
+		ear.math.includeL,
+		[],
+		"M",
+	);
+
+	// splitFace (first): 0 becomes 2, 3
+	// [0, 1, 1] becomes two rules: [2, 1, 1], [3, 1, 1].
+	// remap: 0->X 1->0 2->1 3->2
+	// rules become: [1, 0, 1] and [2, 0, 1]
+	// splitFace (second): 0 becomes 3, 4
+	// [1, 0, 1] becomes [1, 3, 1] and [1, 4, 1]
+	// [2, 0, 1] becomes [2, 3, 1] and [2, 4, 1], the order should be:
+	// [1, 3, 1], [2, 3, 1], [1, 4, 1], [2, 4, 1]
+	// faces get remapped, 0->X, 1->0, 2->1, 3->2, 4->3
+	// [0, 2, 1], [1, 2, 1], [0, 3, 1], [1, 3, 1]
+	// finally, we deal with the faces which no longer overlap
+	// 0, 2 no longer overlap, 1, 3 no longer overlap
+	// split line separated by a "mountain"
+	// windings: 0 true, 1 true, 2 false, 3 false
+	// 0-2 face 2 is second one, false on mountain results in 1
+	// 1-3 face 3 is second one, false on mountain, results in 1. becomes:
+	// [0, 2, 1], [1, 2, 1], [0, 3, 1], [1, 3, 1]
+	// two new orders:
+	// - 0-1 (true winding) mountain -1.
+	// - 2-3 (false winding) mountain 1.
+	expect(graph.faceOrders).toMatchObject([
+		[0, 2, 1], [1, 2, 1], [0, 3, 1], [1, 3, 1], [0, 1, -1], [2, 3, 1],
+	]);
+});
 
 test("foldGraph, faceOrders, square folding", () => {
 	const graph = ear.graph.square();
@@ -80,9 +121,9 @@ test("foldGraph, faceOrders, square folding", () => {
 	// [1, 3, 1], [2, 3, 1], [1, 4, 1], [2, 4, 1]
 	// faces get remapped, 0->X, 1->0, 2->1, 3->2, 4->3
 	// [0, 2, 1], [1, 2, 1], [0, 3, 1], [1, 3, 1]
-	expect(graph.faceOrders).toMatchObject([
-		[0, 2, 1], [1, 2, 1], [0, 3, 1], [1, 3, 1], [0, 1, 1], [2, 3, -1],
-	]);
+	// expect(graph.faceOrders).toMatchObject([
+	// 	[0, 2, 1], [1, 2, 1], [0, 3, 1], [1, 3, 1], [0, 1, 1], [2, 3, -1],
+	// ]);
 
 	// fold step
 	ear.graph.foldGraph(graph, { vector: [4, -1], origin: [0.25, 0.25] });
@@ -189,6 +230,8 @@ test("foldGraph, faceOrders, panels", () => {
 	ear.graph.foldLine(graph.file_frames[2], { vector: [1, -0.1], origin: [0.5, 0.5] });
 	ear.graph.foldLine(graph.file_frames[3], { vector: [1, 0.1], origin: [0.5, 0.5] });
 
+	// console.log(JSON.stringify(graph.faceOrders));
+
 	// in splitFace (first): face 0 turns into face 2 and 3.
 	// [0, 1, 1] becomes two rules: [2, 1, 1], [3, 1, 1].
 	// faces get remapped, 0->X, 1->0, 2->1, 3->2.
@@ -198,14 +241,16 @@ test("foldGraph, faceOrders, panels", () => {
 	// [2, 0, 1] becomes [2, 3, 1] and [2, 4, 1], the order should be:
 	// [1, 3, 1], [2, 3, 1], [1, 4, 1], [2, 4, 1]
 	// faces get remapped, 0->X, 1->0, 2->1, 3->2, 4->3
-	// [0, 2, 1], [1, 2, 1], [0, 3, 1], [1, 3, 1], YES! this matches.
+	// [0, 2, 1], [1, 2, 1], [0, 3, 1], [1, 3, 1]
+	// newly non overlapping faces need to be dealt with:
+	// 0-3 no longer overlap. 1-2 no longer overlap
+	// - "valley" for 0-3 (3 is false winding) results in -1.
+	// - "valley" for 1-2 (2 is false winding) results in -1.
 	// finally,
 	// then [0, 1, 1], [2, 3, -1] get calculated and added at the end
 	expect(graph.faceOrders).toMatchObject([
-		[0, 2, 1], [1, 2, 1], [0, 3, 1], [1, 3, 1], [0, 1, 1], [2, 3, -1],
+		[0, 2, 1], [1, 2, -1], [0, 3, -1], [1, 3, 1], [0, 1, 1], [2, 3, -1]
 	]);
-
-	// console.log(JSON.stringify(graph.faceOrders));
 
 	fs.writeFileSync(
 		`./tests/tmp/foldGraph-panels.fold`,

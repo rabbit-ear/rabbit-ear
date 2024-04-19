@@ -5,6 +5,7 @@ export function foldGraph(graph: FOLD, { vector, origin }: VecLine2, lineDomain?
         reassigned: number[];
     };
     faces?: {
+        new: number[];
         map: (number | number[])[];
     };
 };
@@ -15,6 +16,7 @@ export function foldLine(graph: FOLD, line: VecLine2, assignment?: string, foldA
         reassigned: number[];
     };
     faces?: {
+        new: number[];
         map: (number | number[])[];
     };
 };
@@ -25,6 +27,7 @@ export function foldRay(graph: FOLD, ray: VecLine2, assignment?: string, foldAng
         reassigned: number[];
     };
     faces?: {
+        new: number[];
         map: (number | number[])[];
     };
 };
@@ -35,6 +38,7 @@ export function foldSegment(graph: FOLD, segment: [[number, number], [number, nu
         reassigned: number[];
     };
     faces?: {
+        new: number[];
         map: (number | number[])[];
     };
 };

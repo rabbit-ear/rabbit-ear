@@ -49,6 +49,13 @@ const arraysHaveSameIndices = (arrays = []) => {
  * that each of them are the same length (all of their indices match).
  * test 2: in the case of a suffix referencing another array's prefix,
  * check that the indices from the suffix exist in the prefix
+ *
+ * Inspect every array whose key contains a "_" symbol.
+ * Ensure that every matching prefix (all "edges_" arrays) all match
+ * in length and contain the same indices.
+ * Ensure that every suffix array (all "_edges" arrays) with a matching
+ * prefix array (all "edges_" arrays) contain only indices which match
+ * with some value in the prefix array.
  * @param {FOLD} graph a FOLD object
  * @returns {string[]} a list of errors if they exist
  */

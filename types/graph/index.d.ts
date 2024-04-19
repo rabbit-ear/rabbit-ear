@@ -306,6 +306,7 @@ declare const _default: {
             reassigned: number[];
         };
         faces?: {
+            new: number[];
             map: (number | number[])[];
         };
     };
@@ -316,6 +317,7 @@ declare const _default: {
             reassigned: number[];
         };
         faces?: {
+            new: number[];
             map: (number | number[])[];
         };
     };
@@ -326,6 +328,7 @@ declare const _default: {
             reassigned: number[];
         };
         faces?: {
+            new: number[];
             map: (number | number[])[];
         };
     };
@@ -336,6 +339,7 @@ declare const _default: {
             reassigned: number[];
         };
         faces?: {
+            new: number[];
             map: (number | number[])[];
         };
     };
