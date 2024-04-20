@@ -118,7 +118,7 @@ const adjacentFacesOrdersFoldAngles = (f0, f1, foldAngle) => {
  * @param {number[]} newEdges a list of new edges
  * @returns {[number, number, number][]} new faceOrders
  */
-export const makeNewFaceOrders = ({
+export const makeNewFlatFoldFaceOrders = ({
 	edges_faces, edges_assignment, edges_foldAngle,
 }, newEdges) => {
 	const edges = newEdges.filter(e => edges_faces[e].length === 2);
@@ -141,27 +141,22 @@ export const makeNewFaceOrders = ({
 	return [];
 };
 
-// /**
-//  * @description
-//  * @param {FOLD} graph a FOLD object
-//  * @param {VecLine2} line one of the new edges added from splitGraph
-//  * @param {number[]} newFaces
-//  * @returns {number[]} for every face, a +1 or -1
-//  */
-// const makeFacesSide = ({ vertices_coords, faces_vertices }, line, newFaces) => (
-// 	invertFlatMap(newFaces)
-// 		.map((_, f) => faces_vertices[f].map(v => vertices_coords[v]))
-// 		.map(poly => poly.map(resize2)).map(poly => average2(...poly))
-// 		.map(point => cross2(subtract2(point, line.origin), line.vector))
-// 		.map(Math.sign));
-
 /**
- * @description
- * @param {FOLD} graph a FOLD object
- * @param {VecLine2} line one of the new edges added from splitGraph
- * @param {number[]} newFaces
- * @returns {number[]} a list of faceOrders indices which are now invalid
- * due to now being two faces on the opposite sides of the dividing line.
+ * @description This method is meant to accompany foldGraph, or any operation
+ * which divides many overlapping faces in the same graph. During the splitting
+ * splitFace() creates a bunch of new faceOrders from all the old faces
+ * corresponding to the new faces (new faces count twice as many as old).
+ * This creates a bunch of faceOrders between faces which no longer overlap
+ * and can be easily calculated since we know the dividing line, compare
+ * the center of the faces to find which side of the line they lie, for face
+ * pairs which lie on opposite sides, return this index in the faceOrders array.
+ * @param {FOLD} graph a FOLD object with vertices_coords in the same state
+ * when the split occured (in most cases this is the folded form vertices).
+ * @param {VecLine2} line the line used to split the graph
+ * @param {number[]} newFaces a list of the new faces that were created during
+ * the splitting operation.
+ * @returns {number[]} a list of indices in the faceOrders array which are now
+ * invalid due to now being two faces on the opposite sides of the split line.
  */
 export const getInvalidFaceOrders = (
 	{ vertices_coords, faces_vertices, faceOrders },
@@ -170,9 +165,11 @@ export const getInvalidFaceOrders = (
 ) => {
 	if (!faceOrders) { return []; }
 
+	const newFacesLookup = invertFlatMap(newFaces);
+
 	// this is a 2D only method, but could be extended into 3D.
-	const facesSide = invertFlatMap(newFaces)
-		.map((_, f) => faces_vertices[f].map(v => vertices_coords[v]))
+	const facesSide = faces_vertices
+		.map(vertices => vertices.map(v => vertices_coords[v]))
 		.map(poly => poly.map(resize2)).map(poly => average2(...poly))
 		.map(point => cross2(subtract2(point, line.origin), line.vector))
 		.map(Math.sign);
@@ -185,10 +182,12 @@ export const getInvalidFaceOrders = (
 	// - in the case of a flat-fold, we can calculate the new relationship
 	//   between the faces.
 	return faceOrders
-		.map(([a, b], i) => ((facesSide[a] === 1 && facesSide[b] === -1)
-			|| (facesSide[a] === -1 && facesSide[b] === 1)
-			? i
-			: undefined))
+		.map(([a, b], i) => (
+			(newFacesLookup[a] !== undefined || newFacesLookup[b] !== undefined)
+			&& ((facesSide[a] === 1 && facesSide[b] === -1)
+			|| (facesSide[a] === -1 && facesSide[b] === 1))
+				? i
+				: undefined))
 		.filter(a => a !== undefined);
 };
 

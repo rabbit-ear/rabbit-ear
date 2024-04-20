@@ -2,6 +2,8 @@ import { expect, test } from "vitest";
 import fs from "fs";
 import ear from "../src/index.js";
 
+const FOLD_ANGLE = 90;
+
 test("foldGraph, faceOrders, square folding, valley, valley", () => {
 	const graph = ear.graph.square();
 	ear.graph.foldGraph(graph, { vector: [3, 1], origin: [0.5, 0.5] });
@@ -255,6 +257,106 @@ test("foldGraph, faceOrders, panels", () => {
 	fs.writeFileSync(
 		`./tests/tmp/foldGraph-panels.fold`,
 		JSON.stringify(graph),
+		"utf8",
+	);
+});
+
+test("foldGraph, 3D simple", () => {
+	const graph = {
+		vertices_coords: [
+			[0, 0], [1, 0], [2, 0], [3, 0], [0, 3], [0, 2], [0, 1], [1, 3],
+			[1, 2], [1, 1], [2, 1], [3, 1], [2, 2], [2, 3], [3, 2], [3, 3],
+		],
+		edges_vertices: [
+			[0, 1], [1, 2], [2, 3], [4, 5], [5, 6], [6, 0], [7, 8], [8, 9], [9, 1],
+			[6, 9], [9, 10], [10, 11], [2, 10], [10, 12], [12, 13], [14, 12], [12, 8],
+			[8, 5], [3, 11], [11, 14], [14, 15], [15, 13], [13, 7], [7, 4],
+		],
+		edges_assignment: [
+			"B", "B", "B", "B", "B", "B", "F", "F", "F", "F", "F", "F",
+			"V", "V", "V", "M", "V", "V", "B", "B", "B", "B", "B", "B",
+		],
+		faces_vertices: [
+			[0, 1, 9, 6], [1, 2, 10, 9], [2, 3, 11, 10], [4, 5, 8, 7], [5, 6, 9, 8],
+			[7, 8, 12, 13], [8, 9, 10, 12], [10, 11, 14, 12], [12, 14, 15, 13],
+		],
+	};
+
+	ear.graph.populate(graph);
+	const folded = {
+		...graph,
+		vertices_coords: ear.graph.makeVerticesCoordsFlatFolded(graph),
+	}
+	graph.faceOrders = ear.layer(folded).faceOrders();
+
+	// all of this checks out.
+	// adjacent faces, valley: 1-2, 3-4, 5-6, 6-7, 5-8
+	// adjacent faces, mountain: 7-8
+	// solved layers: 5-7 (away), 6-8 (away)
+	expect(graph.faceOrders).toMatchObject([
+		[1, 2, 1], [6, 7, 1], [5, 8, 1], [7, 8, -1],
+		[5, 6, 1], [3, 4, 1], [5, 7, -1], [6, 8, -1],
+	]);
+
+	fs.writeFileSync(
+		`./tests/tmp/foldGraph-3D-simple-before.fold`,
+		JSON.stringify(graph),
+		"utf8",
+	);
+
+	ear.graph.foldLine(graph, { vector: [-1, 1], origin: [1.75, 1.75] }, "V", FOLD_ANGLE);
+
+	const newFolded = {
+		...graph,
+		vertices_coords: ear.graph.makeVerticesCoordsFolded(graph),
+	};
+
+	const { faces_plane } = ear.graph.getFacesPlane(newFolded);
+	const badFaceOrders = graph.faceOrders
+		.filter(([a, b]) => faces_plane[a] !== faces_plane[b]);
+	expect(badFaceOrders).toHaveLength(0);
+
+	fs.writeFileSync(
+		`./tests/tmp/foldGraph-3D-simple.fold`,
+		JSON.stringify(graph),
+		"utf8",
+	);
+
+	fs.writeFileSync(
+		`./tests/tmp/foldGraph-3D-simple-folded.fold`,
+		JSON.stringify(newFolded),
+		"utf8",
+	);
+});
+
+test("foldGraph, 3D Kabuto", () => {
+	const FOLD = fs.readFileSync("tests/files/fold/kabuto.fold", "utf-8");
+	const fold = JSON.parse(FOLD);
+	const graph = ear.graph.getFramesByClassName(fold, "creasePattern")[0];
+	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	ear.graph.populate(graph);
+	graph.faceOrders = ear.layer(folded).faceOrders();
+	ear.graph.foldLine(graph, { vector: [1, 0], origin: [0, 0.25] }, "V", FOLD_ANGLE);
+	// ear.graph.foldLine(graph, { vector: [1, 0], origin: [0, 0.25] }, "F", 0);
+	const newFoldedGraph = {
+		...graph,
+		vertices_coords: ear.graph.makeVerticesCoordsFolded(graph),
+	};
+
+	const { faces_plane } = ear.graph.getFacesPlane(newFoldedGraph);
+	const badFaceOrders = graph.faceOrders
+		.filter(([a, b]) => faces_plane[a] !== faces_plane[b]);
+	expect(badFaceOrders).toHaveLength(0);
+
+	fs.writeFileSync(
+		`./tests/tmp/foldGraph-3D-kabuto.fold`,
+		JSON.stringify(graph),
+		"utf8",
+	);
+
+	fs.writeFileSync(
+		`./tests/tmp/foldGraph-3D-kabuto-folded.fold`,
+		JSON.stringify(newFoldedGraph),
 		"utf8",
 	);
 });

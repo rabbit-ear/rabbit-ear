@@ -2,6 +2,8 @@ import { expect, test } from "vitest";
 import fs from "fs";
 import ear from "../src/index.js";
 
+const FOLD_ANGLE = 90;
+
 test("foldGraph, segment, along a collinear edge", () => {
 	const graph = ear.graph.squareFish();
 	const vertices_coordsFolded = ear.graph.makeVerticesCoordsFlatFolded(graph);
@@ -239,13 +241,18 @@ test("foldGraph 3D folded through vertex, crane", () => {
 		ear.math.includeL,
 		[],
 		"V",
-		90,
+		FOLD_ANGLE,
 	);
 
 	const folded = {
 		...graph,
 		vertices_coords: ear.graph.makeVerticesCoordsFolded(graph), // not flat
 	};
+
+	const { faces_plane } = ear.graph.getFacesPlane(folded);
+	const badFaceOrders = graph.faceOrders
+		.filter(([a, b]) => faces_plane[a] !== faces_plane[b]);
+	expect(badFaceOrders).toHaveLength(0);
 
 	fs.writeFileSync(
 		"./tests/tmp/foldGraph-3D-through-vertex-crane-cp.fold",
@@ -264,7 +271,7 @@ test("foldGraph 3D folded edge collinear, crane", () => {
 	crane.faceOrders = ear.layer({
 		...crane,
 		vertices_coords: ear.graph.makeVerticesCoordsFlatFolded(crane),
-	}).faceOrders();
+	}).faceOrders(1);
 
 	[
 		{ vector: [-1, 1], origin: [0.6464466094063558, 0.6464466094063558] },
@@ -282,13 +289,19 @@ test("foldGraph 3D folded edge collinear, crane", () => {
 			ear.math.includeL,
 			[],
 			"V",
-			90,
+			FOLD_ANGLE,
 		);
 		const folded = {
 			...graph,
 			vertices_coords: ear.graph.makeVerticesCoordsFolded(graph), // not flat
 			frame_classes: ["foldedForm"],
 		};
+
+		const { faces_plane } = ear.graph.getFacesPlane(folded);
+		const badFaceOrders = graph.faceOrders
+			.filter(([a, b]) => faces_plane[a] !== faces_plane[b]);
+		expect(badFaceOrders).toHaveLength(0);
+
 		fs.writeFileSync(
 			`./tests/tmp/foldGraph-3D-edge-collinear-crane-cp-${i}.fold`,
 			JSON.stringify(graph),

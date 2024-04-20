@@ -16,6 +16,9 @@ import {
 	resize2,
 } from "../../math/vector.js";
 import {
+	clone,
+} from "../../general/clone.js";
+import {
 	assignmentFlatFoldAngle,
 	invertAssignment,
 	edgeFoldAngleIsFlatFolded,
@@ -36,9 +39,6 @@ import {
 	transferPointInFaceBetweenGraphs,
 } from "../transfer.js";
 import {
-	clone,
-} from "../../general/clone.js";
-import {
 	makeEdgesFacesUnsorted,
 } from "../make/edgesFaces.js";
 import {
@@ -47,7 +47,7 @@ import {
 import {
 	recalculatePointAlongEdge,
 	reassignCollinearEdges,
-	makeNewFaceOrders,
+	makeNewFlatFoldFaceOrders,
 	updateFlatFoldedInvalidFaceOrders,
 	getInvalidFaceOrders,
 } from "./general.js";
@@ -251,7 +251,7 @@ export const foldGraph = (
 	// depending on the edge's assignemnt, we can make a new faceOrder.
 	if (isFlatFolded) {
 		const newEdges = [...splitGraphResult.edges.new, ...edgesReassigned];
-		const newFaceOrders = makeNewFaceOrders(graph, newEdges);
+		const newFaceOrders = makeNewFlatFoldFaceOrders(graph, newEdges);
 		graph.faceOrders = graph.faceOrders.concat(newFaceOrders);
 	}
 
@@ -277,7 +277,7 @@ export const foldGraph = (
 		} else {
 			const invalidOrderLookup = {};
 			nowInvalidFaceOrders.forEach(i => { invalidOrderLookup[i] = true; });
-			graph.faceOrders = graph.faceOrders.filter((_, i) => invalidOrderLookup[i]);
+			graph.faceOrders = graph.faceOrders.filter((_, i) => !invalidOrderLookup[i]);
 		}
 	}
 
