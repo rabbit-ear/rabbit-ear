@@ -57,13 +57,14 @@ import * as trees from "./trees.js";
 import * as triangulateMethods from "./triangulate.js";
 import * as walk from "./walk.js";
 import make from "./make/index.js";
+import { graphConstructor } from "../prototypes/index.js";
 
 // these are included via. a backdoor system, in src/index.js, all of these
 // methods are bound to the the prototype, constructor graph(), which already
 // contains references to the methods in these files:
 // import * as foldBases from "../fold/bases.js";
 
-export default {
+const graphMethods = {
 	...foldColors,
 	...foldFileFrames,
 	...foldSpecMethods,
@@ -121,3 +122,7 @@ export default {
 	...walk,
 	...validate,
 };
+
+const graphExport = Object.assign(graphConstructor, graphMethods);
+
+export default graphExport;

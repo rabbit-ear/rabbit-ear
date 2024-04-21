@@ -19,7 +19,7 @@ const textDef = {
 	text: {
 		// assuming people will at most supply coordinate (x,y,z) and text
 		args: (a, b, c) => makeCoordinates(...[a, b, c].flat()).slice(0, 2),
-		init: (a, b, c, d) => {
+		init: (parent, a, b, c, d) => {
 			const element = RabbitEarWindow().document.createElementNS(NS, "text");
 			const text = [a, b, c, d].filter(el => typeof el === str_string).shift();
 			element.appendChild(RabbitEarWindow().document.createTextNode(text || ""));

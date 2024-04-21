@@ -1,4 +1,5 @@
-declare const _default: {
+export default graphExport;
+declare const graphExport: Function & {
     validate: (graph: FOLD) => string[];
     walkSingleFace: ({ vertices_vertices, vertices_sectors }: FOLD, vertex0: number, vertex1: number, walkedEdges?: any) => {
         vertices: number[];
@@ -264,6 +265,8 @@ declare const _default: {
         vertices: number[];
         edges: number[];
     }[];
+    boundaryPolygons: ({ vertices_coords, vertices_edges, edges_vertices, edges_assignment, }: FOLD) => ([number, number] | [number, number, number])[][];
+    boundaryPolygon: ({ vertices_coords, vertices_edges, edges_vertices, edges_assignment, }: FOLD) => ([number, number] | [number, number, number])[];
     planarBoundary: ({ vertices_coords, vertices_edges, vertices_vertices, edges_vertices, }: FOLD) => {
         vertices: number[];
         edges: number[];
@@ -299,50 +302,10 @@ declare const _default: {
         assignment: string;
         points: [number, number][];
     }[];
-    foldGraph: (graph: FOLD, { vector, origin }: VecLine2, lineDomain?: Function, interiorPoints?: [number, number][], assignment?: string, foldAngle?: number, vertices_coordsFolded?: [number, number][] | [number, number, number][], epsilon?: number) => {
-        edges?: {
-            new: number[];
-            map: (number | number[])[];
-            reassigned: number[];
-        };
-        faces?: {
-            new: number[];
-            map: (number | number[])[];
-        };
-    };
-    foldLine: (graph: FOLD, line: VecLine2, assignment?: string, foldAngle?: number, vertices_coordsFolded?: [number, number][] | [number, number, number][], epsilon?: number) => {
-        edges?: {
-            new: number[];
-            map: (number | number[])[];
-            reassigned: number[];
-        };
-        faces?: {
-            new: number[];
-            map: (number | number[])[];
-        };
-    };
-    foldRay: (graph: FOLD, ray: VecLine2, assignment?: string, foldAngle?: number, vertices_coordsFolded?: [number, number][] | [number, number, number][], epsilon?: number) => {
-        edges?: {
-            new: number[];
-            map: (number | number[])[];
-            reassigned: number[];
-        };
-        faces?: {
-            new: number[];
-            map: (number | number[])[];
-        };
-    };
-    foldSegment: (graph: FOLD, segment: [[number, number], [number, number]], assignment?: string, foldAngle?: number, vertices_coordsFolded?: [number, number][] | [number, number, number][], epsilon?: number) => {
-        edges?: {
-            new: number[];
-            map: (number | number[])[];
-            reassigned: number[];
-        };
-        faces?: {
-            new: number[];
-            map: (number | number[])[];
-        };
-    };
+    foldGraph: (graph: FOLD, { vector, origin }: VecLine2, lineDomain?: Function, interiorPoints?: [number, number][], assignment?: string, foldAngle?: number, vertices_coordsFolded?: [number, number][] | [number, number, number][], epsilon?: number) => foldGraph.FoldGraphEvent;
+    foldLine: (graph: FOLD, line: VecLine2, assignment?: string, foldAngle?: number, vertices_coordsFolded?: [number, number][] | [number, number, number][], epsilon?: number) => foldGraph.FoldGraphEvent;
+    foldRay: (graph: FOLD, ray: VecLine2, assignment?: string, foldAngle?: number, vertices_coordsFolded?: [number, number][] | [number, number, number][], epsilon?: number) => foldGraph.FoldGraphEvent;
+    foldSegment: (graph: FOLD, segment: [[number, number], [number, number]], assignment?: string, foldAngle?: number, vertices_coordsFolded?: [number, number][] | [number, number, number][], epsilon?: number) => foldGraph.FoldGraphEvent;
     getVerticesCollinearToLine: ({ vertices_coords }: {
         vertices_coords: any;
     }, { vector, origin }: {
@@ -510,6 +473,6 @@ declare const _default: {
     };
     rgbToAssignment: (red?: number, green?: number, blue?: number) => string;
 };
-export default _default;
 import * as trees from "./trees.js";
 import * as splitGraph from "./split/splitGraph.js";
+import * as foldGraph from "./fold/foldGraph.js";

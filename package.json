@@ -2,19 +2,21 @@
 	"name": "rabbit-ear",
 	"version": "0.9.4",
 	"description": "origami design library",
-	"main": "./rabbit-ear.js",
 	"exports": {
 		".": {
 			"import": "./module/index.js",
-			"require": "./rabbit-ear.js"
+			"require": "./rabbit-ear.js",
+			"types": "./types/index.d.ts"
 		},
-		"./*": "./module/*"
+		"./*": {
+			"import": "./module/*",
+			"types": "./types/*"
+		}
 	},
 	"type": "module",
-	"module": "./module/index.js",
-	"types": "./types/*",
+	"types": "./types/index.d.ts",
 	"scripts": {
-		"build": "npm run clean && rollup -c && npm run docs && npm run types",
+		"build": "npm run clean && rollup -c && npm run types && npm run docs",
 		"clean": "node tests/clean.js",
 		"docs": "typedoc --options typedoc.config.json",
 		"test": "vitest",
@@ -26,8 +28,8 @@
 		"./license",
 		"./package.json",
 		"./readme.md",
-		"./module/",
-		"./types/"
+		"./module",
+		"./types"
 	],
 	"license": "GPLv3",
 	"author": {

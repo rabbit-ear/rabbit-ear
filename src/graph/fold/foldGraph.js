@@ -21,7 +21,6 @@ import {
 import {
 	assignmentFlatFoldAngle,
 	invertAssignment,
-	edgeFoldAngleIsFlatFolded,
 } from "../../fold/spec.js";
 import {
 	makeVerticesCoordsFolded,
@@ -47,15 +46,30 @@ import {
 import {
 	recalculatePointAlongEdge,
 	reassignCollinearEdges,
-	makeNewFlatFoldFaceOrders,
-	updateFlatFoldedInvalidFaceOrders,
-	getInvalidFaceOrders,
+	updateFaceOrders,
 } from "./general.js";
 
 /**
- * @description Crease a fold line/ray/segment through a FOLD graph.
- * This method takes a crease pattern as an input, but performs the fold
- * on the foldedForm, and returns the crease pattern, modified.
+ * @typedef FoldGraphEvent
+ * @type {{
+ *   edges?: {
+ *     new: number[],
+ *     map: (number|number[])[],
+ *     reassigned: number[],
+ *   },
+ *   faces?: {
+ *     new: number[],
+ *     map: (number|number[])[],
+ *   },
+ * }}
+ * @description an object which summarizes the changes to the graph.
+ */
+
+/**
+ * @description Crease a fold line/ray/segment through a folded origami model.
+ * This method takes in and returns a crease pattern but performs the fold
+ * on the folded form; this approach maintains better precision especially
+ * in the case of repeated calls to fold an origami model.
  * @param {FOLD} graph a FOLD object, in creasePattern form, modified in place
  * @param {VecLine2} foldLine a fold line
  * @param {Function} [lineDomain=includeL] a domain function
@@ -70,17 +84,7 @@ import {
  * @param {[number, number][]|[number, number, number][]} vertices_coordsFolded
  * a copy of the vertices_coords, in folded form
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {{
- *   edges?: {
- *     new: number[],
- *     map: (number|number[])[],
- *     reassigned: number[],
- *   },
- *   faces?: {
- *     new: number[],
- *     map: (number|number[])[],
- *   },
- * }} an object summarizing the changes to the graph
+ * @returns {FoldGraphEvent} an object summarizing the changes to the graph
  */
 export const foldGraph = (
 	graph,
@@ -242,44 +246,15 @@ export const foldGraph = (
 		splitGraphResult,
 	);
 
-	// true if 180deg "M" or "V", false if flat "F" or 3D.
-	const isFlatFolded = edgeFoldAngleIsFlatFolded(foldAngle);
-	if (!graph.faceOrders && isFlatFolded) { graph.faceOrders = []; }
-
-	// if the assignment is 180 M or V, we generate new face orders between
-	// new faces which were just made by splitting a face with a new edge,
-	// depending on the edge's assignemnt, we can make a new faceOrder.
-	if (isFlatFolded) {
-		const newEdges = [...splitGraphResult.edges.new, ...edgesReassigned];
-		const newFaceOrders = makeNewFlatFoldFaceOrders(graph, newEdges);
-		graph.faceOrders = graph.faceOrders.concat(newFaceOrders);
-	}
-
-	// the splitGraph operation created many new faceOrders out of the old ones,
-	// for every old face's orders, each old face became two new faces, so
-	// every one of the old face's orders was replaced with two, referencing the
-	// new indices.
-	// This generates a bunch of relationships between faces which no longer
-	// overlap, we will identify these as "nowInvalidFaceOrders" and do one
-	// of two things with these:
-	// if 3D or "F": we have to delete these faceOrders
-	// if 180deg "M" or "V": we can update these face orders to new orders
-	// based on the crease direction and face winding.
-	if (graph.faceOrders) {
-		const nowInvalidFaceOrders = getInvalidFaceOrders(
-			{ ...graph, vertices_coords: vertices_coordsFoldedNew },
-			{ vector, origin },
-			newFaces,
-		);
-
-		if (isFlatFolded) {
-			updateFlatFoldedInvalidFaceOrders(graph, nowInvalidFaceOrders, assignment, faces_winding);
-		} else {
-			const invalidOrderLookup = {};
-			nowInvalidFaceOrders.forEach(i => { invalidOrderLookup[i] = true; });
-			graph.faceOrders = graph.faceOrders.filter((_, i) => !invalidOrderLookup[i]);
-		}
-	}
+	updateFaceOrders(
+		graph,
+		{ ...graph, vertices_coords: vertices_coordsFoldedNew },
+		{ vector, origin },
+		foldAngle,
+		faces_winding,
+		[...splitGraphResult.edges.new, ...edgesReassigned],
+		newFaces,
+	);
 
 	return {
 		edges: {
@@ -295,13 +270,17 @@ export const foldGraph = (
 };
 
 /**
- * @description In progress
+* @description Crease a fold line through a folded origami model.
+* This method takes in and returns a crease pattern but performs the fold
+* on the folded form; this approach maintains better precision especially
+* in the case of repeated calls to fold an origami model.
  * @param {FOLD} graph a FOLD object
  * @param {VecLine2} line the fold line
  * @param {string} [assignment="V"]
  * @param {number} [foldAngle]
  * @param {[number, number][]|[number, number, number][]} [vertices_coordsFolded]
  * @param {number} [epsilon=1e-6]
+ * @returns {FoldGraphEvent} an object summarizing the changes to the graph
  */
 export const foldLine = (
 	graph,
@@ -323,13 +302,17 @@ export const foldLine = (
 	));
 
 /**
- * @description In progress
+* @description Crease a fold ray through a folded origami model.
+* This method takes in and returns a crease pattern but performs the fold
+* on the folded form; this approach maintains better precision especially
+* in the case of repeated calls to fold an origami model.
  * @param {FOLD} graph a FOLD object
  * @param {VecLine2} ray the fold line as a ray
  * @param {string} [assignment="V"]
  * @param {number} [foldAngle]
  * @param {[number, number][]|[number, number, number][]} [vertices_coordsFolded]
  * @param {number} [epsilon=1e-6]
+ * @returns {FoldGraphEvent} an object summarizing the changes to the graph
  */
 export const foldRay = (
 	graph,
@@ -351,13 +334,17 @@ export const foldRay = (
 	));
 
 /**
- * @description In progress
+* @description Crease a fold segment through a folded origami model.
+* This method takes in and returns a crease pattern but performs the fold
+* on the folded form; this approach maintains better precision especially
+* in the case of repeated calls to fold an origami model.
  * @param {FOLD} graph a FOLD object
  * @param {[[number, number], [number, number]]} segment the fold segment
  * @param {string} [assignment="V"]
  * @param {number} [foldAngle]
  * @param {[number, number][]|[number, number, number][]} [vertices_coordsFolded]
  * @param {number} [epsilon=1e-6]
+ * @returns {FoldGraphEvent} an object summarizing the changes to the graph
  */
 export const foldSegment = (
 	graph,

@@ -67,9 +67,12 @@ const makeGraphInstance = (...args) => Object
  * @param {...any} args
  * @returns {FOLD} a FOLD object
  */
-const graph = (...args) => populate(makeGraphInstance(...args));
-graph.prototype = graphPrototype;
-graph.prototype.constructor = graph;
+const Graph = function () {
+	return populate(makeGraphInstance(...arguments));
+};
+// const Graph = (...args) => populate(makeGraphInstance(...args));
+Graph.prototype = graphPrototype;
+Graph.prototype.constructor = Graph;
 
 /**
  * @description Create a populated FOLD object that inherits from the
@@ -91,7 +94,7 @@ graph.prototype.constructor = graph;
 // static constructors for all the primitive FOLD shapes
 Object.keys(primitives).forEach(baseName => {
 	/** @param {...any} args */
-	graph[baseName] = (...args) => makeGraphInstance(primitives[baseName](...args));
+	Graph[baseName] = (...args) => makeGraphInstance(primitives[baseName](...args));
 	// cp[baseName] = (...args) => makeCPInstance(primitives[baseName](...args));
 	// origami[baseName] = (...args) => origami(primitives[baseName](...args));
 });
@@ -99,13 +102,10 @@ Object.keys(primitives).forEach(baseName => {
 // static constructors for all the origami bases
 Object.keys(bases).forEach(baseName => {
 	/** @param {...any} args */
-	graph[baseName] = (...args) => makeGraphInstance(bases[baseName](...args));
+	Graph[baseName] = (...args) => makeGraphInstance(bases[baseName](...args));
 	// cp[baseName] = (...args) => makeCPInstance(bases[baseName](...args));
 	// origami[baseName] = (...args) => origami(bases[baseName](...args));
 });
 
-export {
-	graph,
-	// cp,
-	// origami,
-};
+/** @type {Function} */
+export const graphConstructor = Graph;

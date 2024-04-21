@@ -5,6 +5,12 @@ import {
 	EPSILON,
 } from "./constant.js";
 import {
+	include,
+	includeL,
+	includeS,
+	epsilonEqual,
+} from "./compare.js";
+import {
 	magnitude2,
 	normalize2,
 	cross2,
@@ -12,11 +18,11 @@ import {
 	add2,
 	subtract2,
 	rotate90,
+	resize2,
 } from "./vector.js";
 import {
-	include,
-	includeL,
-} from "./compare.js";
+	clusterSortedGeneric,
+} from "../general/cluster.js";
 
 /**
  * @description Find the intersection of two lines. Lines can be
@@ -135,5 +141,50 @@ export const intersectCircleLine = (
 	const ts = results.map(res => res.map((n, i) => n - line.origin[i]))
 		.map(v => v[0] * line.vector[0] + line.vector[1] * v[1])
 		.map(d => d / magSq);
-	return results.filter((_, i) => lineDomain(ts[i], epsilon));
+	return results.filter((__, i) => lineDomain(ts[i], epsilon));
+};
+
+/**
+ * @description Get all unique intersections between a polygon and a line/ray/
+ * segment. "Unique", meaning that intersections which cross a polygon vertex
+ * will not register twice (two of its segment's endpoints) only one point
+ * in these moments will be returned. An array of length zero means no
+ * no intersections occurred.
+ * @param {([number, number]|[number, number, number])[]} polygon
+ * @param {VecLine2} line
+ * @param {Function} domainFunc the function that classifies the line into
+ * a line, ray, or segment
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {{ a: number, point: [number, number] }[]} a sorted list of the
+ * intersection events, sorted increasing along the line's vector
+ */
+export const intersectPolygonLine = (
+	polygon,
+	line,
+	domainFunc = includeL,
+	epsilon = EPSILON,
+) => {
+	const intersections = polygon
+		.map((p, i, arr) => ({
+			vector: subtract2(arr[(i + 1) % arr.length], p),
+			origin: resize2(p),
+		}))
+		.map(sideLine => intersectLineLine(
+			line,
+			sideLine,
+			domainFunc,
+			includeS,
+			epsilon,
+		))
+		.filter(({ point }) => point !== undefined)
+		.sort((m, n) => m.a - n.a)
+		.map(({ a, point }) => ({ a, point }));
+
+	/** @param {{ a: number }} m @param {{ a: number }} n @returns {boolean} */
+	const compare = (m, n) => epsilonEqual(m.a, n.a, epsilon);
+
+	// cluster any intersections which have too similar of "a" parameters
+	// return only one element from each cluster
+	return clusterSortedGeneric(intersections, compare)
+		.map(([i0]) => intersections[i0]);
 };

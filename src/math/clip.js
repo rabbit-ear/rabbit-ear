@@ -7,83 +7,34 @@ import {
 import {
 	include,
 	includeL,
-	includeS,
 } from "./compare.js";
 import {
-	normalize2,
 	magnitude2,
 	cross2,
 	add2,
 	subtract2,
 	scale2,
-	flip2,
 } from "./vector.js";
+import {
+	intersectPolygonLine,
+} from "./intersect.js";
 import {
 	overlapConvexPolygonPoint,
 } from "./overlap.js";
 
-// /**
-//  * @description Clip an infinite line inside a bounding box
-//  * and return either:
-//  * - an array of two points (a segment)
-//  * - an array of one point (degenerate segment)
-//  * - undefined (no intersection)
-//  * @param {VecLine} line a line with a vector and an origin
-//  * @param {BoundingBox} box an AABB bounding box
-//  * @returns {number[] | undefined} the result.
-//  */
-// export const clipLineInBoundingBox = ({ vector, origin }, { min, max, span }) => {
-// 	return clipLineConvexPolygon()
-// };
-
-const lineLineParameter = (
-	lineVector,
-	lineOrigin,
-	polyVector,
-	polyOrigin,
-	polyLineFunc = includeS,
-	epsilon = EPSILON,
-) => {
-	// a normalized determinant gives consistent values across all epsilon ranges
-	const det_norm = cross2(normalize2(lineVector), normalize2(polyVector));
-	// lines are parallel
-	if (Math.abs(det_norm) < epsilon) { return undefined; }
-	const determinant0 = cross2(lineVector, polyVector);
-	const determinant1 = -determinant0;
-	const a2b = subtract2(polyOrigin, lineOrigin);
-	const b2a = flip2(a2b);
-	const t0 = cross2(a2b, polyVector) / determinant0;
-	const t1 = cross2(b2a, lineVector) / determinant1;
-	if (polyLineFunc(t1, epsilon / magnitude2(polyVector))) {
-		return t0;
-	}
-	return undefined;
-};
-
-const linePointFromParameter = (vector, origin, t) => (
-	add2(origin, scale2(vector, t))
-);
-
-// get all intersections with polgyon faces using the polyLineFunc:
-// - includeS or excludeS
-// sort them so we can grab the two most opposite intersections
-const getIntersectParameters = (poly, vector, origin, polyLineFunc, epsilon) => poly
-	// polygon into array of arrays [vector, origin]
-	.map((p, i, arr) => [subtract2(arr[(i + 1) % arr.length], p), p])
-	.map(side => lineLineParameter(
-		vector,
-		origin,
-		side[0],
-		side[1],
-		polyLineFunc,
-		epsilon,
-	))
-	.filter(a => a !== undefined)
-	.sort((a, b) => a - b);
-
-// we have already done the test that numbers is a valid array
-// and the length is >= 2
+/**
+ * @description Given a list of sorted numbers and a domain function which
+ * returns true for positive numbers and can customize its behavior around
+ * the epsilon space around include, walk two indices from either ends
+ * of the array inwards until the domain function passes true when we pass
+ * in the difference between this index's value and the neighbor index's value.
+ * @param {number[]} numbers
+ * @param {Function} [func=include]
+ * @param {number} [scaled_epsilon=1e-6]
+ * @returns {[number, number]} a pair of numbers
+ */
 const getMinMax = (numbers, func, scaled_epsilon) => {
+	if (numbers.length < 2) { return undefined; }
 	let a = 0;
 	let b = numbers.length - 1;
 	while (a < b) {
@@ -116,7 +67,10 @@ export const clipLineConvexPolygon = (
 	fnLine = includeL,
 	epsilon = EPSILON,
 ) => {
-	const numbers = getIntersectParameters(poly, vector, origin, includeS, epsilon);
+	// clip the polygon with an infinite line, the actual line domain
+	// function will be used later to clip these paramterization results.
+	const numbers = intersectPolygonLine(poly, { vector, origin }, includeL, epsilon)
+		.map(({ a }) => a);
 	if (numbers.length < 2) { return undefined; }
 	const scaled_epsilon = (epsilon * 2) / magnitude2(vector);
 	// ends is now an array, length 2, of the min and max parameter on the line
@@ -139,9 +93,10 @@ export const clipLineConvexPolygon = (
 	}
 	// test if the solution is collinear to an edge by getting the segment midpoint
 	// then test inclusive or exclusive depending on user parameter
-	const mid = linePointFromParameter(vector, origin, (ends_clip[0] + ends_clip[1]) / 2);
+	// const mid = paramToPoint(vector, origin, (ends_clip[0] + ends_clip[1]) / 2);
+	const mid = add2(origin, scale2(vector, (ends_clip[0] + ends_clip[1]) / 2));
 	return overlapConvexPolygonPoint(poly, mid, fnPoly, epsilon).overlap
-		? ends_clip.map(t => linePointFromParameter(vector, origin, t))
+		? ends_clip.map(t => add2(origin, scale2(vector, t)))
 		: undefined;
 };
 

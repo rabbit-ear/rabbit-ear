@@ -9,7 +9,7 @@ import { makeCDATASection } from '../../general/cdata.js';
 
 const styleDef = {
 	style: {
-		init: (text) => {
+		init: (parent, text) => {
 			const el = RabbitEarWindow().document.createElementNS(NS, "style");
 			el.setAttribute("type", "text/css");
 			el.textContent = "";

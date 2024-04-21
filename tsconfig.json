@@ -1,23 +1,26 @@
 {
 	"include": ["src/**/*"],
 	"compilerOptions": {
-		"target": "ES2022", // "target": "ES2015",
-		// "module": "es2015",
-		"lib": ["ES2022", "DOM"], // "lib": ["es2015", "DOM"],
-		"moduleResolution": "node",
+		// changes the first line of index.d.ts to declare a module name
+		"esModuleInterop": true,
+		"target": "ES2022", // "ES2015",
+		"module": "nodenext", // "es2015",
+		"lib": ["ES2022", "DOM"], // ["es2015", "DOM"],
+		"moduleResolution": "nodenext", // "node",
 		// Tells TypeScript to read JS files, as
 		// normally they are ignored as source files
 		"allowJs": true,
 		"checkJs": true,
 		// Generate d.ts files
 		"declaration": true,
-		// This compiler run should
-		// only output d.ts files
-		"emitDeclarationOnly": true,
 		// Types should go into this directory.
 		// Removing this would place the .d.ts files
 		// next to the .js files
-		"outDir": "types"
+		"declarationDir": "./types", // "./module"
+		"outDir": "./types", // "./module"
+		// This compiler run should
+		// only output d.ts files
+		"emitDeclarationOnly": true
 		// go to js file when using IDE functions like
 		// "Go to Definition" in VSCode
 		// "declarationMap": true

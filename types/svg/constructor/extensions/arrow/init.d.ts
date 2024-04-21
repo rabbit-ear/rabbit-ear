@@ -1,2 +1,2 @@
 export { init as default };
-declare function init(...args: any[]): any;
+declare function init(parent: any, ...args: any[]): any;

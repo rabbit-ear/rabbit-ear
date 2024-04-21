@@ -38,7 +38,6 @@ import {
 } from "../graph/vertices/folded.js";
 
 /**
- * @name Graph
  * @description a graph which includes faces, edges, and vertices, and
  * additional origami-specific information like fold angles of edges
  * and layer order of faces.

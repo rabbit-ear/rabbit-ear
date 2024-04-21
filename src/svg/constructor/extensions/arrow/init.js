@@ -25,7 +25,7 @@ const matchingOptions = (...args) => {
 	return undefined;
 };
 
-const init = function (...args) {
+const init = function (parent, ...args) {
 	const element = RabbitEarWindow().document.createElementNS(NS, "g");
 	element.setAttribute(str_class, str_arrow);
 	const paths = ["line", str_tail, str_head].map(key => {

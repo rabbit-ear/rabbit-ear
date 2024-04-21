@@ -21,7 +21,7 @@ import {
  * The type of elements in the list doesn't matter, so long as the
  * comparison function can compare them.
  * @param {any[]} elements a list of elements of any type
- * @param {function} comparison a function which takes two "any" types
+ * @param {Function} comparison a function which takes two "any" types
  * (from elements) and returns true if they are similar, false otherwise.
  * @returns {number[][]} a list of lists of indices referencing the input list,
  * where each inner list is a cluster of similar element indices.
@@ -66,7 +66,7 @@ export const clusterSortedGeneric = (elements, comparison) => {
  * The type of elements in the list doesn't matter, so long as the
  * comparison function can compare them.
  * @param {any[]} indices a list of elements of any type
- * @param {function} comparison a function which takes two "any" types
+ * @param {Function} comparison a function which takes two "any" types
  * (from elements) and returns true if they are similar, false otherwise.
  * @returns {number[][]} a list of lists of indices referencing the input list,
  * where each inner list is a cluster of similar element indices.

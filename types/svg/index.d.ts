@@ -306,13 +306,17 @@ declare const SVG: ((...args: any[]) => SVGElement) & {
     extensions: {
         origami: {
             nodeName: string;
-            init: (graph: any, ...args: any[]) => any;
+            init: (parent: any, graph: any, options?: {}) => any;
             args: () => any[];
             methods: {
                 appendTo: (element: any, parent: any) => any;
                 removeChildren: (element: any) => any;
                 setAttributes: (element: any, attrs: any) => any;
                 clearTransform: (el: any) => any;
+                vertices: (...args: any[]) => Element;
+                edges: (...args: any[]) => Element;
+                faces: (...args: any[]) => Element;
+                boundaries: (...args: any[]) => Element;
             };
         };
         wedge: {
@@ -352,7 +356,7 @@ declare const SVG: ((...args: any[]) => SVGElement) & {
                 getHead: (element: any) => any;
                 getTail: (element: any) => any;
             };
-            init: (...args: any[]) => any;
+            init: (parent: any, ...args: any[]) => any;
         };
         arc: {
             nodeName: string;
@@ -425,7 +429,7 @@ declare const SVG: ((...args: any[]) => SVGElement) & {
         };
         text: {
             args: (a: any, b: any, c: any) => any[];
-            init: (a: any, b: any, c: any, d: any) => any;
+            init: (parent: any, a: any, b: any, c: any, d: any) => any;
             methods: {
                 appendTo: (element: any, parent: any) => any;
                 setAttributes: (element: any, attrs: any) => any;
@@ -433,7 +437,7 @@ declare const SVG: ((...args: any[]) => SVGElement) & {
             };
         };
         style: {
-            init: (text: any) => any;
+            init: (parent: any, text: any) => any;
             methods: {
                 setTextContent: (el: any, text: any) => any;
             };
@@ -542,7 +546,7 @@ declare const SVG: ((...args: any[]) => SVGElement) & {
                 getHeight: (el: any) => any;
                 stylesheet: (el: any, text: any) => any;
             };
-            init: (...args: any[]) => any;
+            init: (_: any, ...args: any[]) => any;
         };
     };
 };

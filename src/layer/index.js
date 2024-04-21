@@ -14,9 +14,9 @@ import * as solver from "./solver.js";
 import * as table from "./table.js";
 import * as tacosTortillas from "./tacosTortillas.js";
 import * as transitivity from "./transitivity.js";
-import { layer3D } from "./layer.js";
+import { layer, layer3D } from "./layer.js";
 
-export default {
+const layerMethods = {
 	...constraints3D,
 	...constraints3DFaces,
 	...constraints3DEdges,
@@ -32,3 +32,7 @@ export default {
 	...transitivity,
 	layer3D,
 };
+
+const layerExport = Object.assign(layer, layerMethods);
+
+export default layerExport;

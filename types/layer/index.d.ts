@@ -1,4 +1,18 @@
-declare const _default: {
+export default layerExport;
+declare const layerExport: ((graph: FOLD, epsilon?: number) => {
+    count: (this: LayerFork) => any;
+    structure: (this: LayerFork) => any;
+    leaves: (this: LayerFork) => any;
+    gather: (this: LayerFork, ...pattern: number[]) => any;
+    gatherAll: (this: LayerFork) => {
+        [key: string]: number;
+    }[][];
+    compile: (this: LayerFork, ...pattern: number[]) => any;
+    compileAll: (this: LayerFork) => {
+        [key: string]: number;
+    }[][];
+    faceOrders: (this: LayerFork, ...pattern: number[]) => any;
+}) & {
     layer3D: (graph: FOLD, epsilon?: number) => {
         count: (this: LayerFork) => any;
         structure: (this: LayerFork) => any;
@@ -261,4 +275,3 @@ declare const _default: {
         };
     };
 };
-export default _default;

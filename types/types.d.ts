@@ -1,4 +1,4 @@
-type FOLDFrame = {
+export type FOLDFrame = {
     frame_author?: string;
     frame_title?: string;
     frame_description?: string;
@@ -20,11 +20,11 @@ type FOLDFrame = {
     faceOrders?: [number, number, number][];
     edgeOrders?: [number, number, number][];
 };
-type FOLDInternalFrame = FOLDFrame & {
+export type FOLDInternalFrame = FOLDFrame & {
     frame_parent?: number;
     frame_inherit?: boolean;
 };
-type FOLDFileMetadata = {
+export type FOLDFileMetadata = {
     file_frames?: FOLDInternalFrame[];
     file_spec?: number;
     file_creator?: string;
@@ -33,7 +33,7 @@ type FOLDFileMetadata = {
     file_description?: string;
     file_classes?: string[];
 };
-type FOLDOutOfSpec = {
+export type FOLDOutOfSpec = {
     faces_center?: ([number, number] | [number, number, number])[];
     faces_normal?: ([number, number] | [number, number, number])[];
     edges_vector?: ([number, number] | [number, number, number])[];
@@ -42,33 +42,33 @@ type FOLDOutOfSpec = {
     faces_layer?: number[];
     vertices_sectors?: number[][];
 };
-type FOLD = FOLDFileMetadata & FOLDFrame & FOLDOutOfSpec;
-type VecLine2 = {
+export type FOLD = FOLDFileMetadata & FOLDFrame & FOLDOutOfSpec;
+export type VecLine2 = {
     vector: [number, number];
     origin: [number, number];
 };
-type VecLine3 = {
+export type VecLine3 = {
     vector: [number, number, number];
     origin: [number, number, number];
 };
-type VecLine = {
+export type VecLine = {
     vector: [number, number] | [number, number, number];
     origin: [number, number] | [number, number, number];
 };
-type UniqueLine = {
+export type UniqueLine = {
     normal: [number, number];
     distance: number;
 };
-type Box = {
+export type Box = {
     min: number[];
     max: number[];
     span?: number[];
 };
-type Circle = {
+export type Circle = {
     radius: number;
     origin: [number, number];
 };
-type SweepEvent = {
+export type SweepEvent = {
     vertices: number[];
     t: number;
     start: number[];
@@ -77,7 +77,7 @@ type SweepEvent = {
 /**
  * Intersection related events
  */
-type LineLineEvent = {
+export type LineLineEvent = {
     a: number;
     b: number;
     point: [number, number];
@@ -85,14 +85,14 @@ type LineLineEvent = {
 /**
  * Intersection related events
  */
-type FaceVertexEvent = {
+export type FaceVertexEvent = {
     a: number;
     vertex: number;
 };
 /**
  * Intersection related events
  */
-type FaceEdgeEvent = {
+export type FaceEdgeEvent = {
     a: number;
     b: number;
     point: [number, number];
@@ -101,28 +101,28 @@ type FaceEdgeEvent = {
 /**
  * Intersection related events
  */
-type FacePointEvent = {
+export type FacePointEvent = {
     point: [number, number];
     overlap: boolean;
     t: number[];
 };
-type WebGLVertexArray = {
+export type WebGLVertexArray = {
     location: number;
     buffer: WebGLBuffer;
     type: number;
     length: number;
     data: Float32Array;
 };
-type WebGLElementArray = {
+export type WebGLElementArray = {
     mode: number;
     buffer: WebGLBuffer;
     data: Uint16Array | Uint32Array;
 };
-type WebGLUniform = {
+export type WebGLUniform = {
     func: string;
     value: any;
 };
-type WebGLModel = {
+export type WebGLModel = {
     program: WebGLProgram;
     vertexArrays: WebGLVertexArray[];
     elementArrays: WebGLElementArray[];
@@ -131,23 +131,23 @@ type WebGLModel = {
         [key: string]: WebGLUniform;
     });
 };
-type TacoTacoConstraint = [number, number, number, number];
-type TacoTortillaConstraint = [number, number, number];
-type TortillaTortillaConstraint = [number, number, number, number];
-type TransitivityConstraint = [number, number, number];
-type LayerBranch = LayerFork[];
-type LayerOrders = {
+export type TacoTacoConstraint = [number, number, number, number];
+export type TacoTortillaConstraint = [number, number, number];
+export type TortillaTortillaConstraint = [number, number, number, number];
+export type TransitivityConstraint = [number, number, number];
+export type LayerBranch = LayerFork[];
+export type LayerOrders = {
     [key: string]: number;
 };
-type LayerFork = {
+export type LayerFork = {
     orders: LayerOrders;
     branches?: LayerFork[][];
 };
-type LayerSolverSolution = LayerFork;
-type FaceOrdersBranch = FaceOrdersFork[];
-type FaceOrders = [number, number, number][];
-type FaceOrdersFork = {
+export type LayerSolverSolution = LayerFork;
+export type FaceOrdersBranch = FaceOrdersFork[];
+export type FaceOrders = [number, number, number][];
+export type FaceOrdersFork = {
     orders: [number, number, number][];
     branches?: FaceOrdersFork[][];
 };
-type FaceOrdersSolverSolution = FaceOrdersFork;
+export type FaceOrdersSolverSolution = FaceOrdersFork;

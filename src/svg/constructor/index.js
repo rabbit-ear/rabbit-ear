@@ -40,11 +40,12 @@ const Constructor = (name, parent, ...initArgs) => {
 	// create the element itself under the svg namespace.
 	// or, if the extension specifies a custom initializer, run it instead
 	const element = init
-		?	init(...initArgs)
+		?	init(parent, ...initArgs)
 		: RabbitEarWindow().document.createElementNS(NS, nodeName);
 
-	// if the parent exists, make this element a child
-	if (parent) { parent.appendChild(element); }
+	// if the parent exists, and the element has no parent yet (could have been
+	// added during the init), make this element a child.
+	if (parent && !element.parentElement) { parent.appendChild(element); }
 
 	// some element initializers can set some attributes set right after
 	// initialization, if the extension specifies how to assign them,

@@ -21,19 +21,32 @@ import * as dom from '../shared/dom.js';
 // 	return g;
 // };
 
-// const edges = (...args) => {
-// 	console.log("edges");
-// };
+/**
+ * @description Given an Element, search its children for the first
+ * one which contains a "class" that matches the parameter string
+ * @param {any} group
+ * @param {string} className
+ * @returns {Element|null}
+ */
+const getChildWithClass = (group, className) => {
+	const childNodes = group ? group.childNodes : undefined;
+	if (!childNodes) { return null; }
+	return Array.from(childNodes)
+		.filter(el => el.getAttribute("class") === className)
+		.shift();
+};
 
-// const faces = (...args) => {
-// 	console.log("faces");
-// };
+const vertices = (...args) => getChildWithClass(args[0], "vertices");
+const edges = (...args) => getChildWithClass(args[0], "edges");
+const faces = (...args) => getChildWithClass(args[0], "faces");
+const boundaries = (...args) => getChildWithClass(args[0], "boundaries");
 
 // these will end up as methods on the <svg> nodes
 const methods = {
-	// vertices,
-	// edges,
-	// faces,
+	vertices,
+	edges,
+	faces,
+	boundaries,
 	...TransformMethods,
 	...methods$1,
 	...dom,

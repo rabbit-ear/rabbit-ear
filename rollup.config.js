@@ -44,6 +44,16 @@ const moduleFolder = {
 	],
 };
 
+// const commonJS = {
+// 	input,
+// 	output: {
+// 		name,
+// 		file: "rabbit-ear.js",
+// 		format: "cjs",
+// 		banner,
+// 	},
+// };
+
 // const umd = {
 // 	input,
 // 	output: {
@@ -89,3 +99,4 @@ const moduleFolder = {
 // };
 
 export default [minifiedUMD, moduleFolder];
+// export default [minifiedUMD];

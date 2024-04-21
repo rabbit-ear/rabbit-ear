@@ -1,2 +1,2 @@
-export class graph {
-}
+/** @type {Function} */
+export const graphConstructor: Function;

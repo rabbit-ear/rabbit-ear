@@ -240,6 +240,33 @@ export const boundaries = ({ vertices_edges, edges_vertices, edges_assignment })
 };
 
 /**
+ * @description Get a FOLD object's boundary as a list of points. Use this
+ * method in the case where there might be more than one boundary cycle.
+ * @param {FOLD} graph a FOLD object
+ * @returns {([number, number]|[number, number, number])[][]} array of polygons
+ */
+export const boundaryPolygons = ({
+	vertices_coords, vertices_edges, edges_vertices, edges_assignment,
+}) => (
+	boundaries({ vertices_edges, edges_vertices, edges_assignment })
+		.map(({ vertices }) => vertices.map(v => vertices_coords[v]))
+);
+
+/**
+ * @description Get a FOLD object's boundary as a list of points. Use this
+ * method if you are certain that there is only one boundary.
+ * @param {FOLD} graph a FOLD object
+ * @returns {([number, number]|[number, number, number])[]} a polygon
+ */
+export const boundaryPolygon = ({
+	vertices_coords, vertices_edges, edges_vertices, edges_assignment,
+}) => (
+	boundary({ vertices_edges, edges_vertices, edges_assignment })
+		.vertices
+		.map(v => vertices_coords[v])
+);
+
+/**
  * @description Use this method when you know there is only one connected
  * boundary in the graph. If there are more than one, use "planarBoundaries".
  * When a graph does not have boundary assignment information,

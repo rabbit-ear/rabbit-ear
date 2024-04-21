@@ -6,17 +6,17 @@ import makeCoordinates from '../../../arguments/makeCoordinates.js';
 import methods from './methods.js';
 import TouchEvents from './touch.js';
 import Animation from './animation.js';
-// import applyControlsToSVG from './controls.js';
 
 /**
  * Rabbit Ear (c) Kraft
  */
+// import Controls from "./controls.js";
 
 const svgDef = {
 	svg: {
 		args: (...args) => [makeViewBox(makeCoordinates(...args))].filter(a => a != null),
 		methods,
-		init: (...args) => {
+		init: (_, ...args) => {
 			const element = RabbitEarWindow().document.createElementNS(NS, "svg");
 			element.setAttribute("version", "1.1");
 			element.setAttribute("xmlns", NS);
@@ -27,7 +27,7 @@ const svgDef = {
 				.forEach(parent => parent.appendChild(element));
 			TouchEvents(element);
 			Animation(element);
-			// applyControlsToSVG(element);
+			// Controls(element);
 			return element;
 		},
 	},
