@@ -23,3 +23,4 @@ export function solver({ constraints, lookup, facePairs, orders }: {
         [key: string]: number;
     }[][];
 };
+//# sourceMappingURL=solverOneDepth.d.ts.map

@@ -28,3 +28,4 @@ export function makeMatrix3Rotate(angle: number, vector?: [number, number, numbe
 export function makeMatrix3Scale(scale?: [number, number, number], origin?: [number, number, number]): number[];
 export function makeMatrix3UniformScale(scale?: number, origin?: [number, number, number]): number[];
 export function makeMatrix3ReflectZ(vector: [number, number], origin?: [number, number]): number[];
+//# sourceMappingURL=matrix3.d.ts.map

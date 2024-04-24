@@ -32,3 +32,4 @@ export const table: {
         [key: string]: Readonly<(boolean | [number, number])>;
     };
 };
+//# sourceMappingURL=table.d.ts.map

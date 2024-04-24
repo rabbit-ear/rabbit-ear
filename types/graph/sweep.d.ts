@@ -17,3 +17,4 @@ export function sweep({ vertices_coords, edges_vertices, faces_vertices, }: FOLD
         end: number[];
     };
 }[];
+//# sourceMappingURL=sweep.d.ts.map

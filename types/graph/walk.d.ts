@@ -1,9 +1,9 @@
-export function walkSingleFace({ vertices_vertices, vertices_sectors }: FOLD, vertex0: number, vertex1: number, walkedEdges?: object): {
+export function walkSingleFace({ vertices_vertices, vertices_sectors }: FOLDExtended, vertex0: number, vertex1: number, walkedEdges?: object): {
     vertices: number[];
     edges: string[];
     angles?: number[];
 } | undefined;
-export function walkPlanarFaces({ vertices_vertices, vertices_sectors }: FOLD): {
+export function walkPlanarFaces({ vertices_vertices, vertices_sectors }: FOLDExtended): {
     vertices: number[];
     edges: string[];
     angles?: number[];
@@ -17,3 +17,4 @@ export function filterWalkedBoundaryFace(walkedFaces: {
     edges: string[];
     angles?: number[];
 }[];
+//# sourceMappingURL=walk.d.ts.map

@@ -9,3 +9,4 @@ declare const methods: {
     faces: (...args: any[]) => Element;
     boundaries: (...args: any[]) => Element;
 };
+//# sourceMappingURL=methods.d.ts.map

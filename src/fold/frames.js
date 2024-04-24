@@ -1,11 +1,13 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { filterKeysWithPrefix } from "./spec.js";
+import Messages from "../environment/messages.js";
 import {
 	clone,
 } from "../general/clone.js";
-import Messages from "../environment/messages.js";
+import {
+	filterKeysWithPrefix,
+} from "./spec.js";
 
 /**
  * @description Frames can be children of other frames via. the

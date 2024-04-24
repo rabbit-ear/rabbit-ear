@@ -32,7 +32,7 @@ import {
  * @description Rebuild all faces in a 2D planar graph by walking counter-clockwise
  * down every edge (both ways). This does not include the outside face which winds
  * around the boundary backwards enclosing the outside space.
- * @param {FOLD} graph a FOLD object
+ * @param {FOLDExtended} graph a FOLD object
  * @returns {{
  *   faces_vertices: number[][],
  *   faces_edges: number[][],

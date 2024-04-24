@@ -58,3 +58,4 @@ declare const general: {
     svg_scale2: (a: [number, number], s: number) => [number, number];
     svg_sub2: (a: [number, number], b: [number, number]) => [number, number];
 };
+//# sourceMappingURL=index.d.ts.map

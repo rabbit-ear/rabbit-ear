@@ -60,3 +60,4 @@ export function getRootParent(el: Element): Element;
  * @returns {Element|null} the document element or null if unsuccessful.
  */
 export function xmlStringToElement(input: string, mimeType?: string): Element | null;
+//# sourceMappingURL=dom.d.ts.map

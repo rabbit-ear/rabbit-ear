@@ -5,3 +5,4 @@ export function makeFacesEdgesForVertex({ faces_vertices }: FOLD, faces: number[
     [key: string]: number;
 }): number[][];
 export function makeEdgesFacesForEdge({ vertices_faces, edges_vertices, edges_faces, faces_vertices, faces_edges }: FOLD, edge: number): number[];
+//# sourceMappingURL=general.d.ts.map

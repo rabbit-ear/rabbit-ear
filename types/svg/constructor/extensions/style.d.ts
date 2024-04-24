@@ -7,3 +7,4 @@ declare namespace styleDef {
         }
     }
 }
+//# sourceMappingURL=style.d.ts.map

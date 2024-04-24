@@ -2,3 +2,4 @@ export function makeCPEdgesVertexArrays(gl: WebGLRenderingContext | WebGL2Render
 export function makeCPEdgesElementArrays(gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD): WebGLElementArray[];
 export function makeCPFacesVertexArrays(gl: WebGLRenderingContext | WebGL2RenderingContext, program: object, graph: FOLD): WebGLVertexArray[];
 export function makeCPFacesElementArrays(gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD): WebGLElementArray[];
+//# sourceMappingURL=arrays.d.ts.map

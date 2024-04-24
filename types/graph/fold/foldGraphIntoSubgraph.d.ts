@@ -5,3 +5,4 @@ export function foldGraphIntoSubgraph(cp: FOLD, folded: FOLD, line: VecLine2, li
     edges_assignment: string[];
     edges_foldAngle: number[];
 };
+//# sourceMappingURL=foldGraphIntoSubgraph.d.ts.map

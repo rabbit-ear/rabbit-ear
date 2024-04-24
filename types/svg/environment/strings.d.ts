@@ -20,3 +20,4 @@ export const str_svg: "svg";
 export const str_tail: "tail";
 export const str_transform: "transform";
 export const str_viewBox: "viewBox";
+//# sourceMappingURL=strings.d.ts.map

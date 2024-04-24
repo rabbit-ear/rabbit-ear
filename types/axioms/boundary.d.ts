@@ -12,3 +12,4 @@ export function normalAxiom6InPolygon(polygon: [number, number][], line1: Unique
 export function axiom6InPolygon(polygon: [number, number][], line1: VecLine2, line2: VecLine2, point1: [number, number], point2: [number, number]): VecLine2[];
 export function normalAxiom7InPolygon(polygon: [number, number][], line1: UniqueLine, line2: UniqueLine, point: [number, number]): UniqueLine[];
 export function axiom7InPolygon(polygon: [number, number][], line1: VecLine2, line2: VecLine2, point: [number, number]): VecLine2[];
+//# sourceMappingURL=boundary.d.ts.map

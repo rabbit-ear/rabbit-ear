@@ -21,3 +21,4 @@ declare const _default: {
     getEdgeOpacity: (element: any, attributes: any) => number;
 };
 export default _default;
+//# sourceMappingURL=index.d.ts.map

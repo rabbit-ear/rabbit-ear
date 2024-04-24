@@ -7,3 +7,4 @@
  */
 export function svgSemiFlattenArrays(...args: any[]): any[][];
 export { svgSemiFlattenArrays as default };
+//# sourceMappingURL=semiFlattenArrays.d.ts.map

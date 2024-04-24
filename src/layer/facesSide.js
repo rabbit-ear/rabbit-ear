@@ -31,7 +31,7 @@ import { invertFlatToArrayMap } from "../graph/maps.js";
  * faces, which side of the edge (using the edge's vector)
  * is each face on. each result is an array of length
  * matching the number of adjacent edges.
- * @param {FOLD} graph the fold object with edges_faces and faces_center
+ * @param {FOLDExtended} graph the fold object with edges_faces and faces_center
  * @returns {number[][]} for every edge, for each of its 1 or 2 adjacent faces,
  * a +1 or -1 for each face indicating which side of the edge the face lies on.
  */
@@ -61,7 +61,7 @@ export const makeEdgesFacesSide = ({
  * edges and the edges' adjacent faces, give each face a +1 or -1 based
  * on which side of the edge it is on. "side" determined by the cross-
  * product against the edge's vector. This method works in 2D only.
- * @param {FOLD} graph the fold graph with faces_center
+ * @param {FOLDExtended} graph the fold graph with faces_center
  * @param {[number, number][]} edgePairs
  * @returns {[[number,number],[number,number]][]}
  */
@@ -96,7 +96,7 @@ export const makeEdgePairsFacesSide = (
  * which side of the edge this face lies along. "Sidedness" is simply local
  * to each edge, similar or collinear edges will not have a consistent side
  * between them.
- * @param {FOLD} graph a FOLD object where, if faces_center exists then
+ * @param {FOLDExtended} graph a FOLD object where, if faces_center exists then
  * only edges_faces is needed, otherwise vertices and face data is needed.
  * @param {{
  *   lines: VecLine[],
@@ -134,7 +134,7 @@ export const makeEdgesFacesSide2D = (
  * get which side of the edge this face lies on. All collinear edges
  * are established to have a similar direction for sidedness, and this
  * method works in 3D.
- * @param {FOLD} graph a FOLD object where, if faces_center exists then
+ * @param {FOLDExtended} graph a FOLD object where, if faces_center exists then
  * only edges_faces is needed, otherwise vertices and face data is needed.
  * @param {{
  *   lines: VecLine[],

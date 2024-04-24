@@ -45,3 +45,4 @@ export namespace light {
     export { u_1 as u };
 }
 export function parseColorToWebGLColor(color: number[] | string): [number, number, number] | undefined;
+//# sourceMappingURL=colors.d.ts.map

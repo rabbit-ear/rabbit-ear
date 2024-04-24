@@ -4,6 +4,6 @@
 	"name": "Rabbit Ear",
 	"includeVersion": true,
 	"entryPointStrategy": "expand",
-	"exclude": "**/index.js",
+	"exclude": ["**/index.js"], // "**/*.d.ts"
 	"customCss": "docs-style.css"
 }

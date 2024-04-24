@@ -18,3 +18,4 @@ declare const methods: {
  */
 export function findOneElement(element: any, nodeName: any): any;
 export { methods as default };
+//# sourceMappingURL=methods.d.ts.map

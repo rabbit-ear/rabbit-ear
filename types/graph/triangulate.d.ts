@@ -8,3 +8,4 @@ export function triangulate(graph: FOLD, earcut: any): {
         new: number[];
     };
 };
+//# sourceMappingURL=triangulate.d.ts.map

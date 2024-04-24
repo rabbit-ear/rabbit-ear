@@ -16,3 +16,4 @@ export function makeArrowOptions(): {
     pinch: number;
     points: any[];
 };
+//# sourceMappingURL=options.d.ts.map

@@ -1,4 +1,4 @@
-export function makePlanarFaces({ vertices_coords, vertices_vertices, vertices_edges, vertices_sectors, edges_vertices, edges_vector, }: FOLD): {
+export function makePlanarFaces({ vertices_coords, vertices_vertices, vertices_edges, vertices_sectors, edges_vertices, edges_vector, }: FOLDExtended): {
     faces_vertices: number[][];
     faces_edges: number[][];
     faces_sectors: number[][];
@@ -9,3 +9,4 @@ export function makeFacesCentroid2D({ vertices_coords, faces_vertices }: FOLD): 
 export function makeFacesCenter2DQuick({ vertices_coords, faces_vertices }: FOLD): [number, number][];
 export function makeFacesCenter3DQuick({ vertices_coords, faces_vertices }: FOLD): [number, number, number][];
 export function makeFacesCenterQuick({ vertices_coords, faces_vertices }: FOLD): [number, number][] | [number, number, number][];
+//# sourceMappingURL=faces.d.ts.map

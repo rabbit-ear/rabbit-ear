@@ -18,3 +18,4 @@ declare namespace circleDef {
         };
     }
 }
+//# sourceMappingURL=circle.d.ts.map

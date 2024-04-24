@@ -21,3 +21,4 @@ export namespace LayerPrototype {
     }[][];
     function faceOrders(this: LayerFork, ...pattern: number[]): any;
 }
+//# sourceMappingURL=prototype.d.ts.map

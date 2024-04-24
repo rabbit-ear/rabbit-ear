@@ -8,3 +8,4 @@ export function getOverlappingComponents({ vertices_coords, edges_vertices, face
 };
 export function getFacesEdgesOverlap({ vertices_coords, edges_vertices, faces_vertices, faces_edges, }: FOLD, epsilon?: number): number[][];
 export function getEdgesFacesOverlap({ vertices_coords, edges_vertices, faces_vertices, faces_edges, }: FOLD, epsilon?: number): number[][];
+//# sourceMappingURL=overlap.d.ts.map

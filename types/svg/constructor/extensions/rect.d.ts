@@ -16,3 +16,4 @@ declare namespace rectDef {
         };
     }
 }
+//# sourceMappingURL=rect.d.ts.map

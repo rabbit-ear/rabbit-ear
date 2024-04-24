@@ -9,3 +9,4 @@
  * @returns {CDATASection} a CDATA containing the given text.
  */
 export function makeCDATASection(text: string): CDATASection;
+//# sourceMappingURL=cdata.d.ts.map

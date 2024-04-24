@@ -15,3 +15,4 @@ export function foldToSvg(file: FOLD | string, options?: {
     strokeWidth?: number;
     radius?: number;
 }): SVGElement | string;
+//# sourceMappingURL=foldToSvg.d.ts.map

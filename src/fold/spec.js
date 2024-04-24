@@ -373,17 +373,6 @@ export const isFoldObject = (object = {}) => (
 			.filter(key => object[key]).length / Object.keys(object).length);
 
 /**
- * @description Check a FOLD object's frame_classes
- * for the presence of "foldedForm".
- * @param {FOLD} graph a FOLD object
- * @returns {boolean} true if the graph contains "foldedForm".
- */
-export const isFoldedForm = ({ frame_classes, file_classes }) => (
-	(frame_classes && frame_classes.includes("foldedForm"))
-		|| (file_classes && file_classes.includes("foldedForm"))
-);
-
-/**
  * @description Check the coordinates of each vertex and if any of them
  * contain a third dimension AND that number is not 0, then the graph
  * is in 3D, otherwise the graph is considered 2D.
@@ -419,6 +408,38 @@ export const getDimensionQuick = ({ vertices_coords }) => {
 	const vertex = vertices_coords.filter(() => true).shift();
 	if (!vertex) { return undefined; }
 	return vertex.length;
+};
+
+/**
+ * @description Infer if a FOLD object is in its folded state
+ * (as opposed to crease pattern state).
+ * A graph will be considered "folded" if the "foldedForm" key can be found
+ * in the metadata or if the vertices_coords are in 3D and a Z number is not 0.
+ * @param {FOLD} graph a FOLD object
+ * @returns {boolean} true if the graph contains "foldedForm".
+ */
+export const isFoldedForm = (
+	{ vertices_coords, frame_classes, file_classes },
+	epsilon = EPSILON,
+) => {
+	// FOLD spec only describes "foldedForm" to be in the frame_classes,
+	// accounting for mistakes, check both class arrays.
+	if ((frame_classes && frame_classes.includes("foldedForm"))
+		|| (file_classes && file_classes.includes("foldedForm"))) {
+		return true;
+	}
+	if (getDimensionQuick({ vertices_coords }) === 2) { return false; }
+
+	// iterate over every vertex, check each vertex's Z component, if the
+	// Z value is not 0, consider the graph to be folded.
+	for (let i = 0; i < vertices_coords.length; i += 1) {
+		if (!vertices_coords[i]) { continue; }
+		if (typeof vertices_coords[i][2] !== "number") { continue; }
+		if (!epsilonEqual(vertices_coords[i][2], 0, epsilon)) { return true; }
+	}
+
+	// no evidence that the graph is folded. return false
+	return false;
 };
 
 /**

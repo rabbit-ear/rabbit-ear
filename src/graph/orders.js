@@ -62,7 +62,7 @@ export const faceOrdersSubset = (faceOrders, faces) => {
  * (and ideally, connected and overlapping).
  * This will not return a linearization including all faces in a graph,
  * it only includes faces found in faceOrders.
- * @param {FOLD} graph a FOLD object with faceOrders, and either faces_normal
+ * @param {FOLDExtended} graph a FOLD object with faceOrders, and either faces_normal
  * pre-calculated, or faces_vertices and vertices_coords to get the normals.
  * @returns {number[]} layers_face, for every layer (key) which face (value)
  * inhabits it. This only includes faces which are found in faceOrders.
@@ -121,7 +121,7 @@ const fillInMissingFaces = ({ faces_vertices }, faces_layer) => {
  * sort all faces which do have an ordering, then find any remaining faces,
  * and add these faces in no particular order onto the beginning of the list,
  * so that the faces with an order will be at the end (on top, painters algorithm).
- * @param {FOLD} graph a FOLD object with either faceOrders or faces_layer.
+ * @param {FOLDExtended} graph a FOLD object with either faceOrders or faces_layer.
  * @returns {number[]} layers_face, for every layer (key),
  * which face (value) inhabits it.
  */
@@ -150,7 +150,7 @@ export const linearize2DFaces = ({
  * of information for each face, what is its displacement vector, and
  * what is its displacement magnitude integer, indicating which layer
  * this face lies on.
- * @param {FOLD} graph a FOLD object with faceOrders.
+ * @param {FOLDExtended} graph a FOLD object with faceOrders.
  * @returns {object[]} face-aligned array, one object per face,
  * each object with properties "vector" and "layer".
  */
@@ -186,7 +186,7 @@ export const nudgeFacesWithFaceOrders = ({
  * @description Given a graph with a faces_layer, a topological sorting
  * of faces, for a flat-folded 2D graph, get an array where every face
  * is given a layer and a vector, which will always be [0, 0, 1].
- * @param {FOLD} graph a FOLD object with the parameter faces_layer.
+ * @param {FOLDExtended} graph a FOLD object with the parameter faces_layer.
  * @returns {object[]} face-aligned array, one object per face,
  * each object with properties "vector" and "layer".
  */
@@ -208,7 +208,7 @@ export const nudgeFacesWithFacesLayer = ({ faces_layer }) => {
  * one valid layer arrangement of the faces.
  * first it finds all pairwise face layer conditions, then
  * finds a topological ordering of each condition.
- * @param {object} graph a FOLD object, make sure the vertices
+ * @param {FOLDExtended} graph a FOLD object, make sure the vertices
  * have already been folded.
  * @returns {number[]} a faces_layer object, describing,
  * for each face (key) which layer the face inhabits (value)

@@ -19,3 +19,4 @@ export function svg_polar_to_cart(a: number, d: number): [number, number];
 export function svg_scale2(a: [number, number], s: number): [number, number];
 /** @param {[number, number]} a @param {[number, number]} b @returns {[number, number]} */
 export function svg_sub2(a: [number, number], b: [number, number]): [number, number];
+//# sourceMappingURL=algebra.d.ts.map

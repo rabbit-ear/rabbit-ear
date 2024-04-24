@@ -12,3 +12,4 @@ export function normalAxiom6(line1: UniqueLine, line2: UniqueLine, point1: [numb
 export function axiom6(line1: VecLine2, line2: VecLine2, point1: [number, number], point2: [number, number]): VecLine2[];
 export function normalAxiom7(line1: UniqueLine, line2: UniqueLine, point: [number, number]): [UniqueLine?];
 export function axiom7(line1: VecLine2, line2: VecLine2, point: [number, number]): [VecLine2?];
+//# sourceMappingURL=axioms.d.ts.map

@@ -550,3 +550,4 @@ declare const SVG: ((...args: any[]) => SVGElement) & {
         };
     };
 };
+//# sourceMappingURL=index.d.ts.map

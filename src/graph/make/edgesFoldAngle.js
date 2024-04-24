@@ -41,7 +41,7 @@ export const makeEdgesFoldAngle = ({ edges_assignment }) => edges_assignment
  * mountain creases, and positive for valley. This works well for 3D models,
  * but will fail for flat-folded models, in which case, edges_assignment
  * will be consulted to differentiate between 180 degree M or V folds.
- * @param {FOLD} graph a FOLD object
+ * @param {FOLDExtended} graph a FOLD object
  * @returns {number[]} for every edge, an angle in degrees.
  */
 export const makeEdgesFoldAngleFromFaces = ({

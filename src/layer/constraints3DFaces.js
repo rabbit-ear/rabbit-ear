@@ -81,6 +81,7 @@ export const constraints3DFaceClusters = ({
 	// for every cluster, make a shallow copy of the input graph, containing
 	// only the faces included in that cluster, and by extension, all edges and
 	// vertices which are used by this subset of faces.
+	/** @type {FOLDExtended[]} */
 	const clusters_graph = clusters_faces.map(faces => subgraphWithFaces({
 		vertices_coords,
 		edges_vertices,

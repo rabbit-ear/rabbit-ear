@@ -3,3 +3,4 @@ export function findSymmetryLines(graph: FOLD, epsilon?: number): {
     error: number;
 }[];
 export function findSymmetryLine(graph: FOLD, epsilon?: number): VecLine2;
+//# sourceMappingURL=symmetry.d.ts.map

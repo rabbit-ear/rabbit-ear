@@ -2,3 +2,4 @@ export function drawModel(gl: WebGLRenderingContext | WebGL2RenderingContext, ve
     [key: string]: WebGLUniform;
 }): void;
 export function deallocModel(gl: WebGLRenderingContext | WebGL2RenderingContext, model: WebGLModel): void;
+//# sourceMappingURL=model.d.ts.map

@@ -17,3 +17,4 @@ declare namespace nodes_children {
  */
 declare const headerStuff: string[];
 declare const drawingShapes: string[];
+//# sourceMappingURL=nodes_children.d.ts.map

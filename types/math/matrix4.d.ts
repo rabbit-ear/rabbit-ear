@@ -25,3 +25,4 @@ export function makeMatrix4ReflectZ(vector: [number, number], origin?: [number, 
 export function makePerspectiveMatrix4(FOV: number, aspect: number, near: number, far: number): number[];
 export function makeOrthographicMatrix4(top: number, right: number, bottom: number, left: number, near: number, far: number): number[];
 export function makeLookAtMatrix4(position: [number, number, number], target: [number, number, number], up: [number, number, number]): number[];
+//# sourceMappingURL=matrix4.d.ts.map

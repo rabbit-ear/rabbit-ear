@@ -34,7 +34,7 @@ import {
  * This method supports 3D or 2D foldings.
  * @attribution Implementation of the algorithm described in
  * the origami foldability paper by belcastro-Hull.
- * @param {FOLD} graph a FOLD object with vertices in creasePattern layout
+ * @param {FOLDExtended} graph a FOLD object with vertices in creasePattern layout
  * @returns {number[]} for every vertex, 0 if the vertex has
  * a valid folded state, or a number indicating the amount of error.
  */

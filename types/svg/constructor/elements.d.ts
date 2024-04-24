@@ -132,3 +132,4 @@ export const constructors: {
  * @returns {SVGElement} an svg element
  */
 export function svg(...args: any[]): SVGElement;
+//# sourceMappingURL=elements.d.ts.map

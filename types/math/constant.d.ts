@@ -25,3 +25,4 @@ export const D2R: number;
  * @default
  */
 export const TWO_PI: number;
+//# sourceMappingURL=constant.d.ts.map

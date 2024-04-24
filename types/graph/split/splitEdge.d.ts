@@ -6,3 +6,4 @@ export function splitEdge(graph: FOLD, oldEdge: number, coords?: number[]): {
         remove: number;
     };
 };
+//# sourceMappingURL=splitEdge.d.ts.map

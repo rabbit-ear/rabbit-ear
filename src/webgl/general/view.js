@@ -20,6 +20,7 @@ import {
  * based on the dimensions of the canvas.
  * @param {WebGLRenderingContext|WebGL2RenderingContext} gl a WebGL instance
  * @param {HTMLCanvasElement} canvas an HTML canvas
+ * @returns {undefined}
  */
 export const rebuildViewport = (gl, canvas) => {
 	if (!gl) { return; }
@@ -39,9 +40,10 @@ export const rebuildViewport = (gl, canvas) => {
  * @param {HTMLCanvasElement} canvas an HTML canvas
  * @param {string} perspective "orthographic" or "perspective"
  * @param {number} fov the field of view (perspective only)
+ * @returns {number[]} a 4x4 projection matrix
  */
 export const makeProjectionMatrix = (canvas, perspective = "perspective", fov = 45) => {
-	if (!canvas) { return identity4x4; }
+	if (!canvas) { return [...identity4x4]; }
 	const Z_NEAR = 0.1;
 	const Z_FAR = 20;
 	const ORTHO_FAR = -100;

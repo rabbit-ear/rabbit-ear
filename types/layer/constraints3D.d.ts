@@ -17,3 +17,4 @@ export function makeSolverConstraints3D({ vertices_coords, edges_vertices, edges
         [key: string]: number;
     };
 };
+//# sourceMappingURL=constraints3D.d.ts.map

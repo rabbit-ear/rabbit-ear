@@ -26,3 +26,4 @@ export function filterCollinearFacesData({ edges_vertices }: FOLD, { vertices, f
         points: FacePointEvent[];
     }[];
 }): void;
+//# sourceMappingURL=intersect.d.ts.map

@@ -27,7 +27,7 @@ declare const layerExport: ((graph: FOLD, epsilon?: number) => {
         }[][];
         faceOrders: (this: LayerFork, ...pattern: number[]) => any;
     };
-    makeTransitivity: ({ faces_polygon }: FOLD, facesFacesOverlap: number[][], epsilon?: number) => TransitivityConstraint[];
+    makeTransitivity: ({ faces_polygon }: FOLDExtended, facesFacesOverlap: number[][], epsilon?: number) => TransitivityConstraint[];
     getTransitivityTriosFromTacos: ({ taco_taco, taco_tortilla }: {
         taco_taco: TacoTacoConstraint[];
         taco_tortilla: TacoTortillaConstraint[];
@@ -35,7 +35,7 @@ declare const layerExport: ((graph: FOLD, epsilon?: number) => {
         [key: string]: boolean;
     };
     makeTortillaTortillaFacesCrossing: (edges_faces: number[][], edgesFacesSide: number[][], edgesFacesOverlap: number[][]) => TortillaTortillaConstraint[];
-    makeTacosAndTortillas: ({ vertices_coords, edges_vertices, edges_faces, faces_vertices, faces_edges, faces_center, }: FOLD, epsilon?: number) => {
+    makeTacosAndTortillas: ({ vertices_coords, edges_vertices, edges_faces, faces_vertices, faces_edges, faces_center, }: FOLDExtended, epsilon?: number) => {
         taco_taco: TacoTacoConstraint[];
         taco_tortilla: TacoTortillaConstraint[];
         tortilla_tortilla: TortillaTortillaConstraint[];
@@ -72,14 +72,14 @@ declare const layerExport: ((graph: FOLD, epsilon?: number) => {
             [key: string]: number;
         };
     }) => LayerFork;
-    solveLayerOrders: ({ vertices_coords, edges_vertices, edges_faces, edges_assignment, edges_foldAngle, faces_vertices, faces_edges, faces_faces, edges_vector, }: FOLD, epsilon?: number) => {
+    solveLayerOrders: ({ vertices_coords, edges_vertices, edges_faces, edges_assignment, edges_foldAngle, faces_vertices, faces_edges, faces_faces, edges_vector, }: FOLDExtended, epsilon?: number) => {
         orders: {
             [key: string]: number;
         };
         branches?: LayerBranch[];
         faces_winding: boolean[];
     };
-    solveLayerOrdersSingleBranches: ({ vertices_coords, edges_vertices, edges_faces, edges_assignment, faces_vertices, faces_edges, edges_vector, }: FOLD, epsilon?: number) => {
+    solveLayerOrdersSingleBranches: ({ vertices_coords, edges_vertices, edges_faces, edges_assignment, faces_vertices, faces_edges, edges_vector, }: FOLDExtended, epsilon?: number) => {
         orders: {};
         faces_winding: any[];
     } | {
@@ -152,15 +152,15 @@ declare const layerExport: ((graph: FOLD, epsilon?: number) => {
     }[]) => {
         [key: string]: number;
     };
-    makeEdgesFacesSide: ({ vertices_coords, edges_vertices, edges_faces, faces_center, }: FOLD) => number[][];
-    makeEdgePairsFacesSide: ({ vertices_coords, edges_vertices, edges_faces, faces_center }: FOLD, edgePairs: [number, number][]) => [[number, number], [number, number]][];
-    makeEdgesFacesSide2D: ({ vertices_coords, edges_faces, faces_vertices, faces_center }: FOLD, { lines, edges_line }: {
+    makeEdgesFacesSide: ({ vertices_coords, edges_vertices, edges_faces, faces_center, }: FOLDExtended) => number[][];
+    makeEdgePairsFacesSide: ({ vertices_coords, edges_vertices, edges_faces, faces_center }: FOLDExtended, edgePairs: [number, number][]) => [[number, number], [number, number]][];
+    makeEdgesFacesSide2D: ({ vertices_coords, edges_faces, faces_vertices, faces_center }: FOLDExtended, { lines, edges_line }: {
         lines: VecLine[];
         edges_line: number[];
         faces_plane: number[];
         planes_transform: number[][];
     }) => number[][];
-    makeEdgesFacesSide3D: ({ vertices_coords, edges_faces, faces_vertices, faces_center }: FOLD, { lines, edges_line, planes_transform, faces_plane }: {
+    makeEdgesFacesSide3D: ({ vertices_coords, edges_faces, faces_vertices, faces_center }: FOLDExtended, { lines, edges_line, planes_transform, faces_plane }: {
         lines: VecLine[];
         edges_line: number[];
         faces_plane: number[];
@@ -177,7 +177,7 @@ declare const layerExport: ((graph: FOLD, epsilon?: number) => {
         tortilla_tortilla: number[][];
         transitivity: number[][];
     };
-    makeSolverConstraintsFlat: ({ vertices_coords, edges_vertices, edges_faces, edges_assignment, faces_vertices, faces_edges, faces_center, }: FOLD, epsilon?: number) => {
+    makeSolverConstraintsFlat: ({ vertices_coords, edges_vertices, edges_faces, edges_assignment, faces_vertices, faces_edges, faces_center, }: FOLDExtended, epsilon?: number) => {
         constraints: {
             taco_taco: TacoTacoConstraint[];
             taco_tortilla: TacoTortillaConstraint[];
@@ -275,3 +275,4 @@ declare const layerExport: ((graph: FOLD, epsilon?: number) => {
         };
     };
 };
+//# sourceMappingURL=index.d.ts.map

@@ -1,12 +1,3 @@
-/**
- * Rabbit Ear (c) Kraft
- */
-
-// todo:
-// should vertices coords be like this?
-//   vertices_coords?: ([number, number] | [number, number, number])[],
-// or
-//   vertices_coords?: [number, number][]|[number, number, number][],
 
 /**
  * @typedef FOLDFrame
@@ -122,6 +113,13 @@
  *   edges_foldAngle: [0, 0, 0, 0, 180],
  *   faces_vertices: [[0, 1, 2], [0, 2, 3]],
  * }
+ */
+
+/**
+ * @typedef FOLDExtended
+ * @type {FOLD & FOLDOutOfSpec}
+ * @description An extension of the FOLD format spec that includes a few
+ * additional fields that this library makes repeated use of.
  */
 
 // /**
@@ -359,17 +357,17 @@
  * @type {FaceOrdersFork[]}
  * @description To compile a solution, you must include
  * a selection from every Branch inside this FaceOrdersBranchs array.
-  *
+ *
  * @typedef FaceOrders
  * @type {[number, number, number][]}
  * @description an array of faceOrders. faces a and b: [a, b, solution]
-  *
+ *
  * @typedef FaceOrdersFork
  * @type {{ orders: FaceOrders, branches?: FaceOrdersBranch[] }}
  * @description To compile a solution, you must choose only one item
  * from this list. Each item is a copy of one another, but with
  * different values.
-  *
+ *
  * @typedef FaceOrdersSolverSolution
  * @type {FaceOrdersFork}
  * @example In this example there are three "branches", one top-level,
@@ -378,3 +376,9 @@
  * identical in structure), and each of these all-branches contain
  * two choice-branches.
  */
+
+/**
+ * @description ignore
+ */
+// eslint-disable-next-line
+export const __types__ = () => {};

@@ -42,7 +42,8 @@ type FOLDOutOfSpec = {
     faces_layer?: number[];
     vertices_sectors?: number[][];
 };
-type FOLD = FOLDFileMetadata & FOLDFrame & FOLDOutOfSpec;
+type FOLD = FOLDFileMetadata & FOLDFrame;
+type FOLDExtended = FOLD & FOLDOutOfSpec;
 type VecLine2 = {
     vector: [number, number];
     origin: [number, number];

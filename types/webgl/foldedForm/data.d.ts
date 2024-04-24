@@ -15,3 +15,4 @@ export function makeThickEdgesVertexData(graph: any, options: any): {
     verticesEdgesVector: any;
     vertices_vector: any;
 } | undefined;
+//# sourceMappingURL=data.d.ts.map

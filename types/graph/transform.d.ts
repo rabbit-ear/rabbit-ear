@@ -13,3 +13,4 @@ export function rotate(graph: FOLD, angle: number, vector?: number[], origin?: n
 export function rotateX(graph: FOLD, angle: number, origin?: number[]): FOLD;
 export function rotateY(graph: FOLD, angle: number, origin?: number[]): FOLD;
 export function rotateZ(graph: FOLD, angle: number, origin?: number[]): FOLD;
+//# sourceMappingURL=transform.d.ts.map

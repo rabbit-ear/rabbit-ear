@@ -22,3 +22,4 @@ declare const path_methods: {
     }[];
     getD: (el: any) => any;
 };
+//# sourceMappingURL=path.d.ts.map

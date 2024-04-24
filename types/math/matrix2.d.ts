@@ -27,3 +27,4 @@ export function makeMatrix2Scale(scale?: [number, number], origin?: [number, num
 export function makeMatrix2UniformScale(scale?: number, origin?: [number, number]): number[];
 export function makeMatrix2Rotate(angle: number, origin?: [number, number]): number[];
 export function makeMatrix2Reflect(vector: [number, number], origin?: [number, number]): number[];
+//# sourceMappingURL=matrix2.d.ts.map

@@ -8,3 +8,4 @@ export function intersectPolygonLine(polygon: ([number, number] | [number, numbe
     a: number;
     point: [number, number];
 }[];
+//# sourceMappingURL=intersect.d.ts.map

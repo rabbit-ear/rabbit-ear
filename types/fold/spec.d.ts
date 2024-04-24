@@ -130,11 +130,12 @@ export function getAllSuffixes(obj: object): string[];
 export function transposeGraphArrays(graph: FOLD, geometry_key: string): object[];
 export function transposeGraphArrayAtIndex(graph: FOLD, geometry_key: string, index: number): object;
 export function isFoldObject(object?: FOLD): number;
-export function isFoldedForm({ frame_classes, file_classes }: FOLD): boolean;
 export function getDimension({ vertices_coords }: FOLD, epsilon?: number): number;
 export function getDimensionQuick({ vertices_coords }: FOLD): number | undefined;
+export function isFoldedForm({ vertices_coords, frame_classes, file_classes }: FOLD, epsilon?: number): boolean;
 export function makeEdgesIsFolded({ edges_vertices, edges_foldAngle, edges_assignment }: FOLD): boolean[];
 export function invertAssignment(assign: string): string;
 export function invertAssignments(graph: FOLD): FOLD;
 export function sortEdgesByAssignment({ edges_vertices, edges_assignment }: FOLD): object;
 export function getFileMetadata(FOLD?: FOLD): object;
+//# sourceMappingURL=spec.d.ts.map

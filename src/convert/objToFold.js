@@ -20,12 +20,6 @@ import {
 import {
 	makeFacesEdgesFromVertices,
 } from "../graph/make/facesEdges.js";
-import {
-	makeFacesCenterQuick,
-} from "../graph/make/faces.js";
-import {
-	makeFacesNormal,
-} from "../graph/normals.js";
 
 /**
  * @returns {FOLD} graph a FOLD object
@@ -117,26 +111,23 @@ export const objToFold = (file) => {
 	const graph = newFoldFile();
 	const linesCharKey = lines
 		.map(line => line[0].toLowerCase());
+
 	graph.vertices_coords = lines
 		.filter((_, i) => linesCharKey[i] === "v")
 		.map(parseVertex);
 	graph.faces_vertices = lines
 		.filter((_, i) => linesCharKey[i] === "f")
 		.map(parseFace);
-	graph.faces_normal = makeFacesNormal(graph);
-	graph.faces_center = makeFacesCenterQuick(graph);
 	graph.edges_vertices = makeEdgesVertices(graph);
 	graph.faces_edges = makeFacesEdgesFromVertices(graph);
 	graph.edges_faces = makeEdgesFacesUnsorted(graph);
 	graph.edges_foldAngle = makeEdgesFoldAngleFromFaces(graph);
 	graph.edges_assignment = makeEdgesAssignment(graph);
 	graph.vertices_vertices = makeVerticesVerticesFromFaces(graph);
-	// faces_normal and faces_center are not a part of the spec.
+
 	// edges_faces was built unsorted. the sorted method is slower to construct,
 	// and unnecessary for our purposes. the user can build this (and the
 	// other incomplete fields) if they want them.
-	delete graph.faces_normal;
-	delete graph.faces_center;
 	delete graph.edges_faces;
 	updateMetadata(graph);
 	return graph;

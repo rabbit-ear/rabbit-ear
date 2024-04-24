@@ -1,3 +1,4 @@
+export function __types__(): void;
 export type FOLDFrame = {
     frame_author?: string;
     frame_title?: string;
@@ -43,6 +44,7 @@ export type FOLDOutOfSpec = {
     vertices_sectors?: number[][];
 };
 export type FOLD = FOLDFileMetadata & FOLDFrame & FOLDOutOfSpec;
+export type FOLDExtended = FOLD & FOLDOutOfSpec;
 export type VecLine2 = {
     vector: [number, number];
     origin: [number, number];
@@ -151,3 +153,4 @@ export type FaceOrdersFork = {
     branches?: FaceOrdersFork[][];
 };
 export type FaceOrdersSolverSolution = FaceOrdersFork;
+//# sourceMappingURL=types.d.ts.map

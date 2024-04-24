@@ -11,7 +11,7 @@
  * initialize an empty object and pass it in every time you call this method.
  * If you use a global "walkedEdges" and this method is trying to build a
  * face that was already previously built, the method will return undefined.
- * @param {FOLD} graph a FOLD object with the additional vertices_sectors data
+ * @param {FOLDExtended} graph a FOLD object with the additional vertices_sectors data
  * @param {number} vertex0 starting vertex
  * @param {number} vertex1 second vertex, this sets the direction of the walk
  * @param {object} [walkedEdges={}] memo object, to prevent walking down
@@ -97,7 +97,7 @@ export const walkSingleFace = (
 /**
  * @description Given a planar graph, discover all faces by counter-clockwise
  * walking by starting at every edge.
- * @param {FOLD} graph a FOLD object with the additional vertices_sectors data
+ * @param {FOLDExtended} graph a FOLD object with the additional vertices_sectors data
  * @returns {{ vertices: number[], edges: string[], angles?: number[] }[]}
  * an array of face objects, where each face
  * has number arrays, "vertices", "edges", and "angles".

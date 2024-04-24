@@ -8,3 +8,4 @@ export namespace LayerPrototype {
     function allSolutions(): any[];
     function allFacesLayers(): number[][];
 }
+//# sourceMappingURL=prototypeOneDepth.d.ts.map

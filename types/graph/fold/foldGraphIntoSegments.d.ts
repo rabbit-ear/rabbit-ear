@@ -3,3 +3,4 @@ export function foldGraphIntoSegments({ vertices_coords, edges_vertices, edges_f
     assignment: string;
     points: [number, number][];
 }[];
+//# sourceMappingURL=foldGraphIntoSegments.d.ts.map

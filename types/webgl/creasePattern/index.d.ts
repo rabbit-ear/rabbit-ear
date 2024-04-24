@@ -30,3 +30,4 @@ declare const _default: {
     makeCPFacesElementArrays: (gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD) => WebGLElementArray[];
 };
 export default _default;
+//# sourceMappingURL=index.d.ts.map

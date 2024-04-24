@@ -15,3 +15,4 @@ declare namespace lineDef {
  * Rabbit Ear (c) Kraft
  */
 declare function Args(...args: any[]): any[];
+//# sourceMappingURL=line.d.ts.map

@@ -52,7 +52,7 @@ export const makeEdgesFacesUnsorted = ({ edges_vertices, faces_vertices, faces_e
 /**
  * @description Make `edges_faces` where each edge is paired with its incident faces.
  * This is sorted according to the FOLD spec, sorting faces on either side of an edge.
- * @param {FOLD} graph a FOLD object, with entries vertices_coords,
+ * @param {FOLDExtended} graph a FOLD object, with entries vertices_coords,
  * edges_vertices, faces_vertices, faces_edges
  * @returns {(number | null | undefined)[][]} each entry relates to an edge,
  * each array contains indices of adjacent faces.

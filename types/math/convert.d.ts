@@ -5,3 +5,4 @@ export function pointsToLine3(a: [number, number, number], b: [number, number, n
 export function pointsToLine(a: [number, number] | [number, number, number], b: [number, number] | [number, number, number]): VecLine;
 export function vecLineToUniqueLine({ vector, origin }: VecLine): UniqueLine;
 export function uniqueLineToVecLine({ normal, distance }: UniqueLine): VecLine2;
+//# sourceMappingURL=convert.d.ts.map

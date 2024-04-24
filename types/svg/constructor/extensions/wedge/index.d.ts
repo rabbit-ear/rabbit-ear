@@ -15,3 +15,4 @@ import { str_path } from '../../../environment/strings.js';
  * Rabbit Ear (c) Kraft
  */
 declare function wedgeArguments(a: any, b: any, c: any, d: any, e: any): string[];
+//# sourceMappingURL=index.d.ts.map

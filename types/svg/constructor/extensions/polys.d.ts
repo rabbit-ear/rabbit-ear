@@ -25,3 +25,4 @@ declare namespace polyDefs {
     }
 }
 declare function Args(...args: any[]): any[];
+//# sourceMappingURL=polys.d.ts.map

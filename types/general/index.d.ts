@@ -29,3 +29,4 @@ declare const _default: {
     lookupArrayToArrayArray: (lookupArray: boolean[][]) => number[][];
 };
 export default _default;
+//# sourceMappingURL=index.d.ts.map

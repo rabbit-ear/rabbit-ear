@@ -4,14 +4,14 @@ declare const _default: {
         version: number;
     };
     createProgram: (gl: WebGLRenderingContext | WebGL2RenderingContext, vertexSource: string, fragmentSource: string) => WebGLProgram;
-    rebuildViewport: (gl: WebGLRenderingContext | WebGL2RenderingContext, canvas: HTMLCanvasElement) => void;
-    makeProjectionMatrix: (canvas: HTMLCanvasElement, perspective?: string, fov?: number) => readonly number[];
+    rebuildViewport: (gl: WebGLRenderingContext | WebGL2RenderingContext, canvas: HTMLCanvasElement) => undefined;
+    makeProjectionMatrix: (canvas: HTMLCanvasElement, perspective?: string, fov?: number) => number[];
     makeModelMatrix: (graph: FOLD) => number[];
     drawModel: (gl: WebGLRenderingContext | WebGL2RenderingContext, version: number, model: WebGLModel, uniforms?: {
         [key: string]: WebGLUniform;
     }) => void;
     deallocModel: (gl: WebGLRenderingContext | WebGL2RenderingContext, model: WebGLModel) => void;
-    makeExplodedGraph: (graph: FOLD, layerNudge?: number) => FOLD;
+    makeExplodedGraph: (graph: FOLDExtended, layerNudge?: number) => FOLD;
     dark: {
         B: number[];
         b: number[];
@@ -47,3 +47,4 @@ declare const _default: {
     parseColorToWebGLColor: (color: string | number[]) => [number, number, number];
 };
 export default _default;
+//# sourceMappingURL=index.d.ts.map

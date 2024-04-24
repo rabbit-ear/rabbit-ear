@@ -30,3 +30,4 @@ export type SplitGraphEvent = {
         map: (number | number[])[];
     };
 };
+//# sourceMappingURL=splitGraph.d.ts.map

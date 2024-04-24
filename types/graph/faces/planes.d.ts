@@ -22,3 +22,4 @@ export function getCoplanarAdjacentOverlappingFaces({ vertices_coords, faces_ver
     clusters_plane: number[];
     clusters_faces: number[][];
 };
+//# sourceMappingURL=planes.d.ts.map

@@ -13,3 +13,4 @@ export type FoldGraphEvent = {
         map: (number | number[])[];
     };
 };
+//# sourceMappingURL=foldGraph.d.ts.map

@@ -10,3 +10,4 @@ declare const _default: {
     axiom7Arrows: ({ vertices_coords }: FOLD, line1: VecLine2, line2: VecLine2, point: [number, number], options: any) => any[];
 };
 export default _default;
+//# sourceMappingURL=index.d.ts.map

@@ -15,3 +15,4 @@ export function parseTransform(transform: string): {
     parameters: number[];
 }[];
 export function transformStringToMatrix(string: any): any;
+//# sourceMappingURL=transforms.d.ts.map

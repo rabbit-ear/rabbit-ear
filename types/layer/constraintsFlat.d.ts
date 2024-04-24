@@ -9,7 +9,7 @@ export function makeConstraintsLookup(constraints: {
     tortilla_tortilla: number[][];
     transitivity: number[][];
 };
-export function makeSolverConstraintsFlat({ vertices_coords, edges_vertices, edges_faces, edges_assignment, faces_vertices, faces_edges, faces_center, }: FOLD, epsilon?: number): {
+export function makeSolverConstraintsFlat({ vertices_coords, edges_vertices, edges_faces, edges_assignment, faces_vertices, faces_edges, faces_center, }: FOLDExtended, epsilon?: number): {
     constraints: {
         taco_taco: TacoTacoConstraint[];
         taco_tortilla: TacoTortillaConstraint[];
@@ -28,3 +28,4 @@ export function makeSolverConstraintsFlat({ vertices_coords, edges_vertices, edg
         [key: string]: number;
     };
 };
+//# sourceMappingURL=constraintsFlat.d.ts.map

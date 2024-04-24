@@ -13,3 +13,4 @@ export function propagate(constraints: {
 }[]): {
     [key: string]: number;
 };
+//# sourceMappingURL=propagate.d.ts.map

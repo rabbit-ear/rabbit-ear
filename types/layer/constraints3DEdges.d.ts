@@ -44,3 +44,4 @@ export function constraints3DEdges({ vertices_coords, edges_vertices, edges_face
     taco_tortilla: TacoTortillaConstraint[];
     tortilla_tortilla: TortillaTortillaConstraint[];
 };
+//# sourceMappingURL=constraints3DEdges.d.ts.map

@@ -6,3 +6,4 @@ export function countImplied(graph: FOLD, key: string): number;
 export function countImpliedVertices(graph: FOLD): number;
 export function countImpliedEdges(graph: FOLD): number;
 export function countImpliedFaces(graph: FOLD): number;
+//# sourceMappingURL=count.d.ts.map

@@ -3,3 +3,4 @@ export function initializeWebGL(canvasElement: HTMLCanvasElement, preferredVersi
     version: number;
 };
 export function createProgram(gl: WebGLRenderingContext | WebGL2RenderingContext, vertexSource: string, fragmentSource: string): WebGLProgram;
+//# sourceMappingURL=webgl.d.ts.map

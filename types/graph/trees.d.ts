@@ -3,3 +3,4 @@ export type BreadthFirstTreeNode = {
     index: number;
     parent?: number;
 };
+//# sourceMappingURL=trees.d.ts.map

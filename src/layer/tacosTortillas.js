@@ -147,7 +147,7 @@ export const makeTortillaTortillaFacesCrossing = (
 /**
  * @description Given a FOLD object, find all instances of edges overlapping which
  * classify as taco/tortillas to determine layer order.
- * @param {FOLD} graph a FOLD object. vertices_coords should already be folded.
+ * @param {FOLDExtended} graph a FOLD object. vertices_coords should already be folded.
  * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
  * @returns {{
  *   taco_taco: TacoTacoConstraint[],

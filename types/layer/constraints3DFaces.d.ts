@@ -11,3 +11,4 @@ export function constraints3DFaceClusters({ vertices_coords, edges_vertices, edg
     facesFacesOverlap: number[][];
     facePairs: string[];
 };
+//# sourceMappingURL=constraints3DFaces.d.ts.map

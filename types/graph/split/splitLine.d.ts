@@ -18,3 +18,4 @@ export function splitLineIntoEdges({ vertices_coords, edges_vertices, faces_vert
     edges_collinear?: boolean[];
     edges_face?: number[];
 };
+//# sourceMappingURL=splitLine.d.ts.map

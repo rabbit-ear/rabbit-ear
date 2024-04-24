@@ -14,3 +14,4 @@ export function mergeArraysWithHoles(...arrays: any[][]): any[];
 export function clustersToReflexiveArrays(clusters: number[][]): number[][];
 export function arrayArrayToLookupArray(array_array: number[][]): boolean[][];
 export function lookupArrayToArrayArray(lookupArray: boolean[][]): number[][];
+//# sourceMappingURL=array.d.ts.map

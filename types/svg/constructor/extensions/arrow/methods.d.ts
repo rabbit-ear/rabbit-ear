@@ -12,3 +12,4 @@ declare const ArrowMethods: {
     getHead: (element: any) => any;
     getTail: (element: any) => any;
 };
+//# sourceMappingURL=methods.d.ts.map

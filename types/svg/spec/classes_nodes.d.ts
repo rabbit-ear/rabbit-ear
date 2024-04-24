@@ -13,3 +13,4 @@ declare namespace classes_nodes {
     let gradients: string[];
     let filter: string[];
 }
+//# sourceMappingURL=classes_nodes.d.ts.map

@@ -1,12 +1,12 @@
 export default graphExport;
 declare const graphExport: Function & {
     validate: (graph: FOLD) => string[];
-    walkSingleFace: ({ vertices_vertices, vertices_sectors }: FOLD, vertex0: number, vertex1: number, walkedEdges?: any) => {
+    walkSingleFace: ({ vertices_vertices, vertices_sectors }: FOLDExtended, vertex0: number, vertex1: number, walkedEdges?: any) => {
         vertices: number[];
         edges: string[];
         angles?: number[];
     };
-    walkPlanarFaces: ({ vertices_vertices, vertices_sectors }: FOLD) => {
+    walkPlanarFaces: ({ vertices_vertices, vertices_sectors }: FOLDExtended) => {
         vertices: number[];
         edges: string[];
         angles?: number[];
@@ -141,14 +141,14 @@ declare const graphExport: Function & {
     getFacesEdgesOverlap: ({ vertices_coords, edges_vertices, faces_vertices, faces_edges, }: FOLD, epsilon?: number) => number[][];
     getEdgesFacesOverlap: ({ vertices_coords, edges_vertices, faces_vertices, faces_edges, }: FOLD, epsilon?: number) => number[][];
     faceOrdersSubset: (faceOrders: [number, number, number][], faces: number[]) => [number, number, number][];
-    linearizeFaceOrders: ({ faceOrders, faces_normal }: FOLD, rootFace: any) => number[];
-    linearize2DFaces: ({ vertices_coords, faces_vertices, faceOrders, faces_layer, faces_normal, }: FOLD, rootFace: any) => number[];
-    nudgeFacesWithFaceOrders: ({ vertices_coords, faces_vertices, faceOrders, faces_normal, }: FOLD) => any[];
-    nudgeFacesWithFacesLayer: ({ faces_layer }: FOLD) => any[];
-    makeFacesLayer: ({ vertices_coords, faces_vertices, faceOrders, faces_normal }: any) => number[];
+    linearizeFaceOrders: ({ faceOrders, faces_normal }: FOLDExtended, rootFace: any) => number[];
+    linearize2DFaces: ({ vertices_coords, faces_vertices, faceOrders, faces_layer, faces_normal, }: FOLDExtended, rootFace: any) => number[];
+    nudgeFacesWithFaceOrders: ({ vertices_coords, faces_vertices, faceOrders, faces_normal, }: FOLDExtended) => any[];
+    nudgeFacesWithFacesLayer: ({ faces_layer }: FOLDExtended) => any[];
+    makeFacesLayer: ({ vertices_coords, faces_vertices, faceOrders, faces_normal }: FOLDExtended) => number[];
     flipFacesLayer: (faces_layer: number[]) => number[];
     makeFacesNormal: ({ vertices_coords, faces_vertices }: FOLD) => [number, number, number][];
-    makeVerticesNormal: ({ vertices_coords, faces_vertices, faces_normal }: FOLD) => number[][];
+    makeVerticesNormal: ({ vertices_coords, faces_vertices, faces_normal }: FOLDExtended) => number[][];
     normalize: (graph: FOLD) => FOLD;
     nearestVertex: ({ vertices_coords }: FOLD, point: number[]) => number;
     nearestEdge: ({ vertices_coords, edges_vertices }: FOLD, point: number[]) => number;
@@ -170,8 +170,8 @@ declare const graphExport: Function & {
     makeVerticesFaces: ({ vertices_coords, vertices_vertices, faces_vertices }: FOLD) => number[][];
     makeVerticesEdgesUnsorted: ({ edges_vertices }: FOLD) => number[][];
     makeVerticesEdges: ({ edges_vertices, vertices_vertices }: FOLD) => number[][];
-    makeVerticesVerticesVector: ({ vertices_coords, vertices_vertices, vertices_edges, vertices_faces, edges_vertices, edges_vector, faces_vertices, }: FOLD) => [number, number][][];
-    makeVerticesSectors: ({ vertices_coords, vertices_vertices, edges_vertices, edges_vector, }: FOLD) => number[][];
+    makeVerticesVerticesVector: ({ vertices_coords, vertices_vertices, vertices_edges, vertices_faces, edges_vertices, edges_vector, faces_vertices, }: FOLDExtended) => [number, number][][];
+    makeVerticesSectors: ({ vertices_coords, vertices_vertices, edges_vertices, edges_vector, }: FOLDExtended) => number[][];
     makeVerticesToEdge: ({ edges_vertices }: FOLD, edges: any) => {
         [key: string]: number;
     };
@@ -184,7 +184,7 @@ declare const graphExport: Function & {
     makeFacesVerticesFromEdges: ({ edges_vertices, faces_edges }: FOLD) => number[][];
     makeFacesFaces: ({ faces_vertices }: FOLD) => number[][];
     makeFacesEdgesFromVertices: ({ edges_vertices, faces_vertices }: FOLD) => number[][];
-    makePlanarFaces: ({ vertices_coords, vertices_vertices, vertices_edges, vertices_sectors, edges_vertices, edges_vector, }: FOLD) => {
+    makePlanarFaces: ({ vertices_coords, vertices_vertices, vertices_edges, vertices_sectors, edges_vertices, edges_vector, }: FOLDExtended) => {
         faces_vertices: number[][];
         faces_edges: number[][];
         faces_sectors: number[][];
@@ -196,9 +196,9 @@ declare const graphExport: Function & {
     makeFacesCenter3DQuick: ({ vertices_coords, faces_vertices }: FOLD) => [number, number, number][];
     makeFacesCenterQuick: ({ vertices_coords, faces_vertices }: FOLD) => [number, number][] | [number, number, number][];
     makeEdgesFoldAngle: ({ edges_assignment }: FOLD) => number[];
-    makeEdgesFoldAngleFromFaces: ({ vertices_coords, edges_vertices, edges_faces, edges_assignment, faces_vertices, faces_edges, faces_normal, faces_center, }: FOLD) => number[];
+    makeEdgesFoldAngleFromFaces: ({ vertices_coords, edges_vertices, edges_faces, edges_assignment, faces_vertices, faces_edges, faces_normal, faces_center, }: FOLDExtended) => number[];
     makeEdgesFacesUnsorted: ({ edges_vertices, faces_vertices, faces_edges }: FOLD) => number[][];
-    makeEdgesFaces: ({ vertices_coords, edges_vertices, edges_vector, faces_vertices, faces_edges, faces_center, }: FOLD) => number[][];
+    makeEdgesFaces: ({ vertices_coords, edges_vertices, edges_vector, faces_vertices, faces_edges, faces_center, }: FOLDExtended) => number[][];
     makeEdgesEdges: ({ edges_vertices, vertices_edges }: FOLD) => number[][];
     makeEdgesAssignmentSimple: ({ edges_foldAngle }: FOLD) => string[];
     makeEdgesAssignment: ({ edges_vertices, edges_foldAngle, edges_faces, faces_vertices, faces_edges, }: FOLD) => string[];
@@ -281,7 +281,7 @@ declare const graphExport: Function & {
     faceIsolatedVertices: ({ vertices_coords, faces_vertices }: FOLD) => number[];
     isolatedVertices: ({ vertices_coords, edges_vertices, faces_vertices }: FOLD) => number[];
     removeIsolatedVertices: (graph: FOLD, remove_indices?: number[]) => any;
-    makeVerticesCoords3DFolded: ({ vertices_coords, vertices_faces, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, faces_matrix, }: FOLD, rootFaces?: number[]) => [number, number, number][];
+    makeVerticesCoords3DFolded: ({ vertices_coords, vertices_faces, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, faces_matrix, }: FOLDExtended, rootFaces?: number[]) => [number, number, number][];
     makeVerticesCoordsFlatFolded: ({ vertices_coords, edges_vertices, edges_foldAngle, edges_assignment, faces_vertices, faces_faces, }: FOLD, rootFaces?: number[]) => [number, number][];
     makeVerticesCoordsFolded: (graph: FOLD, rootFaces?: number[]) => [number, number][] | [number, number, number][];
     makeVerticesCoordsFoldedFromMatrix2: ({ vertices_coords, vertices_faces, faces_vertices, }: FOLD, faces_matrix: number[][]) => [number, number][];
@@ -450,9 +450,9 @@ declare const graphExport: Function & {
     transposeGraphArrays: (graph: FOLD, geometry_key: string) => any[];
     transposeGraphArrayAtIndex: (graph: FOLD, geometry_key: string, index: number) => any;
     isFoldObject: (object?: FOLD) => number;
-    isFoldedForm: ({ frame_classes, file_classes }: FOLD) => boolean;
     getDimension: ({ vertices_coords }: FOLD, epsilon?: number) => number;
     getDimensionQuick: ({ vertices_coords }: FOLD) => number;
+    isFoldedForm: ({ vertices_coords, frame_classes, file_classes }: FOLD, epsilon?: number) => boolean;
     makeEdgesIsFolded: ({ edges_vertices, edges_foldAngle, edges_assignment }: FOLD) => boolean[];
     invertAssignment: (assign: string) => string;
     invertAssignments: (graph: FOLD) => FOLD;
@@ -476,3 +476,4 @@ declare const graphExport: Function & {
 import * as trees from "./trees.js";
 import * as splitGraph from "./split/splitGraph.js";
 import * as foldGraph from "./fold/foldGraph.js";
+//# sourceMappingURL=index.d.ts.map

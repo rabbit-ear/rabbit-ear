@@ -9,3 +9,4 @@ export function makePolygonNonCollinear3(polygon: [number, number, number][], ep
 export function signedArea(points: [number, number][]): number;
 export function centroid(points: [number, number][]): [number, number];
 export function boundingBox(points: number[][], padding?: number): Box | null;
+//# sourceMappingURL=polygon.d.ts.map

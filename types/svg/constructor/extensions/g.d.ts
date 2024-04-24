@@ -9,3 +9,4 @@ declare namespace gDef {
         };
     }
 }
+//# sourceMappingURL=g.d.ts.map

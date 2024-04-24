@@ -33,9 +33,9 @@
 	],
 	"license": "GPLv3",
 	"author": {
-		"name": "Kraft",
-		"email": "",
-		"url": "https://github.com/"
+		"name": "Maya Kraft",
+		"email": "maya@kraft.work",
+		"url": "https://kraft.work"
 	},
 	"keywords": [
 		"origami",
@@ -54,11 +54,11 @@
 	],
 	"repository": {
 		"type": "git",
-		"url": "git://github.com/robbykraft/Origami.git"
+		"url": "git://github.com/mayakraft/Origami.git"
 	},
 	"homepage": "https://rabbitear.org",
 	"bugs": {
-		"url": "https://github.com/robbykraft/Origami/issues"
+		"url": "https://github.com/mayakraft/Origami/issues"
 	},
 	"devDependencies": {
 		"@rollup/plugin-terser": "^0.4.3",

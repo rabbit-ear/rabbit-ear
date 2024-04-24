@@ -55,7 +55,7 @@ const layerSolutionToFaceOrdersTree = ({ orders, branches }, faces_winding) => (
  * in a flat-foldable origami model. The result contains all possible
  * solutions, use the prototype methods available on this return object
  * to choose one solution, among other available options.
- * @param {FOLD} graph a FOLD object with folded vertices in 2D
+ * @param {FOLDExtended} graph a FOLD object with folded vertices in 2D
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {{
  *   orders: {[key:string]: number},
@@ -133,7 +133,7 @@ export const solveLayerOrders = ({
  * @description Keeping this around for legacy reasons.
  * This is the layer solver that builds one top-level branch
  * and no more.
- * @param {FOLD} graph a FOLD object
+ * @param {FOLDExtended} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
  */
 export const solveLayerOrdersSingleBranches = ({

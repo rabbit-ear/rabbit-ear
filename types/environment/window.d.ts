@@ -5,3 +5,4 @@ export default RabbitEarWindow;
  * DOMParser, XMLSerializer, and document.
  */
 declare function RabbitEarWindow(): any;
+//# sourceMappingURL=window.d.ts.map

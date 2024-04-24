@@ -69,3 +69,4 @@ declare const _default: {
     objToFold: (file: string) => FOLD;
 };
 export default _default;
+//# sourceMappingURL=index.d.ts.map

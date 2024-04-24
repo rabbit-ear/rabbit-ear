@@ -12,7 +12,7 @@ import {
  * @description Given a folded graph, find all trios of faces which overlap
  * each other, meaning there exists at least one point that lies at the
  * intersection of all three faces.
- * @param {FOLD} graph a FOLD object
+ * @param {FOLDExtended} graph a FOLD object
  * @param {number[][]} facesFacesOverlap an overlap-relationship between every face
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {TransitivityConstraint[]} list of arrays containing three face indices.

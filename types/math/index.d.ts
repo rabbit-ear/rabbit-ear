@@ -194,3 +194,4 @@ declare const _default: {
     TWO_PI: number;
 };
 export default _default;
+//# sourceMappingURL=index.d.ts.map

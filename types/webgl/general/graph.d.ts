@@ -1,1 +1,2 @@
-export function makeExplodedGraph(graph: FOLD, layerNudge?: number): FOLD;
+export function makeExplodedGraph(graph: FOLDExtended, layerNudge?: number): FOLD;
+//# sourceMappingURL=graph.d.ts.map

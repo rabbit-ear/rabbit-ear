@@ -16,3 +16,4 @@ export { Constructor as default };
  * @param {object} parent the parent to append this new node as a child to.
  */
 declare function Constructor(name: string, parent: object, ...initArgs: any[]): any;
+//# sourceMappingURL=index.d.ts.map

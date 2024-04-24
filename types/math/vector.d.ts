@@ -50,3 +50,4 @@ export function resizeUp(a: number[], b: number[]): number[][];
 export function basisVectors2(vector?: [number, number] | [number, number, number]): [number, number][];
 export function basisVectors3(vector?: [number, number, number]): [number, number, number][];
 export function basisVectors(vector: number[]): number[][];
+//# sourceMappingURL=vector.d.ts.map

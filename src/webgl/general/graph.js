@@ -35,7 +35,7 @@ const LAYER_NUDGE = 5e-6;
  * nudge coplanar faces away from each other, based on their layer ordering
  * (via. faceOrders or faces_layer) by a tiny amount in the cross axis to
  * prevent z-fighting between coplanar faces.
- * @param {FOLD} graph a FOLD object
+ * @param {FOLDExtended} graph a FOLD object
  * @param {number} [layerNudge=5e-6] a small amount to nudge
  * the faces in the cross axis to prevent Z-fighting
  * @returns {FOLD} a copy of the input FOLD graph, with exploded faces

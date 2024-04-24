@@ -25,3 +25,4 @@ export function toCamel(s: string): string;
  * @returns {string} a string in kebab case
  */
 export function toKebab(s: string): string;
+//# sourceMappingURL=string.d.ts.map

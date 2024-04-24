@@ -71,7 +71,7 @@ export const makeConstraintsLookup = (constraints) => {
  * @description Convert a folded graph into the input parameters for the solver
  * including taco-taco, taco-tortilla, tortilla-tortilla, and transitivity
  * constraints.
- * @param {FOLD} graph a FOLD object
+ * @param {FOLDExtended} graph a FOLD object
  * @param {number} [epsilon=1e-6] optional epsilon. it will be calculated
  * if you leave this empty.
  * @returns {{

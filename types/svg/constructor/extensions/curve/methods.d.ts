@@ -5,3 +5,4 @@ declare const curve_methods: {
     bend: (element: any, amount: any) => any;
     pinch: (element: any, amount: any) => any;
 };
+//# sourceMappingURL=methods.d.ts.map

@@ -18,3 +18,4 @@ declare function makeArrowPaths(options: {
     tail: string;
     head: string;
 };
+//# sourceMappingURL=makeArrowPaths.d.ts.map

@@ -5,3 +5,4 @@ export function overlapConvexPolygonPoint(polygon: ([number, number] | [number, 
 };
 export function overlapConvexPolygons(poly1: [number, number][], poly2: [number, number][], epsilon?: number): boolean;
 export function overlapBoundingBoxes(box1: Box, box2: Box, epsilon?: number): boolean;
+//# sourceMappingURL=overlap.d.ts.map

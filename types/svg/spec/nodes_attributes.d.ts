@@ -18,3 +18,4 @@ declare namespace nodes_attributes {
     let stop: string[];
     let pattern: string[];
 }
+//# sourceMappingURL=nodes_attributes.d.ts.map

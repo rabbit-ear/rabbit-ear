@@ -4,3 +4,4 @@ export function verticesFlatFoldableMaekawa(graph: FOLD): boolean[];
 export function verticesFlatFoldableKawasaki(graph: FOLD, epsilon?: number): boolean[];
 export function verticesFlatFoldability(graph: FOLD, epsilon?: number): number[];
 export function verticesFlatFoldable(graph: FOLD, epsilon?: number): boolean[];
+//# sourceMappingURL=flatFoldable.d.ts.map

@@ -1,11 +1,11 @@
-export function solveLayerOrders({ vertices_coords, edges_vertices, edges_faces, edges_assignment, edges_foldAngle, faces_vertices, faces_edges, faces_faces, edges_vector, }: FOLD, epsilon?: number): {
+export function solveLayerOrders({ vertices_coords, edges_vertices, edges_faces, edges_assignment, edges_foldAngle, faces_vertices, faces_edges, faces_faces, edges_vector, }: FOLDExtended, epsilon?: number): {
     orders: {
         [key: string]: number;
     };
     branches?: LayerBranch[];
     faces_winding: boolean[];
 };
-export function solveLayerOrdersSingleBranches({ vertices_coords, edges_vertices, edges_faces, edges_assignment, faces_vertices, faces_edges, edges_vector, }: FOLD, epsilon?: number): {
+export function solveLayerOrdersSingleBranches({ vertices_coords, edges_vertices, edges_faces, edges_assignment, faces_vertices, faces_edges, edges_vector, }: FOLDExtended, epsilon?: number): {
     orders: {};
     faces_winding: any[];
 } | {
@@ -27,3 +27,4 @@ export function solveLayerOrders3D({ vertices_coords, edges_vertices, edges_face
 };
 export function solveFaceOrders(graph: FOLD, epsilon?: number): FaceOrdersSolverSolution;
 export function solveFaceOrders3D(graph: FOLD, epsilon?: number): FaceOrdersSolverSolution;
+//# sourceMappingURL=solve.d.ts.map

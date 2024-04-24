@@ -8,3 +8,4 @@ export namespace assignmentColor {
     let U: string;
 }
 export function rgbToAssignment(red?: number, green?: number, blue?: number): string;
+//# sourceMappingURL=colors.d.ts.map

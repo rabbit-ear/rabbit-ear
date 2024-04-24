@@ -161,3 +161,4 @@ declare const colors: {
         yellowgreen: string;
     };
 };
+//# sourceMappingURL=index.d.ts.map

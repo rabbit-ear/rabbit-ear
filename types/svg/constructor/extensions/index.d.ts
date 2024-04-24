@@ -257,3 +257,4 @@ declare const extensions: {
         init: (_: any, ...args: any[]) => any;
     };
 };
+//# sourceMappingURL=index.d.ts.map

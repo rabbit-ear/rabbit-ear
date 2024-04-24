@@ -8,3 +8,4 @@ export function makeNewFlatFoldFaceOrders({ edges_faces, edges_assignment, edges
 export function getInvalidFaceOrders({ vertices_coords, faces_vertices, faceOrders }: FOLD, line: VecLine2, newFaces: number[]): number[];
 export function updateFlatFoldedInvalidFaceOrders({ faceOrders }: FOLD, invalidFaceOrders: number[], foldAngle: number, faces_winding: boolean[]): undefined;
 export function updateFaceOrders(graph: FOLD, folded: FOLD, line: VecLine2, foldAngle: number, faces_winding: boolean[], newEdges: number[], newFaces: number[]): undefined;
+//# sourceMappingURL=general.d.ts.map

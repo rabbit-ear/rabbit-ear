@@ -13,3 +13,4 @@ export function svgSegments(svg: Element | string): {
 }[];
 export function svgEdgeGraph(svg: Element | string, options: any): FOLD;
 export function svgToFold(file: string | SVGElement, options: number | object): FOLD;
+//# sourceMappingURL=svgToFold.d.ts.map

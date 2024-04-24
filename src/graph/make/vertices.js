@@ -22,7 +22,8 @@ import {
  * @description For every vertex, make an array of vectors that point towards each
  * of the incident vertices. This is accomplised by taking the vertices_vertices
  * array and converting it into vectors, indices will be aligned with vertices_vertices.
- * @param {FOLD} graph a FOLD object, containing vertices_coords, vertices_vertices, edges_vertices
+ * @param {FOLDExtended} graph a FOLD object, containing vertices_coords,
+ * vertices_vertices, edges_vertices
  * @returns {[number, number][][]} array of array of array of numbers, where each row corresponds
  * to a vertex index, inner arrays correspond to vertices_vertices, and inside is a 2D vector
  * @todo this can someday be rewritten without edges_vertices
@@ -58,7 +59,8 @@ export const makeVerticesVerticesVector = ({
  * @description Between pairs of counter-clockwise adjacent edges around a vertex
  * is the sector measured in radians. This builds an array of of sector angles,
  * index matched to vertices_vertices.
- * @param {FOLD} graph a FOLD object, containing vertices_coords, vertices_vertices, edges_vertices
+ * @param {FOLDExtended} graph a FOLD object, containing vertices_coords,
+ * vertices_vertices, edges_vertices
  * @returns {number[][]} array of array of numbers, where each row corresponds
  * to a vertex index, inner arrays contains angles in radians
  */

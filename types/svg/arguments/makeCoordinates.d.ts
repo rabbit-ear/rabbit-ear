@@ -12,3 +12,4 @@ export { makeCoordinates as default };
  * findCoordinates(...flatten(...args));
  */
 declare function makeCoordinates(...args: any[]): any[];
+//# sourceMappingURL=makeCoordinates.d.ts.map

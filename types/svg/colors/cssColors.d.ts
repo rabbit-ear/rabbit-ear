@@ -148,3 +148,4 @@ declare namespace cssColors {
     let whitesmoke: string;
     let yellowgreen: string;
 }
+//# sourceMappingURL=cssColors.d.ts.map

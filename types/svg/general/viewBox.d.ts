@@ -7,3 +7,4 @@ export function getViewBox(element: any): any;
  * Rabbit Ear (c) Kraft
  */
 export function setViewBox(element: any, ...args: any[]): any;
+//# sourceMappingURL=viewBox.d.ts.map

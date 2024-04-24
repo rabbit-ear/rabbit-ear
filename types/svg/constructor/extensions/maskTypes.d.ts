@@ -43,3 +43,4 @@ declare namespace maskTypes {
     }
 }
 declare function maskArgs(...args: any[]): any[];
+//# sourceMappingURL=maskTypes.d.ts.map

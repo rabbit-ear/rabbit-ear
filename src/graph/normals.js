@@ -48,7 +48,7 @@ export const makeFacesNormal = ({ vertices_coords, faces_vertices }) => {
  * @description Make one vector for every vertex that represents the
  * vertex's normal direction. In this case a vertex normal is the average
  * of all of the face's normals incident to this vertex.
- * @param {FOLD} graph a FOLD object
+ * @param {FOLDExtended} graph a FOLD object
  * @returns {number[][]} an array of 3D vectors, one for every vertex
  */
 export const makeVerticesNormal = ({ vertices_coords, faces_vertices, faces_normal }) => {

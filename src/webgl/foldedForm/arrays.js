@@ -12,7 +12,7 @@ import {
 /**
  * @param {WebGLRenderingContext|WebGL2RenderingContext} gl WebGL context
  * @param {object} program
- * @param {FOLD} graph a FOLD object
+ * @param {FOLDExtended} graph a FOLD object
  * @returns {WebGLVertexArray[]}
  */
 export const makeFoldedVertexArrays = (gl, program, {

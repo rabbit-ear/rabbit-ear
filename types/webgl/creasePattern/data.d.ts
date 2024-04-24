@@ -4,3 +4,4 @@ export function makeCPEdgesVertexData(graph: any, options: any): {
     verticesEdgesVector: any;
     vertices_vector: any;
 };
+//# sourceMappingURL=data.d.ts.map

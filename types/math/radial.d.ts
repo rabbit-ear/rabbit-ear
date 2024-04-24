@@ -14,3 +14,4 @@ export function counterClockwiseOrder2(vectors: [number, number][]): number[];
 export function counterClockwiseSectorsRadians(radians: number[]): number[];
 export function counterClockwiseSectors2(vectors: [number, number][]): number[];
 export function threePointTurnDirection(p0: [number, number], p1: [number, number], p2: [number, number], epsilon?: number): number | undefined;
+//# sourceMappingURL=radial.d.ts.map

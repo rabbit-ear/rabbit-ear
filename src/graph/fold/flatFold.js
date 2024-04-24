@@ -195,7 +195,7 @@ export const getEdgesCollinearToLine = (
 /**
  * @description make a crease that passes through the entire origami and modify the
  * faces order to simulate one side of the faces flipped over and set on top.
- * @param {FOLD & {
+ * @param {FOLDExtended & {
  *   faces_matrix2: number[][],
  *   faces_winding: boolean[],
  *   faces_crease: VecLine2[],

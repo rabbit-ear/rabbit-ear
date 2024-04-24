@@ -10,3 +10,4 @@ export function getEdgesLineBruteForce({ vertices_coords, edges_vertices }: FOLD
     lines: VecLine[];
     edges_line: number[];
 };
+//# sourceMappingURL=lines.d.ts.map

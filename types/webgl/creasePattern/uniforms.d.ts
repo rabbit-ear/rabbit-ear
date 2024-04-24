@@ -6,3 +6,4 @@ export function makeUniforms(gl: WebGLRenderingContext | WebGL2RenderingContext,
 }): {
     [key: string]: WebGLUniform;
 };
+//# sourceMappingURL=uniforms.d.ts.map

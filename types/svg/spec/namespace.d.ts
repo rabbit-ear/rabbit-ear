@@ -8,3 +8,4 @@ export { NS as default };
  * @default
  */
 declare const NS: "http://www.w3.org/2000/svg";
+//# sourceMappingURL=namespace.d.ts.map

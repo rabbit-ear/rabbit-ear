@@ -15,3 +15,4 @@ export function parseColorToHex(string: string): string;
  * with possible 4th value between 0 and 1.
  */
 export function parseColorToRgb(string: string): number[] | undefined;
+//# sourceMappingURL=parseColor.d.ts.map

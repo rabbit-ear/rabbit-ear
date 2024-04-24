@@ -43,9 +43,10 @@ declare const _default: {
         verticesEdgesVector: any;
         vertices_vector: any;
     };
-    makeFoldedVertexArrays: (gl: WebGLRenderingContext | WebGL2RenderingContext, program: any, { vertices_coords, edges_vertices, edges_assignment, faces_vertices, faces_edges, faces_normal, }?: FOLD, options?: {}) => WebGLVertexArray[];
+    makeFoldedVertexArrays: (gl: WebGLRenderingContext | WebGL2RenderingContext, program: any, { vertices_coords, edges_vertices, edges_assignment, faces_vertices, faces_edges, faces_normal, }?: FOLDExtended, options?: {}) => WebGLVertexArray[];
     makeFoldedElementArrays: (gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD) => WebGLElementArray[];
     makeThickEdgesVertexArrays: (gl: WebGLRenderingContext | WebGL2RenderingContext, program: any, graph: FOLD, options?: {}) => WebGLVertexArray[];
     makeThickEdgesElementArrays: (gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD) => WebGLElementArray[];
 };
 export default _default;
+//# sourceMappingURL=index.d.ts.map

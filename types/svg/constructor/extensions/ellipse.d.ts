@@ -18,3 +18,4 @@ declare namespace ellipseDef {
         };
     }
 }
+//# sourceMappingURL=ellipse.d.ts.map

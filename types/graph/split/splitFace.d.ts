@@ -18,3 +18,4 @@ export function splitFace(graph: FOLD, face: number, vertices: [number, number],
         remove?: number;
     };
 };
+//# sourceMappingURL=splitFace.d.ts.map

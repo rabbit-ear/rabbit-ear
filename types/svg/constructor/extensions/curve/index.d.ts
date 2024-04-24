@@ -10,3 +10,4 @@ declare namespace curveDef {
 import { str_path } from '../../../environment/strings.js';
 import curveArguments from './arguments.js';
 import curve_methods from './methods.js';
+//# sourceMappingURL=index.d.ts.map

@@ -16,3 +16,4 @@ export function solver({ constraints, lookup, facePairs, orders }: {
         [key: string]: number;
     };
 }): LayerSolverSolution;
+//# sourceMappingURL=solver.d.ts.map

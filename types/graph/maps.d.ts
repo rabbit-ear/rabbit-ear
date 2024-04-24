@@ -7,3 +7,4 @@ export function mergeNextmaps(...maps: (number | number[])[][]): number[][];
 export function mergeFlatBackmaps(...maps: number[][]): number[];
 export function mergeBackmaps(...maps: (number | number[])[][]): number[][];
 export function remapKey(graph: FOLD, key: string, indexMap: number[]): void;
+//# sourceMappingURL=maps.d.ts.map

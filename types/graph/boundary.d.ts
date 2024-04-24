@@ -18,3 +18,4 @@ export function planarBoundaries({ vertices_coords, vertices_edges, vertices_ver
     vertices: number[];
     edges: number[];
 }[];
+//# sourceMappingURL=boundary.d.ts.map

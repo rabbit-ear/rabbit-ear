@@ -3,3 +3,4 @@ export function clusterUnsortedIndices(indices: any[], comparison: Function): nu
 export function clusterScalars(numbers: number[], epsilon?: number): number[][];
 export function clusterRanges(ranges: [number, number][], epsilon?: number): number[][];
 export function clusterParallelVectors(vectors: number[][], epsilon?: number): number[][];
+//# sourceMappingURL=cluster.d.ts.map

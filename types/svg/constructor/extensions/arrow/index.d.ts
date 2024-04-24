@@ -10,3 +10,4 @@ declare namespace arrowDef {
 }
 import ArrowMethods from './methods.js';
 import init from './init.js';
+//# sourceMappingURL=index.d.ts.map

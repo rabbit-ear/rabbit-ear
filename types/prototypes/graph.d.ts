@@ -38,3 +38,4 @@ declare class Graph {
      */
     flatFolded(...args: any[]): any;
 }
+//# sourceMappingURL=graph.d.ts.map

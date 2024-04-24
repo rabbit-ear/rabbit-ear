@@ -5,7 +5,7 @@ declare const _default: {
     kawasakiSolutionsRadians: (radians: number[]) => number[];
     kawasakiSolutionsVectors: (vectors: number[][]) => [number, number][];
     kawasakiSolutions: ({ vertices_coords, vertices_edges, edges_assignment, edges_vertices }: FOLD, vertex: number) => number[][];
-    verticesFoldability: ({ vertices_coords, vertices_vertices, vertices_edges, vertices_faces, edges_vertices, edges_foldAngle, edges_vector, faces_vertices, }: FOLD) => number[];
+    verticesFoldability: ({ vertices_coords, vertices_vertices, vertices_edges, vertices_faces, edges_vertices, edges_foldAngle, edges_vector, faces_vertices, }: FOLDExtended) => number[];
     verticesFoldable: (graph: FOLD, epsilon?: number) => boolean[];
     verticesFlatFoldabilityMaekawa: ({ edges_vertices, vertices_edges, edges_assignment, }: FOLD) => number[];
     verticesFlatFoldabilityKawasaki: ({ vertices_coords, vertices_vertices, vertices_edges, edges_vertices, edges_assignment, }: FOLD) => number[];
@@ -16,3 +16,4 @@ declare const _default: {
     foldDegree4: (sectors: number[], assignments: string[], foldAngle?: number) => number[];
 };
 export default _default;
+//# sourceMappingURL=index.d.ts.map

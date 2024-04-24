@@ -12,3 +12,4 @@ declare function RabbitEarWindow(): any;
  */
 export function setWindow(newWindow: any): any;
 export { RabbitEarWindow as default };
+//# sourceMappingURL=window.d.ts.map

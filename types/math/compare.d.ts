@@ -9,3 +9,4 @@ export function includeR(n: number, epsilon?: number): boolean;
 export function excludeR(n: number, epsilon?: number): boolean;
 export function includeS(n: number, e?: number): boolean;
 export function excludeS(n: number, e?: number): boolean;
+//# sourceMappingURL=compare.d.ts.map

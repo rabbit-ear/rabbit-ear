@@ -7,3 +7,4 @@ declare namespace svgDef {
     }
 }
 import methods from './methods.js';
+//# sourceMappingURL=index.d.ts.map

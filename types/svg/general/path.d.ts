@@ -25,3 +25,4 @@ export namespace pathCommandNames {
     let t: string;
     let z: string;
 }
+//# sourceMappingURL=path.d.ts.map

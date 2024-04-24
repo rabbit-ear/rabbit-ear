@@ -7,3 +7,4 @@ export function makeVerticesToFace({ faces_vertices }: FOLD, faces: any): {
 export function makeEdgesToFace({ faces_edges }: FOLD, faces: any): {
     [key: string]: number;
 };
+//# sourceMappingURL=lookup.d.ts.map

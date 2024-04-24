@@ -47,7 +47,7 @@ import {
  * unassigned edges are treated as flat fold (mountain/valley 180deg)
  * as a way of (assuming the user is giving a flat folded origami), help
  * solve things about an origami that is currently being figured out.
- * @param {FOLD} graph a FOLD object
+ * @param {FOLDExtended} graph a FOLD object
  * @param {number[]} [rootFaces=[]] the index of the face that will remain in place
  * @returns {[number, number, number][]} a new set of `vertices_coords` with the new positions.
  */

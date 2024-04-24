@@ -27,3 +27,4 @@ export function hslToRgb(hue: number, saturation: number, lightness: number, alp
  * @returns {string} hex string, with our without alpha.
  */
 export function rgbToHex(red: number, green: number, blue: number, alpha: number | undefined): string;
+//# sourceMappingURL=convert.d.ts.map

@@ -9,3 +9,4 @@ declare namespace origamiDef {
 }
 import init from './init.js';
 import methods from './methods.js';
+//# sourceMappingURL=index.d.ts.map
