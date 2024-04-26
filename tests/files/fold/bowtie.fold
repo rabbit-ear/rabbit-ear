@@ -1,0 +1,8 @@
+{
+	"frame_description": "a twisted square, two edges overlapping",
+	"vertices_coords":[[0, 0], [1, 0], [1, 1], [0, 1]],
+	"edges_vertices": [[0, 2], [1, 2], [1, 3], [3, 0]],
+	"edges_assignment": ["B","B","B","B"],
+	"edges_foldAngle":[0,0,0,0],
+	"faces_vertices": [[0, 1, 2, 3]]
+}

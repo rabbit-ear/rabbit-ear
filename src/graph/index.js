@@ -9,6 +9,7 @@ import * as addEdges from "./add/edge.js";
 import * as edgesCircular from "./edges/circular.js";
 import * as edgesDuplicate from "./edges/duplicate.js";
 import * as edgesLines from "./edges/lines.js";
+import * as edgesOverlap from "./edges/overlap.js";
 import * as facesPlanes from "./faces/planes.js";
 import * as facesMatrix from "./faces/matrix.js";
 import * as facesWinding from "./faces/winding.js";
@@ -73,6 +74,7 @@ const graphMethods = {
 	...edgesCircular,
 	...edgesDuplicate,
 	...edgesLines,
+	...edgesOverlap,
 	...facesPlanes,
 	...facesMatrix,
 	...facesWinding,

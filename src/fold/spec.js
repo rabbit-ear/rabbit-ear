@@ -1,8 +1,15 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "../math/constant.js";
-import { epsilonEqual } from "../math/compare.js";
+import {
+	EPSILON,
+} from "../math/constant.js";
+import {
+	epsilonEqual,
+} from "../math/compare.js";
+import {
+	doEdgesOverlap,
+} from "../graph/edges/overlap.js";
 
 /**
  * FOLD spec: https://github.com/edemaine/FOLD/
@@ -258,7 +265,7 @@ const filterKeys = (obj, matchFunction) => Object
  * @description Get all keys in an object which begin with a string and are
  * immediately followed by "_". For example, provide "vertices" and this will
  * match "vertices_coords", "vertices_faces", but not "faces_vertices"
- * @param {object} obj an object, FOLD object or otherwise.
+ * @param {FOLD} obj an object, FOLD object or otherwise.
  * @param {string} prefix a prefix to match against the keys
  * @returns {string[]} array of matching keys
  */
@@ -272,7 +279,7 @@ export const filterKeysWithPrefix = (obj, prefix) => filterKeys(
  * @description Get all keys in an object which end with a string and are
  * immediately preceded by "_". For example, provide "vertices" and this will
  * match "edges_vertices", "faces_vertices", but not "vertices_edges"
- * @param {object} obj an object, FOLD object or otherwise.
+ * @param {FOLD} obj an object, FOLD object or otherwise.
  * @param {string} suffix a suffix to match against the keys
  * @returns {string[]} array of matching keys
  */
@@ -285,7 +292,7 @@ export const filterKeysWithSuffix = (obj, suffix) => filterKeys(
 /**
  * @description Find all keys in an object that contain a _ character,
  * and return every prefix substring that comes before the _.
- * @param {object} obj an object, FOLD object or otherwise.
+ * @param {FOLD} obj an object, FOLD object or otherwise.
  * @returns {string[]} array of prefixes
  */
 export const getAllPrefixes = (obj) => {
@@ -300,7 +307,7 @@ export const getAllPrefixes = (obj) => {
 /**
  * @description Find all keys in an object that contain a _ character,
  * and return every suffix substring that comes after the _.
- * @param {object} obj an object, FOLD object or otherwise.
+ * @param {FOLD} obj an object, FOLD object or otherwise.
  * @returns {string[]} array of suffixes
  */
 export const getAllSuffixes = (obj) => {
@@ -399,7 +406,7 @@ export const getDimension = ({ vertices_coords }, epsilon = EPSILON) => {
  * undefined if no vertices exist. number should be 2 or 3 in most cases.
  */
 export const getDimensionQuick = ({ vertices_coords }) => {
-	if (!vertices_coords.length) { return undefined; }
+	if (!vertices_coords || !vertices_coords.length) { return undefined; }
 	// return length of first vertex, if it exists
 	if (vertices_coords[0] !== undefined) {
 		return vertices_coords[0].length;
@@ -414,12 +421,14 @@ export const getDimensionQuick = ({ vertices_coords }) => {
  * @description Infer if a FOLD object is in its folded state
  * (as opposed to crease pattern state).
  * A graph will be considered "folded" if the "foldedForm" key can be found
- * in the metadata or if the vertices_coords are in 3D and a Z number is not 0.
+ * in the metadata, or if the vertices_coords are in 3D and a Z number is not 0,
+ * or, if vertices are in 2D and any edges are overlapping.
  * @param {FOLD} graph a FOLD object
- * @returns {boolean} true if the graph contains "foldedForm".
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {boolean} true if the graph is in a folded state
  */
 export const isFoldedForm = (
-	{ vertices_coords, frame_classes, file_classes },
+	{ vertices_coords, edges_vertices, frame_classes, file_classes },
 	epsilon = EPSILON,
 ) => {
 	// FOLD spec only describes "foldedForm" to be in the frame_classes,
@@ -428,7 +437,19 @@ export const isFoldedForm = (
 		|| (file_classes && file_classes.includes("foldedForm"))) {
 		return true;
 	}
-	if (getDimensionQuick({ vertices_coords }) === 2) { return false; }
+	// unfortunately, anything beyond this point cannot be calculated precisely,
+	// or it cannot be calculated precisely without a significant overhead
+
+	// if vertices or edges don't exist, we can't tell anything about the graph,
+	// return false in this case
+	if (!vertices_coords || !edges_vertices) { return false; }
+
+	// if the coordinates have only 2 dimensions, we only know that it's flat.
+	// we have to check if it's a crease pattern or a flat-folded model,
+	// do this by checking if any two edges overlap.
+	if (getDimensionQuick({ vertices_coords }) === 2) {
+		return doEdgesOverlap({ vertices_coords, edges_vertices });
+	}
 
 	// iterate over every vertex, check each vertex's Z component, if the
 	// Z value is not 0, consider the graph to be folded.
@@ -495,7 +516,15 @@ export const invertAssignments = (graph) => {
  * all assignments as keys, and the values are an array of edge indices
  * from this graph matching those assignments under the key.
  * @param {FOLD} graph a FOLD object
- * @returns {object} keys: assignment characters, values: array of edge indices
+ * @returns {{
+ *   B?: number[],
+ *   V?: number[],
+ *   M?: number[],
+ *   F?: number[],
+ *   J?: number[],
+ *   C?: number[],
+ *   U?: number[],
+ * }} keys: assignment characters, values: array of edge indices
  */
 export const sortEdgesByAssignment = ({ edges_vertices, edges_assignment = [] }) => {
 	// get an array of all uppercase assignments as strings (B, M, V, F...)
@@ -521,7 +550,14 @@ export const sortEdgesByAssignment = ({ edges_vertices, edges_assignment = [] })
  * data inside any of the "file_" keys. Note: this does not include
  * any "frames_" frame metadata.
  * @param {FOLD} FOLD a FOLD object
- * @returns {object} an object containing the metadata keys and values
+ * @returns {{
+ *   file_spec?: number,
+ *   file_creator?: string,
+ *   file_author?: string,
+ *   file_title?: string,
+ *   file_description?: string,
+ *   file_classes?: string[],
+ * }} an object containing the metadata keys and values
  */
 export const getFileMetadata = (FOLD = {}) => {
 	// return all "file_" metadata keys (do not include file_frames)

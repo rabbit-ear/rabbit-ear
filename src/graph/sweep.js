@@ -16,6 +16,7 @@ import {
 import {
 	makeVerticesEdgesUnsorted,
 } from "./make/verticesEdges.js";
+// import { invertArrayToFlatMap } from "./maps.js";
 
 /**
  * @description convert a faces_vertices into an edge-style list, where
@@ -262,4 +263,109 @@ export const sweep = ({
 // export const sweepRanges = (ranges, epsilon = EPSILON) => {
 // 	const values = vertices_coords.map(p => p[axis]);
 
+// };
+
+/**
+ * @param {FOLD} graph a FOLD object
+ * @param {number} axis the direction of movement the sweep line sweeps
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ */
+// export const edgeSweep = (
+// 	{ vertices_coords, edges_vertices, vertices_edges },
+// 	axis = 0,
+// 	epsilon = EPSILON,
+// ) => {
+// 	if (!vertices_edges) {
+// 		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
+// 	}
+
+// 	// let's call the "sweep axis" the direction that the sweep line travels.
+// 	// let's call the "cross axis" the direction of the sweep line itself.
+// 	const crossAxis = axis === 0 ? 1 : 0;
+
+// 	// these are the values of the vertices_coords along the sweep axis
+// 	const sweepValues = vertices_coords.map(p => p[axis]);
+// 	const crossValues = vertices_coords.map(p => p[crossAxis]);
+
+// 	// cluster the vertices along the sweep axis
+// 	const clusters_vertices = clusterScalars(sweepValues, epsilon)
+// 		.map(vertices => vertices.sort((a, b) => crossValues[a] - crossValues[b]));
+// 	const vertices_cluster = invertArrayToFlatMap(clusters_vertices);
+
+// 	console.log("clusters_vertices", clusters_vertices);
+// 	console.log("vertices_cluster", vertices_cluster);
+
+// 	const edgesValues = edges_vertices.map(edge => edge.map(e => sweepValues[e]));
+// 	// is the span degenerate along the sweep axis (both endpoints similar)
+// 	const edgesDegenerate = edgesValues.map(([a, b]) => epsilonEqual(a, b, epsilon));
+// 	// which vertex comes first along the sweep axis
+// 	const edgesDirection = edgesValues.map(([a, b]) => Math.sign(a - b));
+
+// 	// for each edge, for each of its two vertices, is the vertex +1, 0, -1?
+// 	// -1: first point's coordinate is smaller
+// 	//  0: coordinates are same (within an epsilon)
+// 	// +1: second point's coordinate is smaller
+// 	const edgesVertexSide = edges_vertices
+// 		.map(([v1, v2], i) => (edgesDegenerate[i]
+// 			? { [v1]: 0, [v2]: 0 }
+// 			: { [v1]: edgesDirection[i], [v2]: -edgesDirection[i] }));
+
+// 	// build an initial ordering of the edges along the cross axis.
+// 	// const set0Verts = clusters_vertices[0];
+// 	const clusters_vertices_edges = clusters_vertices
+// 		.map(vertices => vertices.map(v => vertices_edges[v]));
+
+// 	console.log("clusters_vertices_edges", clusters_vertices_edges);
+
+// 	const edgeSeen = {};
+// 	const clusterEdgeSpan = clusters_vertices_edges.map(cluster => {
+// 		const start = {};
+// 		const end = {};
+// 		cluster.forEach((edges, i) => edges.forEach(edge => {
+// 			if (!edgeSeen[edge]) {
+// 				start[edge] = i;
+// 				edgeSeen[edge] = true;
+// 			} else {
+// 				end[edge] = i;
+// 				delete edgeSeen[edge];
+// 			}
+// 		}));
+// 		return { start, end };
+// 	});
+
+// 	console.log("clusterEdgeSpan", clusterEdgeSpan);
+
+// 	// const fencepost = Array.from(Array(clusters_vertices_edges.length - 1))
+// 	// 	.map((_, i) => );
+
+// 	clusters_vertices.forEach(vertices => {
+// 		// const edges = vertices.map(v => vertices_edges[v]);
+// 		const start = uniqueElements(vertices
+// 			.filter(v => vertices_edges[v] !== undefined)
+// 			.flatMap(v => vertices_edges[v]
+// 				.filter(edge => edgesVertexSide[edge][v] <= 0)));
+// 		const end = uniqueElements(vertices
+// 			.filter(v => vertices_edges[v] !== undefined)
+// 			.flatMap(v => vertices_edges[v]
+// 				.filter(edge => edgesVertexSide[edge][v] >= 0)));
+// 	});
+
+// 	console.log("edgesVertexSide", edgesVertexSide);
+// 	// within each cluster, if there are a lot of consecutive lines orthogonal
+// 	// to the sweep axis, there will be repeats of edges when converting these
+// 	// vertices into their adjacent edges by looking at vertices_edges.
+// 	// we have to pile these into a Set and extract an array of unique sweepValues.
+// 	return clusters_vertices
+// 		.map(vertices => ({
+// 			vertices,
+// 			t: vertices.reduce((p, c) => p + sweepValues[c], 0) / vertices.length,
+// 			start: uniqueElements(vertices
+// 				.filter(v => vertices_edges[v] !== undefined)
+// 				.flatMap(v => vertices_edges[v]
+// 					.filter(edge => edgesVertexSide[edge][v] <= 0))),
+// 			end: uniqueElements(vertices
+// 				.filter(v => vertices_edges[v] !== undefined)
+// 				.flatMap(v => vertices_edges[v]
+// 					.filter(edge => edgesVertexSide[edge][v] >= 0))),
+// 		}));
 // };

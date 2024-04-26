@@ -5,3 +5,4 @@ docs/
 module/
 tests/tmp/
 package-lock.json
+*.d.ts.map
