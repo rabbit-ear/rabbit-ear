@@ -9,13 +9,13 @@ declare const _default: {
     makeVerticesEdges: ({ edges_vertices, vertices_vertices }: FOLD) => number[][];
     makeVerticesVerticesVector: ({ vertices_coords, vertices_vertices, vertices_edges, vertices_faces, edges_vertices, edges_vector, faces_vertices, }: FOLDExtended) => [number, number][][];
     makeVerticesSectors: ({ vertices_coords, vertices_vertices, edges_vertices, edges_vector, }: FOLDExtended) => number[][];
-    makeVerticesToEdge: ({ edges_vertices }: FOLD, edges: any) => {
+    makeVerticesToEdge: ({ edges_vertices }: FOLD, edges?: number[]) => {
         [key: string]: number;
     };
-    makeVerticesToFace: ({ faces_vertices }: FOLD, faces: any) => {
+    makeVerticesToFace: ({ faces_vertices }: FOLD, faces?: number[]) => {
         [key: string]: number;
     };
-    makeEdgesToFace: ({ faces_edges }: FOLD, faces: any) => {
+    makeEdgesToFace: ({ faces_edges }: FOLD, faces?: number[]) => {
         [key: string]: number;
     };
     makeFacesVerticesFromEdges: ({ edges_vertices, faces_edges }: FOLD) => number[][];

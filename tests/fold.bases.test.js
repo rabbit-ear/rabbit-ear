@@ -1,6 +1,17 @@
 import { expect, test } from "vitest";
 import ear from "../src/index.js";
 
+test("bases, all are valid", () => {
+	expect(ear.graph.validate(ear.graph.blintz())).toHaveLength(0);
+	expect(ear.graph.validate(ear.graph.waterbomb())).toHaveLength(0);
+	expect(ear.graph.validate(ear.graph.kite())).toHaveLength(0);
+	expect(ear.graph.validate(ear.graph.fish())).toHaveLength(0);
+	expect(ear.graph.validate(ear.graph.bird())).toHaveLength(0);
+	expect(ear.graph.validate(ear.graph.frog())).toHaveLength(0);
+	expect(ear.graph.validate(ear.graph.windmill())).toHaveLength(0);
+	expect(ear.graph.validate(ear.graph.squareFish())).toHaveLength(0);
+});
+
 test("square", () => {
 	const res1 = ear.graph.square();
 	const res2 = ear.graph.square(3);

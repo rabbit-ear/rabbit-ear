@@ -1,14 +1,19 @@
 import fs from "fs";
-import xmldom from "@xmldom/xmldom";
 import { expect, test } from "vitest";
 import ear from "../src/index.js";
 
-ear.window = xmldom;
-
 test("flaps", () => expect(true).toBe(true));
 
-/*
+test("flaps, waterbomb", () => {
+	const graph = ear.graph.waterbomb();
+	const folded = {
+		...graph,
+		vertices_coords: ear.graph.makeVerticesCoordsFlatFolded(graph),
+	};
 
+});
+
+/*
 test("getEdgesSide", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/crane-step.fold", "utf-8");
 	const graph = JSON.parse(FOLD);

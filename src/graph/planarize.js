@@ -59,15 +59,20 @@ import {
 } from "./make/verticesEdges.js";
 
 /**
- *
+ * @param {VecLine[]} lines
+ * @param {number} [epsilon=1e-6]
  */
 const getLinesIntersections = (lines, epsilon = EPSILON) => {
-	const linesIntersect = lines.map(() => []);
-	for (let i = 0; i < lines.length - 1; i += 1) {
-		for (let j = i + 1; j < lines.length; j += 1) {
+	const lines2D = lines.map(({ vector, origin }) => ({
+		vector: resize2(vector),
+		origin: resize2(origin),
+	}));
+	const linesIntersect = lines2D.map(() => []);
+	for (let i = 0; i < lines2D.length - 1; i += 1) {
+		for (let j = i + 1; j < lines2D.length; j += 1) {
 			const { a, b, point } = intersectLineLine(
-				lines[i],
-				lines[j],
+				lines2D[i],
+				lines2D[j],
 				includeS,
 				includeS,
 				epsilon,
@@ -155,6 +160,7 @@ export const planarize = ({
 
 	// for each edge and its corresponding line, project the edge's endpoints
 	// onto the line as a scalar of the line's vector from its origin.
+	// /** @type {[number, number][]} */
 	const edges_scalars = edges_vertices
 		.map((verts, e) => verts
 			.map(v => vertices_coords[v])

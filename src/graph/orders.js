@@ -12,6 +12,7 @@ import {
 } from "./normals.js";
 import {
 	topologicalSort,
+	topologicalSortCycles,
 } from "./directedGraph.js";
 import {
 	makeVerticesVerticesUnsorted,
@@ -50,6 +51,56 @@ export const faceOrdersSubset = (faceOrders, faces) => {
 };
 
 /**
+ * @description Convert a set of faceOrders into a list of directed edges
+ * of pairs of faces. A global direction will be decided, and for every pair
+ * of overlapping faces, the two will be sorted such that, for faces [A, B],
+ * along the global direction, the ordering goes from face A to B.
+ * The optional rootFace parameter will decide the global direction, otherwise
+ * face index 0 will be chosen.
+ * @param {FOLDExtended} graph a FOLD object with faceOrders, and either faces_normal
+ * pre-calculated, or faces_vertices and vertices_coords to get the normals.
+ * @param {number} [rootFace] the user can choose which face determines the normal
+ * direction, which for flat foldable models for example will linearize upwards
+ * or downwards depending on this chosen face's winding.
+ * @returns {[number, number][]} a list of directed edges of face pairs
+ */
+export const faceOrdersToDirectedEdges = (
+	{ vertices_coords, faces_vertices, faceOrders, faces_normal },
+	rootFace,
+) => {
+	if (!faceOrders || !faceOrders.length) { return []; }
+	if (!faces_normal) {
+		faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
+	}
+
+	// get a flat, unique, array of all faces present in faceOrders
+	const faces = uniqueSortedNumbers(faceOrders.flatMap(([a, b]) => [a, b]));
+
+	// we need to pick one face which determines the linearization direction.
+	// if the user supplied rootFace is not in "faces", ignore it.
+	const normal = rootFace !== undefined && faces.includes(rootFace)
+		? faces_normal[rootFace]
+		: faces_normal[faces[0]];
+
+	// create a lookup. for every face, does its normal match the normal
+	// we just chose to represent the linearization direction?
+	/** @type {{[key: number]: boolean}} */
+	const facesNormalMatch = {};
+	faces.forEach(f => {
+		// normal will likely be near +1 or -1, no need to bother with epsilon here
+		facesNormalMatch[f] = dot(faces_normal[f], normal) > 0;
+	});
+
+	// this pair states face [0] is above face [1]. according to the +1 -1 order,
+	// and whether or not the reference face [1] normal is flipped. (xor either)
+	/** @type {[number, number][]} */
+	return faceOrders
+		.map(order => ((order[2] === -1) !== (!facesNormalMatch[order[1]]) // a ^ b
+			? [order[0], order[1]]
+			: [order[1], order[0]]));
+};
+
+/**
  * @description Find a topological ordering from a set of faceOrders.
  * The user can supply the face for which the normal will set the
  * direction of the linearization, if none is selected the face with
@@ -64,40 +115,37 @@ export const faceOrdersSubset = (faceOrders, faces) => {
  * it only includes faces found in faceOrders.
  * @param {FOLDExtended} graph a FOLD object with faceOrders, and either faces_normal
  * pre-calculated, or faces_vertices and vertices_coords to get the normals.
+ * @param {number} [rootFace] the user can choose which face determines the normal
+ * direction, which for flat foldable models for example will linearize upwards
+ * or downwards depending on this chosen face's winding.
  * @returns {number[]} layers_face, for every layer (key) which face (value)
  * inhabits it. This only includes faces which are found in faceOrders.
  */
-export const linearizeFaceOrders = ({ faceOrders, faces_normal }, rootFace) => {
-	if (!faceOrders || !faceOrders.length) { return []; }
-	if (!faces_normal) {
-		throw new Error("linearizeFaceOrders: faces_normal required");
-	}
+export const linearizeFaceOrders = (
+	{ vertices_coords, faces_vertices, faceOrders, faces_normal },
+	rootFace,
+) => {
+	const sorting = topologicalSort(faceOrdersToDirectedEdges({
+		vertices_coords, faces_vertices, faceOrders, faces_normal,
+	}, rootFace));
+	return sorting || [];
+};
 
-	// get a flat, unique, array of all faces present in faceOrders
-	const faces = uniqueSortedNumbers(faceOrders.flatMap(([a, b]) => [a, b]));
-
-	// we need to pick one face which determines the linearization direction.
-	// if the user supplied rootFace is not in "faces", ignore it.
-	const normal = rootFace !== undefined && faces.includes(rootFace)
-		? faces_normal[rootFace]
-		: faces_normal[faces[0]];
-
-	// create a lookup. for every face, does its normal match the normal
-	// we just chose to represent the linearization direction?
-	/** @type {boolean[]} */
-	const facesNormalMatch = [];
-	faces.forEach(f => {
-		facesNormalMatch[f] = dot(faces_normal[f], normal) > 0;
-	});
-
-	// this pair states face [0] is above face [1]. according to the +1 -1 order,
-	// and whether or not the reference face [1] normal is flipped. (xor either)
-	const directedEdges = faceOrders
-		// .map(order => ((order[2] === -1) ^ (!facesNormalMatch[order[1]])
-		.map(order => ((order[2] === -1) !== (!facesNormalMatch[order[1]])
-			? [order[0], order[1]]
-			: [order[1], order[0]]));
-	return topologicalSort(directedEdges);
+/**
+ * @param {FOLDExtended} graph a FOLD object with faceOrders, and either faces_normal
+ * pre-calculated, or faces_vertices and vertices_coords to get the normals.
+ * @param {number} [rootFace] the user can choose which face determines the normal
+ * direction, which for flat foldable models for example will linearize upwards
+ * or downwards depending on this chosen face's winding.
+ */
+export const faceOrdersCycles = (
+	{ vertices_coords, faces_vertices, faceOrders, faces_normal },
+	rootFace,
+) => {
+	const directedEdges = faceOrdersToDirectedEdges({
+		vertices_coords, faces_vertices, faceOrders, faces_normal,
+	}, rootFace);
+	topologicalSortCycles(directedEdges);
 };
 
 /**
@@ -122,6 +170,9 @@ const fillInMissingFaces = ({ faces_vertices }, faces_layer) => {
  * and add these faces in no particular order onto the beginning of the list,
  * so that the faces with an order will be at the end (on top, painters algorithm).
  * @param {FOLDExtended} graph a FOLD object with either faceOrders or faces_layer.
+ * @param {number} [rootFace] the user can choose which face determines the normal
+ * direction, which for flat foldable models for example will linearize upwards
+ * or downwards depending on this chosen face's winding.
  * @returns {number[]} layers_face, for every layer (key),
  * which face (value) inhabits it.
  */

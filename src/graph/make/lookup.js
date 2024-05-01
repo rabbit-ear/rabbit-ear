@@ -34,6 +34,8 @@ const makePairsMap = (array, subsetIndices) => {
  * and the value is the edge index. This is bidirectional, so "7 15"
  * and "15 7" are both keys that point to the same edge.
  * @param {FOLD} graph a FOLD object, containing edges_vertices
+ * @param {number[]} [edges=undefined] a list of edge indices to be used,
+ * if left empty, all edges will be used as input.
  * @returns {{[key: string]: number}} object mapping a space-separated
  * vertex pair to an edge index
  */
@@ -48,6 +50,8 @@ export const makeVerticesToEdge = ({ edges_vertices }, edges) => (
  * (space separated string), and the value is the face index.
  * This will not work with non-manifold graphs.
  * @param {FOLD} graph a FOLD object, containing faces_vertices
+ * @param {number[]} [faces=undefined] a list of edge indices to be used,
+ * if left empty, all edges will be used as input.
  * @returns {{[key: string]: number}} object mapping a space-separated
  * vertex pair to a face index
  */
@@ -62,6 +66,8 @@ export const makeVerticesToFace = ({ faces_vertices }, faces) => (
  * (space separated string), and the value is the face index.
  * This will not work with non-manifold graphs.
  * @param {FOLD} graph a FOLD object, containing faces_edges
+ * @param {number[]} [faces=undefined] a list of edge indices to be used,
+ * if left empty, all edges will be used as input.
  * @returns {{[key: string]: number}} object mapping a space-separated
  * edge pair to a face index
  */

@@ -17,7 +17,7 @@
 // } from "./intersect/edges.js";
 // import {
 // 	makeFacesEdgesFromVertices,
-// } from "./make.js";
+// } from "./make/facesEdges.js";
 // import {
 // 	makeFacesNormal,
 // } from "./normals.js";
@@ -27,9 +27,12 @@
 // } from "./orders.js";
 
 // /**
-//  *
+//  * @param {FOLD} graph a FOLD object
+//  * @param {VecLine2} line
+//  * @param {number} [epsilon=1e-6] an optional epsilon
 //  */
 // export const getEdgesSide = ({ vertices_coords, edges_vertices }, line, epsilon = EPSILON) => {
+// 	/** @param {[number, number]} edge_vertices @returns {number} */
 // 	const edgeSide = (edge_vertices) => edge_vertices
 // 		.map(v => vertices_coords[v])
 // 		.map(coord => subtract2(coord, line.origin))
@@ -52,7 +55,9 @@
 // };
 
 // /**
-//  *
+//  * @param {FOLD} graph a FOLD object
+//  * @param {VecLine2} line
+//  * @param {number} [epsilon=1e-6] an optional epsilon
 //  */
 // export const getFacesSide = ({
 // 	vertices_coords, edges_vertices, faces_vertices, faces_edges,
@@ -78,6 +83,12 @@
 
 // /**
 //  * @description flat folded crease patterns only (2D)
+//  * @algorithm two approaches.
+//  * split the graph with a line (create a copy in memory), rebuild a new
+//  * faces_faces array, and save the faces-map, separate all faces in the graph
+//  * based on which side of the line
+//  * alternatively (without modifying the graph):
+//  *
 //  */
 // export const getFlapsThroughLine = ({
 // 	vertices_coords, edges_vertices, faces_vertices, faces_edges, faceOrders,

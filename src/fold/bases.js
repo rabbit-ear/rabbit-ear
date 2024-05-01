@@ -27,6 +27,30 @@ export const blintz = () => populate({
 });
 
 /**
+ * @description Create a waterbomb base FOLD object in crease pattern form.
+ * @returns {FOLD} a FOLD object
+ */
+export const waterbomb = () => populate({
+	vertices_coords: [
+		[0, 0], [0.5, 0], [1, 0], [1, 0.5], [1, 1], [0.5, 1], [0, 1], [0, 0.5],
+		[0.5, 0.5],
+	],
+	vertices_vertices: [
+		[1, 8, 7], [2, 8, 0], [3, 8, 1], [4, 8, 2], [5, 8, 3], [6, 8, 4], [7, 8, 5], [0, 8, 6],
+		[0, 1, 2, 3, 4, 5, 6, 7]
+	],
+	edges_vertices: [
+		[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 0],
+		[0, 8], [1, 8], [2, 8], [3, 8], [4, 8], [5, 8], [6, 8], [7, 8],
+	],
+	edges_assignment: Array.from("BBBBBBBBVFVMVFVM"),
+	faces_vertices: [
+		[0, 1, 8], [1, 2, 8], [2, 3, 8], [3, 4, 8],
+		[4, 5, 8], [5, 6, 8], [6, 7, 8], [7, 0, 8],
+	],
+});
+
+/**
  * @description Create a kite base FOLD object in crease pattern form.
  * @returns {FOLD} a FOLD object
  */

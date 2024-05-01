@@ -112,3 +112,21 @@ test("inside of nudgeFacesWithFaceOrders", () => {
 		[12, 15],
 	]));
 });
+
+test("linear order face orders with cycle", () => {
+	const FOLD = fs.readFileSync("./tests/files/fold/windmill-face-cycle.fold", "utf-8");
+	const fold = JSON.parse(FOLD);
+	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	const faces_normal = ear.graph.makeFacesNormal(folded);
+	const linear = ear.graph.linearizeFaceOrders({
+		...folded,
+		faces_normal,
+	});
+	// console.log(linear);
+	// const set2 = ear.graph.linearizeFaceOrders({
+	// 	faceOrders: [[2, 3, 1], [2, 13, 1], [8, 13, 1]],
+	// 	faces_normal,
+	// });
+	// expect(JSON.stringify(set1)).toBe(JSON.stringify([0, 14, 1, 9]));
+	// expect(JSON.stringify(set2)).toBe(JSON.stringify([2, 3, 8, 13]));
+});

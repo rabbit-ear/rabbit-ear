@@ -129,6 +129,10 @@ declare const graphExport: Function & {
     populate: (graph: FOLD, options?: any) => FOLD;
     pleat: ({ vertices_coords, edges_vertices }: FOLD, lineA: VecLine2, lineB: VecLine2, count: number, epsilon?: number) => [[number, number], [number, number]][][];
     pleatEdges: ({ vertices_coords, edges_vertices }: FOLD, edgeA: number, edgeB: number, count: number, epsilon?: number) => number[][][][];
+    planarizeNew: ({ vertices_coords, vertices_edges, edges_vertices, edges_assignment, edges_foldAngle, }: FOLD, epsilon?: number) => {
+        graph: FOLD;
+        info: any;
+    };
     planarize: ({ vertices_coords, edges_vertices, edges_assignment, edges_foldAngle, }: FOLD, epsilon?: number) => FOLD;
     getFacesFacesOverlap: ({ vertices_coords, faces_vertices, }: FOLD, epsilon?: number) => number[][];
     getEdgesEdgesCollinearOverlap: ({ vertices_coords, edges_vertices, }: FOLD, epsilon?: number) => number[][];
@@ -141,8 +145,10 @@ declare const graphExport: Function & {
     getFacesEdgesOverlap: ({ vertices_coords, edges_vertices, faces_vertices, faces_edges, }: FOLD, epsilon?: number) => number[][];
     getEdgesFacesOverlap: ({ vertices_coords, edges_vertices, faces_vertices, faces_edges, }: FOLD, epsilon?: number) => number[][];
     faceOrdersSubset: (faceOrders: [number, number, number][], faces: number[]) => [number, number, number][];
-    linearizeFaceOrders: ({ faceOrders, faces_normal }: FOLDExtended, rootFace: any) => number[];
-    linearize2DFaces: ({ vertices_coords, faces_vertices, faceOrders, faces_layer, faces_normal, }: FOLDExtended, rootFace: any) => number[];
+    faceOrdersToDirectedEdges: ({ vertices_coords, faces_vertices, faceOrders, faces_normal }: FOLDExtended, rootFace?: number) => [number, number][];
+    linearizeFaceOrders: ({ vertices_coords, faces_vertices, faceOrders, faces_normal }: FOLDExtended, rootFace?: number) => number[];
+    faceOrdersCycles: ({ vertices_coords, faces_vertices, faceOrders, faces_normal }: FOLDExtended, rootFace?: number) => void;
+    linearize2DFaces: ({ vertices_coords, faces_vertices, faceOrders, faces_layer, faces_normal, }: FOLDExtended, rootFace?: number) => number[];
     nudgeFacesWithFaceOrders: ({ vertices_coords, faces_vertices, faceOrders, faces_normal, }: FOLDExtended) => any[];
     nudgeFacesWithFacesLayer: ({ faces_layer }: FOLDExtended) => any[];
     makeFacesLayer: ({ vertices_coords, faces_vertices, faceOrders, faces_normal }: FOLDExtended) => number[];
@@ -172,13 +178,13 @@ declare const graphExport: Function & {
     makeVerticesEdges: ({ edges_vertices, vertices_vertices }: FOLD) => number[][];
     makeVerticesVerticesVector: ({ vertices_coords, vertices_vertices, vertices_edges, vertices_faces, edges_vertices, edges_vector, faces_vertices, }: FOLDExtended) => [number, number][][];
     makeVerticesSectors: ({ vertices_coords, vertices_vertices, edges_vertices, edges_vector, }: FOLDExtended) => number[][];
-    makeVerticesToEdge: ({ edges_vertices }: FOLD, edges: any) => {
+    makeVerticesToEdge: ({ edges_vertices }: FOLD, edges?: number[]) => {
         [key: string]: number;
     };
-    makeVerticesToFace: ({ faces_vertices }: FOLD, faces: any) => {
+    makeVerticesToFace: ({ faces_vertices }: FOLD, faces?: number[]) => {
         [key: string]: number;
     };
-    makeEdgesToFace: ({ faces_edges }: FOLD, faces: any) => {
+    makeEdgesToFace: ({ faces_edges }: FOLD, faces?: number[]) => {
         [key: string]: number;
     };
     makeFacesVerticesFromEdges: ({ edges_vertices, faces_edges }: FOLD) => number[][];
@@ -243,7 +249,9 @@ declare const graphExport: Function & {
         faces: number[];
     }[];
     disjointGraphs: (graph: FOLD) => FOLD[];
-    topologicalSort: (directedEdges: number[][]) => number[];
+    topologicalSortQuick: (directedEdges: [number, number][]) => number[];
+    topologicalSort: (directedEdges: [number, number][]) => number[];
+    topologicalSortCycles: (directedEdges: [number, number][]) => [number, number][];
     count: (graph: FOLD, key: string) => number;
     countVertices: ({ vertices_coords, vertices_vertices, vertices_edges, vertices_faces, }: FOLD) => number;
     countEdges: ({ edges_vertices, edges_faces }: FOLD) => number;

@@ -82,6 +82,7 @@ export const LayerPrototype = {
 	 * the first face is above the second.
 	 * @param {...number} indices optionally specify which state from
 	 * each branch, otherwise this will return index 0 from each branch.
+	 * @returns {[number, number][]} directed edges of pairs of faces
 	 */
 	directedPairs: function (...indices) {
 		const orders = this.compile(...indices);
@@ -89,7 +90,8 @@ export const LayerPrototype = {
 			.map(pair => (orders[pair] === 1
 				? pair.split(" ")
 				: pair.split(" ").reverse()))
-			.map(pair => pair.map(n => parseInt(n, 10)));
+			.map(pair => pair.map(n => parseInt(n, 10)))
+			.map(([a, b]) => [a, b]);
 	},
 
 	/**

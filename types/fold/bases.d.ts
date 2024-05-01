@@ -1,4 +1,5 @@
 export function blintz(): FOLD;
+export function waterbomb(): FOLD;
 export function kite(): FOLD;
 export function fish(): FOLD;
 export function bird(): FOLD;

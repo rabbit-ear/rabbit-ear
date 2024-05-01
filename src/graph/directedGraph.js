@@ -1,17 +1,23 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { uniqueSortedNumbers } from "../general/array.js";
+import {
+	uniqueSortedNumbers,
+} from "../general/array.js";
+import {
+	invertFlatMap,
+} from "./maps.js";
 
 /**
  * @description Perform a topological sort on a directed acyclic graph.
  * This method assumes your graph is acyclic and will *not* do any testing.
  * If your graph contains cycles this will still return an (invalid) ordering.
- * @param {number[][]} directedEdges an array of directed edges where each edge
- * contains two vertex indices with the direction going from index 0 towards 1
+ * @param {[number, number][]} directedEdges an array of directed edges
+ * where each edge contains two vertex indices with the direction going
+ * from index 0 towards 1
  * @returns {number[]} an ordering of the vertices from the edges provided.
  */
-export const topologicalSort = (directedEdges) => {
+export const topologicalSortQuick = (directedEdges) => {
 	// flat list of all vertices involved (can contain holes)
 	const vertices = uniqueSortedNumbers(directedEdges.flat());
 
@@ -31,4 +37,37 @@ export const topologicalSort = (directedEdges) => {
 	};
 	vertices.forEach(recurse);
 	return ordering;
+};
+
+/**
+ * @description Perform a topological sort on a directed acyclic graph.
+ * If a cycle exists, this method will return undefined.
+ * @param {[number, number][]} directedEdges an array of directed edges
+ * where each edge contains two vertex indices with the direction going
+ * from index 0 towards 1
+ * @returns {number[]|undefined} an ordering of the vertices
+ * from the edges provided, or undefined if a cycle is detected.
+ */
+export const topologicalSort = (directedEdges) => {
+	const ordering = topologicalSortQuick(directedEdges);
+	const orderMap = invertFlatMap(ordering);
+	const violations = directedEdges
+		.filter(([a, b]) => orderMap[a] > orderMap[b]);
+	return violations.length ? undefined : ordering;
+};
+
+/**
+ * @description Given a list of directed edges, attempt to perform a
+ * topological sort and return a list of directed edges which cause cycles.
+ * If there are no cycles the result will be empty, if there are multiple
+ * cycles, there will be one edge for each individual separate cycle.
+ * @param {[number, number][]} directedEdges an array of directed edges
+ * where each edge contains two vertex indices with the direction going
+ * from index 0 towards 1
+ * @returns {[number, number][]} a list of directed edges which cause a cycle.
+ */
+export const topologicalSortCycles = (directedEdges) => {
+	const ordering = topologicalSortQuick(directedEdges);
+	const orderMap = invertFlatMap(ordering);
+	return directedEdges.filter(([a, b]) => orderMap[a] > orderMap[b]);
 };
