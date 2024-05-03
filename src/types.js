@@ -250,10 +250,7 @@
  *   vertexArrays: WebGLVertexArray[],
  *   elementArrays: WebGLElementArray[],
  *   flags: number[],
- *   makeUniforms: (
- *     gl: WebGLRenderingContext|WebGL2RenderingContext,
- *     options: object,
- *   ) => ({ [key: string]: WebGLUniform }),
+ *   makeUniforms: (options: object) => ({ [key: string]: WebGLUniform }),
  * }}
  * @property {WebGLProgram} program
  * @property {WebGLVertexArray[]} vertexArrays

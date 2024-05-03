@@ -5,7 +5,7 @@ declare const _default: {
     };
     createProgram: (gl: WebGLRenderingContext | WebGL2RenderingContext, vertexSource: string, fragmentSource: string) => WebGLProgram;
     rebuildViewport: (gl: WebGLRenderingContext | WebGL2RenderingContext, canvas: HTMLCanvasElement) => undefined;
-    makeProjectionMatrix: (canvas: HTMLCanvasElement, perspective?: string, fov?: number) => number[];
+    makeProjectionMatrix: ([width, height]: [number, number], perspective?: string, fov?: number) => number[];
     makeModelMatrix: (graph: FOLD) => number[];
     drawModel: (gl: WebGLRenderingContext | WebGL2RenderingContext, version: number, model: WebGLModel, uniforms?: {
         [key: string]: WebGLUniform;

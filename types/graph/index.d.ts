@@ -129,7 +129,18 @@ declare const graphExport: Function & {
     populate: (graph: FOLD, options?: any) => FOLD;
     pleat: ({ vertices_coords, edges_vertices }: FOLD, lineA: VecLine2, lineB: VecLine2, count: number, epsilon?: number) => [[number, number], [number, number]][][];
     pleatEdges: ({ vertices_coords, edges_vertices }: FOLD, edgeA: number, edgeB: number, count: number, epsilon?: number) => number[][][][];
-    planarizeNew: ({ vertices_coords, vertices_edges, edges_vertices, edges_assignment, edges_foldAngle, }: FOLD, epsilon?: number) => {
+    intersectAllEdges: ({ vertices_coords, vertices_edges, edges_vertices, }: FOLD, epsilon?: number) => {
+        i: number;
+        j: number;
+        a: number;
+        b: number;
+        point: [number, number];
+    }[];
+    planarizeNew: (graph: any, epsilon?: number) => {
+        vertices_coords: [number, number][];
+        edges_vertices: [number, number][];
+    };
+    planarizeCollinearEdges: ({ vertices_coords, vertices_edges, edges_vertices, edges_assignment, edges_foldAngle, }: FOLD, epsilon?: number) => {
         graph: FOLD;
         info: any;
     };
@@ -461,7 +472,7 @@ declare const graphExport: Function & {
     isFoldObject: (object?: FOLD) => number;
     getDimension: ({ vertices_coords }: FOLD, epsilon?: number) => number;
     getDimensionQuick: ({ vertices_coords }: FOLD) => number;
-    isFoldedForm: ({ vertices_coords, edges_vertices, frame_classes, file_classes }: FOLD, epsilon?: number) => boolean;
+    isFoldedForm: ({ vertices_coords, edges_vertices, faces_vertices, faces_edges, frame_classes, file_classes, }: FOLD, epsilon?: number) => boolean;
     makeEdgesIsFolded: ({ edges_vertices, edges_foldAngle, edges_assignment }: FOLD) => boolean[];
     invertAssignment: (assign: string) => string;
     invertAssignments: (graph: FOLD) => FOLD;

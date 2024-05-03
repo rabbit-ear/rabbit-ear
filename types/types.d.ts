@@ -129,7 +129,7 @@ export type WebGLModel = {
     vertexArrays: WebGLVertexArray[];
     elementArrays: WebGLElementArray[];
     flags: number[];
-    makeUniforms: (gl: WebGLRenderingContext | WebGL2RenderingContext, options: object) => ({
+    makeUniforms: (options: object) => ({
         [key: string]: WebGLUniform;
     });
 };

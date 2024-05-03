@@ -427,10 +427,10 @@ export const getDimensionQuick = ({ vertices_coords }) => {
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {boolean} true if the graph is in a folded state
  */
-export const isFoldedForm = (
-	{ vertices_coords, edges_vertices, frame_classes, file_classes },
-	epsilon = EPSILON,
-) => {
+export const isFoldedForm = ({
+	vertices_coords, edges_vertices, faces_vertices, faces_edges,
+	frame_classes, file_classes,
+}, epsilon = EPSILON) => {
 	// FOLD spec only describes "foldedForm" to be in the frame_classes,
 	// accounting for mistakes, check both class arrays.
 	if ((frame_classes && frame_classes.includes("foldedForm"))
@@ -443,6 +443,9 @@ export const isFoldedForm = (
 	// if vertices or edges don't exist, we can't tell anything about the graph,
 	// return false in this case
 	if (!vertices_coords || !edges_vertices) { return false; }
+
+	// if there are no faces, the idea of "folded" kinda doesn't exist, does it?
+	if (!faces_vertices && !faces_edges) { return false; }
 
 	// if the coordinates have only 2 dimensions, we only know that it's flat.
 	// we have to check if it's a crease pattern or a flat-folded model,

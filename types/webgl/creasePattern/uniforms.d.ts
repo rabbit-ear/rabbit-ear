@@ -1,4 +1,4 @@
-export function makeUniforms(gl: WebGLRenderingContext | WebGL2RenderingContext, { projectionMatrix, modelViewMatrix, cpColor, strokeWidth, }: {
+export function makeUniforms({ projectionMatrix, modelViewMatrix, cpColor, strokeWidth, }: {
     projectionMatrix: any;
     modelViewMatrix: any;
     cpColor: any;

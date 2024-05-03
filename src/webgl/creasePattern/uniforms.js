@@ -12,10 +12,9 @@ import {
 /**
  * @description Uniforms must exist so there are protections to ensure
  * that at least some value gets passed.
- * @param {WebGLRenderingContext|WebGL2RenderingContext} gl a WebGL context
  * @return {{ [key: string]: WebGLUniform }}
  */
-export const makeUniforms = (gl, {
+export const makeUniforms = ({
 	projectionMatrix,
 	modelViewMatrix,
 	cpColor,

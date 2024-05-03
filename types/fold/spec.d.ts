@@ -132,7 +132,7 @@ export function transposeGraphArrayAtIndex(graph: FOLD, geometry_key: string, in
 export function isFoldObject(object?: FOLD): number;
 export function getDimension({ vertices_coords }: FOLD, epsilon?: number): number;
 export function getDimensionQuick({ vertices_coords }: FOLD): number | undefined;
-export function isFoldedForm({ vertices_coords, edges_vertices, frame_classes, file_classes }: FOLD, epsilon?: number): boolean;
+export function isFoldedForm({ vertices_coords, edges_vertices, faces_vertices, faces_edges, frame_classes, file_classes, }: FOLD, epsilon?: number): boolean;
 export function makeEdgesIsFolded({ edges_vertices, edges_foldAngle, edges_assignment }: FOLD): boolean[];
 export function invertAssignment(assign: string): string;
 export function invertAssignments(graph: FOLD): FOLD;

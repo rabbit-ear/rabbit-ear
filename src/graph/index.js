@@ -45,6 +45,7 @@ import * as normals from "./normals.js";
 import * as orders from "./orders.js";
 import * as overlap from "./overlap.js";
 import * as planarize from "./planarize.js";
+import * as planarizeCollinear from "./planarizeCollinear.js";
 import * as planarizeNew from "./planarizeNew.js";
 import * as pleat from "./pleat.js";
 import * as populate from "./populate.js";
@@ -107,6 +108,7 @@ const graphMethods = {
 	...orders,
 	...overlap,
 	...planarize,
+	...planarizeCollinear,
 	...planarizeNew,
 	...pleat,
 	...populate,

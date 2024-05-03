@@ -36,7 +36,8 @@ ear.webgl.rebuildViewport(gl, canvas);
 const models = ear.webgl.creasePattern(gl, version, FOLD);
 // models = ear.webgl.foldedForm(gl, version, FOLD);
 
-const projectionMatrix = ear.webgl.makeProjectionMatrix(canvas);
+// [canvas.clientWidth, canvas.clientHeight]
+const projectionMatrix = ear.webgl.makeProjectionMatrix([canvas.width, canvas.height]);
 const modelViewMatrix = ear.webgl.makeModelMatrix(FOLD);
 
 gl.enable(gl.BLEND);

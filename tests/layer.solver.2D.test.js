@@ -155,3 +155,26 @@ test("2D layer solver, kraft-bird", () => {
 		faceOrders,
 	}));
 });
+
+// // takes about 2 seconds
+// test("2D layer solver, zipper", () => {
+// 	const foldfile = fs.readFileSync("./tests/files/fold/layers-zipper.fold", "utf-8");
+// 	const fold = JSON.parse(foldfile);
+// 	const folded = {
+// 		...fold,
+// 		vertices_coords: ear.graph.makeVerticesCoordsFlatFolded(fold),
+// 	}
+// 	const result = ear.layer(folded);
+// 	fs.writeFileSync(
+// 		`./tests/tmp/layers-zipper-solution.fold`,
+// 		JSON.stringify(result),
+// 	);
+// 	const {
+// 		faces_winding,
+// 		...resultFlat
+// 	} = ear.layer.solveLayerOrdersSingleBranches(folded);
+// 	fs.writeFileSync(
+// 		`./tests/tmp/layers-zipper-solution-flat.fold`,
+// 		JSON.stringify(resultFlat),
+// 	);
+// });

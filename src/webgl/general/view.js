@@ -37,24 +37,25 @@ export const rebuildViewport = (gl, canvas) => {
 /**
  * @description Create a 4x4 projection matrix for either a
  * perspective or orthographic view.
- * @param {HTMLCanvasElement} canvas an HTML canvas
+ * @param {[number, number]} size the size of the HTML canvas
  * @param {string} perspective "orthographic" or "perspective"
  * @param {number} fov the field of view (perspective only)
  * @returns {number[]} a 4x4 projection matrix
  */
-export const makeProjectionMatrix = (canvas, perspective = "perspective", fov = 45) => {
-	if (!canvas) { return [...identity4x4]; }
+export const makeProjectionMatrix = ([width, height], perspective = "perspective", fov = 45) => {
 	const Z_NEAR = 0.1;
 	const Z_FAR = 20;
 	const ORTHO_FAR = -100;
 	const ORTHO_NEAR = 100;
-	const bounds = [canvas.clientWidth, canvas.clientHeight];
-	const vmin = Math.min(...bounds);
-	const padding = [0, 1].map(i => ((bounds[i] - vmin) / vmin) / 2);
+	const vmin = Math.min(width, height);
+	const padding = [
+		((width - vmin) / vmin) / 2,
+		((height - vmin) / vmin) / 2,
+	];
 	const side = padding.map(p => p + 0.5);
 	return perspective === "orthographic"
 		? makeOrthographicMatrix4(side[1], side[0], -side[1], -side[0], ORTHO_FAR, ORTHO_NEAR)
-		: makePerspectiveMatrix4(fov * (Math.PI / 180), bounds[0] / bounds[1], Z_NEAR, Z_FAR);
+		: makePerspectiveMatrix4(fov * (Math.PI / 180), width / height, Z_NEAR, Z_FAR);
 };
 
 /**

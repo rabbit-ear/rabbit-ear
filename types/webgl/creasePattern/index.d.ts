@@ -1,5 +1,5 @@
 declare const _default: {
-    makeUniforms: (gl: WebGLRenderingContext | WebGL2RenderingContext, { projectionMatrix, modelViewMatrix, cpColor, strokeWidth, }: {
+    makeUniforms: ({ projectionMatrix, modelViewMatrix, cpColor, strokeWidth, }: {
         projectionMatrix: any;
         modelViewMatrix: any;
         cpColor: any;
