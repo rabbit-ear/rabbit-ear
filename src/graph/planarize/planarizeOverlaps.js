@@ -3,57 +3,44 @@
  */
 import {
 	EPSILON,
-} from "../math/constant.js";
+} from "../../math/constant.js";
 import {
 	includeS,
 	epsilonEqual,
-} from "../math/compare.js";
+} from "../../math/compare.js";
 import {
-	dot2,
 	scale2,
 	add2,
-	subtract2,
 	resize2,
-} from "../math/vector.js";
+} from "../../math/vector.js";
 import {
 	intersectLineLine,
-} from "../math/intersect.js";
-import {
-	uniqueElements,
-} from "../general/array.js";
+} from "../../math/intersect.js";
 import {
 	clusterSortedGeneric,
-} from "../general/cluster.js";
+} from "../../general/cluster.js";
 import {
 	sweepValues,
-} from "./sweep.js";
+} from "../sweep.js";
 import {
 	removeDuplicateVertices,
-} from "./vertices/duplicate.js";
-import {
-	duplicateEdges,
-	removeDuplicateEdges,
-} from "./edges/duplicate.js";
+} from "../vertices/duplicate.js";
 import {
 	circularEdges,
 	removeCircularEdges,
-} from "./edges/circular.js";
+} from "../edges/circular.js";
 import {
-	invertFlatToArrayMap,
-	invertArrayMap,
-	invertFlatMap,
 	invertArrayToFlatMap,
-} from "./maps.js";
+	mergeFlatNextmaps,
+	mergeNextmaps,
+} from "../maps.js";
 import {
 	edgeToLine2,
 	edgesToLines2,
-} from "./edges/lines.js";
+} from "../edges/lines.js";
 import {
 	makeVerticesEdgesUnsorted,
-} from "./make/verticesEdges.js";
-import {
-	planarizeCollinearEdges,
-} from "./planarizeCollinear.js";
+} from "../make/verticesEdges.js";
 
 /**
  * @param {FOLD} graph a FOLD object
@@ -96,31 +83,24 @@ export const intersectAllEdges = ({
 	return results;
 };
 
-// the face-matching algorithm should go like this:
-// prerequisite: vertex map
-// the data structure should do something like
-// - for every face, here is a list of its vertices.
-// - using the vertex-map, find a face with 3 or more matching vertices
-// we can't depend on them being in order, because it's possible that for
-// every vertex in the face, each edge was split inserting new vertices
-// between every pair of old vertices.
-
 /**
- *
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {{ graph: FOLD, changes: object }}
  */
-export const planarizeNew = (graph, epsilon = EPSILON) => {
-	const {
-		graph: graphNonCollinear,
-		info: infoNonCollinear,
-	} = planarizeCollinearEdges(graph, epsilon);
-
-	if (!graphNonCollinear.vertices_edges) {
-		graphNonCollinear.vertices_edges = makeVerticesEdgesUnsorted(graphNonCollinear);
+export const planarizeOverlaps = (
+	{ vertices_coords, vertices_edges, edges_vertices, edges_assignment, edges_foldAngle },
+	epsilon = EPSILON,
+) => {
+	if (!vertices_edges) {
+		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 	}
 
-	const edgesParams = graphNonCollinear.edges_vertices.map(() => []);
+	const edgesParams = edges_vertices.map(() => []);
 
-	const intersections = intersectAllEdges(graphNonCollinear);
+	const intersections = intersectAllEdges({
+		vertices_coords, vertices_edges, edges_vertices,
+	}, epsilon);
 
 	intersections
 		.filter(({ a }) => !epsilonEqual(a, 0) && !epsilonEqual(a, 1))
@@ -145,19 +125,19 @@ export const planarizeNew = (graph, epsilon = EPSILON) => {
 			.map(average));
 
 	let newEdgeIndex = 0;
-	const edgeNextmap = edgesSplitParams
+	const edgeNextmapPlanarized = edgesSplitParams
 		.map(params => Array.from(Array(params.length + 1)).map(() => newEdgeIndex++));
-	const edgeBackmap = invertArrayToFlatMap(edgeNextmap);
+	const edgeBackmapPlanarized = invertArrayToFlatMap(edgeNextmapPlanarized);
 
 	// this new edges_vertices array will entirely replace the old one.
-	let newVertexIndex = graphNonCollinear.vertices_coords.length;
+	let newVertexIndex = vertices_coords.length;
 	/** @type {[number, number][]} */
 	const edges_verticesNew = edgesSplitParams
 		.map(params => params.map(() => newVertexIndex++))
 		.map((verts, e) => [
-			graphNonCollinear.edges_vertices[e][0],
+			edges_vertices[e][0],
 			...verts,
-			graphNonCollinear.edges_vertices[e][1],
+			edges_vertices[e][1],
 		])
 		.flatMap(vertices => Array.from(Array(vertices.length - 1))
 			.map((_, i) => [vertices[i], vertices[i + 1]]))
@@ -167,32 +147,48 @@ export const planarizeNew = (graph, epsilon = EPSILON) => {
 	// vertices_coords array, this only contains the new vertices.
 	const additionalVertices_coords = edgesSplitParams.flatMap((params, edge) => {
 		if (!params.length) { return []; }
-		const line = edgeToLine2(graphNonCollinear, edge);
+		const line = edgeToLine2({ vertices_coords, edges_vertices }, edge);
 		return params.map(t => add2(line.origin, scale2(line.vector, t)));
 	});
 
-	const vertices_coordsNew = graphNonCollinear.vertices_coords
+	const vertices_coordsNew = vertices_coords
 		.concat(additionalVertices_coords)
 		.map(resize2);
 
-	const result = {
+	const graph = {
 		vertices_coords: vertices_coordsNew,
 		edges_vertices: edges_verticesNew,
 	};
 
-	if (graphNonCollinear.edges_assignment) {
-		result.edges_assignment = edgeBackmap
-			.map(e => graphNonCollinear.edges_assignment[e]);
+	if (edges_assignment) {
+		graph.edges_assignment = edgeBackmapPlanarized
+			.map(e => edges_assignment[e]);
 	}
-	if (graphNonCollinear.edges_foldAngle) {
-		result.edges_foldAngle = edgeBackmap
-			.map(e => graphNonCollinear.edges_foldAngle[e]);
+	if (edges_foldAngle) {
+		graph.edges_foldAngle = edgeBackmapPlanarized
+			.map(e => edges_foldAngle[e]);
 	}
 
-	removeDuplicateVertices(result);
-	removeCircularEdges(result);
+	// this does not include the new vertices, which should have a
+	// value of "undefined" anyway as they did not exist prior.
+	/** @type {number[]} */
+	const startNextmap = vertices_coords.map((_, i) => i);
 
-	// todo, rebuild faces, match new faces with old faces.
+	const { map: verticesMapDuplicate } = removeDuplicateVertices(graph, epsilon);
+	// circular edges will be created at points where for example many lines cross
+	// at a point (but not exactly), creating little small edges with lengths
+	// around an epsilon, and by calling remove duplicate vertices these edges'
+	// two vertices become the same vertex, creating circular edges.
+	const { map: edgeMapCircular } = removeCircularEdges(graph);
 
-	return result;
-};
+	const edgesMap = mergeNextmaps(edgeNextmapPlanarized, edgeMapCircular);
+	const verticesMap = mergeFlatNextmaps(startNextmap, verticesMapDuplicate);
+
+	return {
+		graph,
+		changes: {
+			vertices: { map: verticesMap },
+			edges: { map: edgesMap },
+		}
+	};
+}

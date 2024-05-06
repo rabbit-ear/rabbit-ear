@@ -42,7 +42,7 @@ const makeIndexMap = (graph, key, removeIndices) => {
  * @param {FOLD} graph a FOLD object
  * @param {string} key like "vertices", the prefix of the arrays
  * @param {number[]} removeIndices an array of vertex indices, like [1,9,25]
- * @returns {number[]} a map of changes to the graph
+ * @returns {number[]} a map of changes to the graph (a nextmap).
  * @example remove(foldObject, "vertices", [2,6,11,15]);
  * @example
  * removing index 5 from a 10-long vertices list will shift all

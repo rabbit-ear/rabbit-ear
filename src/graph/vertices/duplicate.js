@@ -34,7 +34,7 @@ export const duplicateVertices = ({ vertices_coords }, epsilon) => (
  * merged vertex be a geometric average of all vertices which went into it?
  * - if "true", average will be calculated
  * - if "false", the smallest vertex index in the cluster is used
- * @returns {object} summary of changes
+ * @returns {{ map: number[], remove: number[] }} summary of changes
  */
 export const removeDuplicateVertices = (graph, epsilon = EPSILON, makeAverage = true) => {
 	// replaces array will be [index:value] index is the element to delete,

@@ -116,7 +116,9 @@ export const getSimilarEdges = (
  * @param {number[]} [replace_indices=undefined] Leave this empty. Otherwise, if
  * duplicateEdges() has already been called, provide the result here to speed
  * up the algorithm.
- * @returns {object} a summary of changes
+ * @returns {{ remove: number[], map: number[] }} a summary of changes where
+ * "remove" contains all indices which were removed
+ * "map" is a nextmap of changes to the list of edges
  */
 export const removeDuplicateEdges = (graph, replace_indices) => {
 	// index: edge to remove, value: the edge which should replace it.

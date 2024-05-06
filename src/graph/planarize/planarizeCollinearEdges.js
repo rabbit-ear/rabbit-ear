@@ -3,31 +3,31 @@
  */
 import {
 	EPSILON,
-} from "../math/constant.js";
+} from "../../math/constant.js";
 import {
 	epsilonEqual,
-} from "../math/compare.js";
+} from "../../math/compare.js";
 import {
 	dot2,
 	subtract2,
 	resize2,
-} from "../math/vector.js";
+} from "../../math/vector.js";
 import {
 	uniqueElements,
-} from "../general/array.js";
+} from "../../general/array.js";
 import {
 	clusterSortedGeneric,
-} from "../general/cluster.js";
+} from "../../general/cluster.js";
 import {
 	invertFlatToArrayMap,
 	invertArrayMap,
-} from "./maps.js";
+} from "../maps.js";
 import {
 	getEdgesLine,
-} from "./edges/lines.js";
+} from "../edges/lines.js";
 import {
 	makeVerticesEdgesUnsorted,
-} from "./make/verticesEdges.js";
+} from "../make/verticesEdges.js";
 
 /**
  * @param {number[][][]} lines_verticesClusters
@@ -54,6 +54,9 @@ const lineVertexClustersToNewVertices = (lines_verticesClusters) => {
 const lineEdgeClustersToNewEdges = (lines_edgesClusters) => {
 	const map = [];
 	let newIndex = 0;
+	// edgeClusters can contain empty arrays which are the gap between
+	// collinear edges where no edge exists, this area does not get turned
+	// into an edge, and should be skipped.
 	lines_edgesClusters
 		.map(clusters => clusters
 			.map(cluster => {
@@ -61,7 +64,7 @@ const lineEdgeClustersToNewEdges = (lines_edgesClusters) => {
 					.filter(i => map[i] === undefined)
 					.forEach(i => { map[i] = []; });
 				cluster.forEach(i => map[i].push(newIndex));
-				return newIndex++;
+				return cluster.length ? newIndex++ : newIndex;
 			}));
 	return map;
 };
@@ -107,7 +110,7 @@ const highestPriorityAssignmentIndex = (assignments) => {
  * coordinate. Call "planarize" instead for the complete method.
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {{ graph: FOLD, info: object }} a new FOLD object, with
+ * @returns {{ graph: FOLD, changes: object }} a new FOLD object, with
  * an info object which describes all changes to the graph.
  */
 export const planarizeCollinearEdges = ({
@@ -129,6 +132,12 @@ export const planarizeCollinearEdges = ({
 	// one to many mapping of a line and the edges along it.
 	const lines_edges = invertFlatToArrayMap(edges_line);
 
+	// for every line, project every vertex down onto the line, sort the list
+	// in order of the parameter along the line. this only includes vertices
+	// in edges which lie collinear to the line, it does not include other
+	// orthogonal edges which happen to have one collinear vertex.
+	// this method ignores these types of overlap entirely, dealing with these
+	// happens if you instead call the main "planarize" method.
 	const lines_verticesInfo = lines_edges
 		.map(edges => uniqueElements(edges.flatMap(edge => edges_vertices[edge])))
 		.map((vertices, l) => vertices
@@ -142,6 +151,9 @@ export const planarizeCollinearEdges = ({
 	const lines_verticesParameter = lines_verticesInfo
 		.map(objs => objs.map(({ p }) => p));
 
+	// for each line, all vertices along the line are put into arrays where
+	// similar vertices are grouped into the same list. even unique vertices
+	// are placed into arrays with just one item.
 	const lines_verticesClusters = lines_verticesParameter
 		.map((params, l) => clusterSortedGeneric(params, epsilonEqual)
 			.map(cluster => cluster.map(i => lines_vertices[l][i])));
@@ -149,7 +161,11 @@ export const planarizeCollinearEdges = ({
 	const vertexNextMap = lineVertexClustersToNewVertices(lines_verticesClusters);
 	const vertexBackMap = invertFlatToArrayMap(vertexNextMap);
 
-	// [ [ 12, 28 ], [ 29 ], [ 13 ] ]
+	// along each line, for every fencepost between clusters of vertices,
+	// each fencepost contains a list of edges which are currently between
+	// these two vertices. it can contain an empty list which represents a
+	// gap between collinear edges, where no edge exists in this gap.
+	// [[ 12, 28], [29], [], [13]]
 	// a graph with circular edges will break here.
 	const lines_edgesClusters = lines_verticesClusters
 		.map((verticesClusters, l) => {
@@ -172,8 +188,6 @@ export const planarizeCollinearEdges = ({
 						.filter(edge => edgesLookup[edge]));
 					// true: if the edge is not already on the stack, false if it is.
 					const adjacentEdgesIsNew = adjacentEdges.map(e => !edges.has(e));
-					// const edgesEnding = adjacentEdges.filter(e => edges.has(e));
-					// const newEdges = adjacentEdges.filter(e => !edges.has(e));
 					adjacentEdges.forEach((edge, i) => (adjacentEdgesIsNew[i]
 						? edges.add(edge)
 						: edges.delete(edge)));
@@ -184,9 +198,14 @@ export const planarizeCollinearEdges = ({
 	/** @type {[number, number][]} */
 	const newEdgesVertices = lines_verticesClusters
 		.map(clusters => clusters.map(cluster => vertexNextMap[cluster[0]]))
-		.flatMap(vertices => Array
+		.flatMap((vertices, i) => Array
 			.from(Array(vertices.length - 1))
-			.map((_, i) => [vertices[i], vertices[i + 1]]))
+			// if the edgeCluster is empty, no edge exists between these vertices
+			.map((_, j) => (lines_edgesClusters[i][j].length
+				? [vertices[j], vertices[j + 1]]
+				: undefined)))
+		// filter out the undefineds, where no edge exists between vertices
+		.filter(a => a !== undefined)
 		.map(([a, b]) => [a, b]);
 
 	const edgesNextMap = lineEdgeClustersToNewEdges(lines_edgesClusters);
@@ -223,10 +242,14 @@ export const planarizeCollinearEdges = ({
 		}
 	}
 
-	const info = {
+	// vertex list can only shrink
+	// edge list may expand or shrink
+	const changes = {
 		vertices: { map: vertexNextMap },
 		edges: { map: edgesNextMap },
+		edges_line,
+		lines,
 	};
 
-	return { graph, info };
+	return { graph, changes };
 };

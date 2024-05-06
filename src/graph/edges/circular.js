@@ -46,7 +46,9 @@ const spliceRemoveValuesFromSuffixes = (graph, suffix, remove_indices) => {
  * @param {number[]} [remove_indices=undefined] Leave this empty. Otherwise, if
  * circularEdges() has already been called, provide the result here to speed
  * up the algorithm.
- * @returns {object} a summary of changes
+ * @returns {{ remove: number[], map: number[] }} a summary of changes where
+ * "remove" contains all indices which were removed
+ * "map" is a nextmap of changes to the list of edges
  */
 export const removeCircularEdges = (graph, remove_indices) => {
 	if (!remove_indices) {

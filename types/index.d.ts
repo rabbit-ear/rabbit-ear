@@ -288,13 +288,25 @@ declare const ear: {
             b: number;
             point: [number, number];
         }[];
-        planarizeNew: (graph: any, epsilon?: number) => {
-            vertices_coords: [number, number][];
-            edges_vertices: [number, number][];
+        planarizeOverlaps: ({ vertices_coords, vertices_edges, edges_vertices, edges_assignment, edges_foldAngle }: FOLD, epsilon?: number) => {
+            graph: FOLD;
+            changes: any;
+        };
+        planarizeCollinearVertices: (graph: FOLD, epsilon?: number) => {
+            graph: FOLD;
+            changes: any;
         };
         planarizeCollinearEdges: ({ vertices_coords, vertices_edges, edges_vertices, edges_assignment, edges_foldAngle, }: FOLD, epsilon?: number) => {
             graph: FOLD;
-            info: any;
+            changes: any;
+        };
+        planarizeEdges: (graph: FOLD, epsilon?: number) => {
+            graph: FOLD;
+            changes: any;
+        };
+        planarizeVEF: (graph: FOLD, epsilon?: number) => {
+            graph: FOLD;
+            changes: any;
         };
         planarize: ({ vertices_coords, edges_vertices, edges_assignment, edges_foldAngle, }: FOLD, epsilon?: number) => FOLD;
         getFacesFacesOverlap: ({ vertices_coords, faces_vertices, }: FOLD, epsilon?: number) => number[][];
@@ -457,7 +469,10 @@ declare const ear: {
         makeVerticesCoordsFolded: (graph: FOLD, rootFaces?: number[]) => [number, number][] | [number, number, number][];
         makeVerticesCoordsFoldedFromMatrix2: ({ vertices_coords, vertices_faces, faces_vertices, }: FOLD, faces_matrix: number[][]) => [number, number][];
         duplicateVertices: ({ vertices_coords }: FOLD, epsilon?: number) => number[][];
-        removeDuplicateVertices: (graph: FOLD, epsilon?: number, makeAverage?: boolean) => any;
+        removeDuplicateVertices: (graph: FOLD, epsilon?: number, makeAverage?: boolean) => {
+            map: number[];
+            remove: number[];
+        };
         getOtherVerticesInEdges: ({ edges_vertices }: FOLD, vertex: number, edges: number[]) => number[];
         isVertexCollinear: ({ vertices_coords, vertices_edges, edges_vertices, }: FOLD, vertex: number, epsilon?: number) => boolean;
         getVerticesClusters: ({ vertices_coords }: FOLD, epsilon?: number) => number[][];
@@ -535,9 +550,15 @@ declare const ear: {
         };
         duplicateEdges: ({ edges_vertices }: FOLD) => number[];
         getSimilarEdges: ({ vertices_coords, vertices_edges, edges_vertices }: FOLD, epsilon?: number) => number[][];
-        removeDuplicateEdges: (graph: FOLD, replace_indices?: number[]) => any;
+        removeDuplicateEdges: (graph: FOLD, replace_indices?: number[]) => {
+            remove: number[];
+            map: number[];
+        };
         circularEdges: ({ edges_vertices }: FOLD) => number[];
-        removeCircularEdges: (graph: FOLD, remove_indices?: number[]) => any;
+        removeCircularEdges: (graph: FOLD, remove_indices?: number[]) => {
+            remove: number[];
+            map: number[];
+        };
         addEdge: (graph: FOLD, vertices: [number, number], faces?: number[], assignment?: string, foldAngle?: number) => number;
         addIsolatedEdge: (graph: FOLD, vertices: [number, number], assignment?: string, foldAngle?: number) => number;
         addVertex: (graph: FOLD, coords: [number, number] | [number, number, number], vertices?: number[], edges?: number[], faces?: number[]) => number;
