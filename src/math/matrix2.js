@@ -33,11 +33,10 @@ export const multiplyMatrix2Vector2 = (matrix, vector) => [
 
 /**
  * @param {number[]} matrix, in array form
- * @param {[number, number]} vector of the line
- * @param {[number, number]} origin of the line
+ * @param {VecLine2} line to be transformed
  * @returns {VecLine2} the transformed line in vector-origin form
  */
-export const multiplyMatrix2Line2 = (matrix, vector, origin) => ({
+export const multiplyMatrix2Line2 = (matrix, { vector, origin }) => ({
 	vector: [
 		matrix[0] * vector[0] + matrix[2] * vector[1],
 		matrix[1] * vector[0] + matrix[3] * vector[1],

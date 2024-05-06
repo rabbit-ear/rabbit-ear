@@ -110,7 +110,7 @@ const highestPriorityAssignmentIndex = (assignments) => {
  * coordinate. Call "planarize" instead for the complete method.
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {{ graph: FOLD, changes: object }} a new FOLD object, with
+ * @returns {{ result: FOLD, changes: object }} a new FOLD object, with
  * an info object which describes all changes to the graph.
  */
 export const planarizeCollinearEdges = ({
@@ -214,7 +214,7 @@ export const planarizeCollinearEdges = ({
 		.map(vertices => vertices_coords[vertices[0]])
 		.map(resize2);
 
-	const graph = {
+	const result = {
 		vertices_coords: newVerticesCoords,
 		edges_vertices: newEdgesVertices,
 	};
@@ -233,11 +233,11 @@ export const planarizeCollinearEdges = ({
 				.map(highestPriorityAssignmentIndex)
 			: edgesBackMap.map(() => 0);
 		if (edges_assignment) {
-			graph.edges_assignment = edgesBackMapIndexToUse
+			result.edges_assignment = edgesBackMapIndexToUse
 				.map((index, i) => edges_assignment[edgesBackMap[i][index]]);
 		}
 		if (edges_foldAngle) {
-			graph.edges_foldAngle = edgesBackMapIndexToUse
+			result.edges_foldAngle = edgesBackMapIndexToUse
 				.map((index, i) => edges_foldAngle[edgesBackMap[i][index]]);
 		}
 	}
@@ -251,5 +251,5 @@ export const planarizeCollinearEdges = ({
 		lines,
 	};
 
-	return { graph, changes };
+	return { result, changes };
 };

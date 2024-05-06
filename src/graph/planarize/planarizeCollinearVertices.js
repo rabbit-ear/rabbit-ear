@@ -68,7 +68,7 @@ const removeCollinearVertex = ({ edges_vertices, vertices_edges }, vertex) => {
 /**
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {{ graph: FOLD, changes: object }}
+ * @returns {{ result: FOLD, changes: object }}
  */
 export const planarizeCollinearVertices = (
 	graph,
@@ -117,7 +117,7 @@ export const planarizeCollinearVertices = (
 	const edgesMap = mergeNextmaps(edgesMapCollinear, edgesMapDuplicates);
 
 	return {
-		graph,
+		result: graph,
 		changes: {
 			vertices: { map: verticesMap },
 			edges: { map: edgesMap },

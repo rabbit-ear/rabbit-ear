@@ -437,6 +437,10 @@ export const isFoldedForm = ({
 		|| (file_classes && file_classes.includes("foldedForm"))) {
 		return true;
 	}
+	if ((frame_classes && frame_classes.includes("creasePattern"))
+		|| (file_classes && file_classes.includes("creasePattern"))) {
+		return false;
+	}
 	// unfortunately, anything beyond this point cannot be calculated precisely,
 	// or it cannot be calculated precisely without a significant overhead
 

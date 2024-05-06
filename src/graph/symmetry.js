@@ -66,7 +66,7 @@ export const findSymmetryLines = (graph, epsilon = EPSILON) => {
 		.map(({ vector, origin }) => makeMatrix2Reflect(vector, origin));
 	const reflectionsLines = linesMatrices
 		.map(matrix => lines
-			.map(({ vector, origin }) => multiplyMatrix2Line2(matrix, vector, origin)));
+			.map(line => multiplyMatrix2Line2(matrix, line)));
 
 	// convert the reflected lines into normal-distance parameterization, and
 	// for every reflection group, superimpose (concat) our original list of

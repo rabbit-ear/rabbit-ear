@@ -6,7 +6,7 @@ test("planarize, overlapping assignments", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/overlapping-assignments.fold", "utf-8");
 	const cp = JSON.parse(FOLD);
 	const {
-		graph,
+		result,
 		changes: {
 			vertices,
 			edges,
@@ -17,11 +17,11 @@ test("planarize, overlapping assignments", () => {
 
 	// # of vertices does not change
 	expect(cp.vertices_coords).toHaveLength(20);
-	expect(graph.vertices_coords).toHaveLength(20);
+	expect(result.vertices_coords).toHaveLength(20);
 
 	// # of edges increases
 	expect(cp.edges_vertices).toHaveLength(18);
-	expect(graph.edges_vertices).toHaveLength(23);
+	expect(result.edges_vertices).toHaveLength(23);
 
 	expect(vertices.map).toMatchObject([
 		6, 13, 12, 5, 8, 15, 14, 4, 9, 17, 16, 3, 10, 19, 18, 1, 0, 2, 11, 7,
@@ -34,7 +34,7 @@ test("planarize, overlapping assignments", () => {
 
 	fs.writeFileSync(
 		"./tests/tmp/planarizeCollinearEdges-overlapping-assignments.fold",
-		JSON.stringify(graph),
+		JSON.stringify(result),
 	);
 });
 
@@ -42,7 +42,7 @@ test("planarize, crane", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
 	const cp = JSON.parse(FOLD);
 	const {
-		graph,
+		result,
 		changes: {
 			vertices,
 			edges,
@@ -53,9 +53,9 @@ test("planarize, crane", () => {
 
 	// this graph is already planar. neither # of vertices nor edges change
 	expect(cp.vertices_coords).toHaveLength(56);
-	expect(graph.vertices_coords).toHaveLength(56);
+	expect(result.vertices_coords).toHaveLength(56);
 	expect(cp.edges_vertices).toHaveLength(114);
-	expect(graph.edges_vertices).toHaveLength(114);
+	expect(result.edges_vertices).toHaveLength(114);
 
 	expect(vertices.map).toMatchObject([
 		0, 4, 54, 13, 50, 51, 3, 9, 49, 43, 22, 23, 14, 15, 7, 44, 24, 25, 16,
@@ -76,7 +76,7 @@ test("planarize, crane", () => {
 
 	fs.writeFileSync(
 		"./tests/tmp/planarizeCollinearEdges-crane.fold",
-		JSON.stringify(graph),
+		JSON.stringify(result),
 	);
 });
 
@@ -84,7 +84,7 @@ test("planarize, non-planar square fish", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/non-planar-square-fish.fold", "utf-8");
 	const cp = JSON.parse(FOLD);
 	const {
-		graph,
+		result,
 		changes: {
 			vertices,
 			edges,
@@ -93,11 +93,11 @@ test("planarize, non-planar square fish", () => {
 
 	// # of vertices decreases
 	expect(cp.vertices_coords).toHaveLength(50);
-	expect(graph.vertices_coords).toHaveLength(38);
+	expect(result.vertices_coords).toHaveLength(38);
 
 	// # of edges decreases
 	expect(cp.edges_vertices).toHaveLength(26);
-	expect(graph.edges_vertices).toHaveLength(25);
+	expect(result.edges_vertices).toHaveLength(25);
 
 	expect(vertices.map).toMatchObject([
 		0, 1, 35, 2, 3, 7, 8, 9, 10, 11, 36, 37, 25, 26, 27, 28, 20, 24, 16,
@@ -112,7 +112,7 @@ test("planarize, non-planar square fish", () => {
 
 	fs.writeFileSync(
 		"./tests/tmp/planarizeCollinearEdges-non-planar-square-fish.fold",
-		JSON.stringify(graph),
+		JSON.stringify(result),
 	);
 });
 
@@ -120,7 +120,7 @@ test("planarize, non-planar bird base", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/non-planar-bird-base.fold", "utf-8");
 	const cp = JSON.parse(FOLD);
 	const {
-		graph,
+		result,
 		changes: {
 			vertices,
 			edges,
@@ -129,11 +129,11 @@ test("planarize, non-planar bird base", () => {
 
 	// # of vertices decreases
 	expect(cp.vertices_coords).toHaveLength(56);
-	expect(graph.vertices_coords).toHaveLength(48);
+	expect(result.vertices_coords).toHaveLength(48);
 
 	// # of edges increases
 	expect(cp.edges_vertices).toHaveLength(30);
-	expect(graph.edges_vertices).toHaveLength(32);
+	expect(result.edges_vertices).toHaveLength(32);
 
 	expect(vertices.map).toMatchObject([
 		0, 1, 47, 2, 3, 4, 35, 36, 21, 22, 23, 24, 5, 7, 8, 10, 32, 34, 29, 31,
@@ -148,7 +148,7 @@ test("planarize, non-planar bird base", () => {
 
 	fs.writeFileSync(
 		"./tests/tmp/planarizeCollinearEdges-non-planar-bird-base.fold",
-		JSON.stringify(graph),
+		JSON.stringify(result),
 	);
 });
 
@@ -156,7 +156,7 @@ test("planarize, separated", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/separated-parallel-edges.fold", "utf-8");
 	const cp = JSON.parse(FOLD);
 	const {
-		graph,
+		result,
 		changes: {
 			vertices,
 			edges,
@@ -165,9 +165,9 @@ test("planarize, separated", () => {
 
 	// neither the number of vertices nor edges changes
 	expect(cp.vertices_coords).toHaveLength(10);
-	expect(graph.vertices_coords).toHaveLength(10);
+	expect(result.vertices_coords).toHaveLength(10);
 	expect(cp.edges_vertices).toHaveLength(11);
-	expect(graph.edges_vertices).toHaveLength(11);
+	expect(result.edges_vertices).toHaveLength(11);
 
 	expect(vertices.map).toMatchObject([
 		0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
@@ -178,7 +178,7 @@ test("planarize, separated", () => {
 
 	fs.writeFileSync(
 		"./tests/tmp/planarizeCollinearEdges-separated.fold",
-		JSON.stringify(graph),
+		JSON.stringify(result),
 	);
 });
 
@@ -186,7 +186,7 @@ test("planarize, non-planar-polygons", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/non-planar-polygons.fold", "utf-8");
 	const cp = JSON.parse(FOLD);
 	const {
-		graph,
+		result,
 		changes: {
 			vertices,
 			edges,
@@ -197,9 +197,9 @@ test("planarize, non-planar-polygons", () => {
 
 	// neither the number of vertices nor edges changes
 	expect(cp.vertices_coords).toHaveLength(15);
-	expect(graph.vertices_coords).toHaveLength(15);
+	expect(result.vertices_coords).toHaveLength(15);
 	expect(cp.edges_vertices).toHaveLength(10);
-	expect(graph.edges_vertices).toHaveLength(10);
+	expect(result.edges_vertices).toHaveLength(10);
 
 	expect(vertices.map).toMatchObject([
 		11, 12, 13, 14, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
@@ -210,6 +210,6 @@ test("planarize, non-planar-polygons", () => {
 
 	fs.writeFileSync(
 		"./tests/tmp/planarizeCollinearEdges-non-planar-polygons.fold",
-		JSON.stringify(graph),
+		JSON.stringify(result),
 	);
 });

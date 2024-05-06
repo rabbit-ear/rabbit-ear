@@ -19,8 +19,7 @@ test("matrix 2 core", () => {
 test("matrix 2 transform line", () => {
 	const result = ear.math.multiplyMatrix2Line2(
 		ear.math.makeMatrix2Scale([0.5, 0.5, 0.5]),
-		[1, 1],
-		[1, 0],
+		{ vector: [1, 1], origin: [1, 0] },
 	);
 	expect(result.vector[0]).toBeCloseTo(0.5);
 	expect(result.vector[1]).toBeCloseTo(0.5);

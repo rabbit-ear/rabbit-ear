@@ -247,7 +247,7 @@ export const flatFold = (
 	graph.faces_winding = makeFacesWindingFromMatrix2(graph.faces_matrix2);
 	graph.faces_crease = graph.faces_matrix2
 		.map(invertMatrix2)
-		.map(matrix => multiplyMatrix2Line2(matrix, vector, origin));
+		.map(matrix => multiplyMatrix2Line2(matrix, { vector, origin }));
 	graph.faces_side = graph.faces_vertices
 		.map((_, i) => make_face_side(
 			graph.faces_crease[i].vector,

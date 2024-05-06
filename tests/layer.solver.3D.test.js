@@ -2,14 +2,6 @@ import fs from "fs";
 import { expect, test } from "vitest";
 import ear from "../src/index.js";
 
-// test("write layer solution", () => {
-// 	const FOLD = fs.readFileSync("./tests/files/fold/square-twist.fold", "utf-8");
-// 	const graph = JSON.parse(FOLD);
-// 	const foldedFrame = ear.graph.getFramesByClassName(graph, "foldedForm")[0];
-// 	const faceOrders = ear.layer.layer3D(foldedFrame).faceOrders();
-// 	fs.writeFileSync(`./tests/tmp/faceOrders.fold`, JSON.stringify(faceOrders));
-// });
-
 test("3D layer solver, all 3D special cases", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/layers-3d-edge-edge.fold", "utf-8");
 	const fold = JSON.parse(foldfile);

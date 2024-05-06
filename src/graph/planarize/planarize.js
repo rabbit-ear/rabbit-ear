@@ -24,13 +24,13 @@ import {
 /**
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {{ graph: FOLD, changes: object }}
+ * @returns {{ result: FOLD, changes: object }}
  */
 export const planarizeEdges = (graph, epsilon = EPSILON) => {
 	// first step: resolve all collinear and overlapping edges,
 	// after this point, no two edges parallel-overlap each other.
 	const {
-		graph: graphNonCollinear,
+		result: graphNonCollinear,
 		changes: {
 			vertices: { map: verticesMap1 },
 			edges: { map: edgesMap1 },
@@ -42,7 +42,7 @@ export const planarizeEdges = (graph, epsilon = EPSILON) => {
 	// second step: resolve all crossing edges,
 	// after this point the graph is planar, no two edges overlap.
 	const {
-		graph: graphNoOverlaps,
+		result: graphNoOverlaps,
 		changes: {
 			vertices: { map: verticesMap2 },
 			edges: { map: edgesMap2 },
@@ -50,9 +50,9 @@ export const planarizeEdges = (graph, epsilon = EPSILON) => {
 	} = planarizeOverlaps(graphNonCollinear, epsilon);
 
 	// third step: remove all degree-2 vertices which lie between
-	// two parallel edges of the same assignment
+	// two parallel edges of the same assignment (currently, any assignment)
 	const {
-		graph: planarGraph,
+		result: planarGraph,
 		changes: {
 			vertices: { map: verticesMap3 },
 			edges: { map: edgesMap3 }
@@ -63,7 +63,7 @@ export const planarizeEdges = (graph, epsilon = EPSILON) => {
 	const edgeNextMap = mergeNextmaps(edgesMap1, edgesMap2, edgesMap3);
 
 	return {
-		graph: planarGraph,
+		result: planarGraph,
 		changes: {
 			vertices: { map: vertexNextMap },
 			edges: { map: edgeNextMap },
@@ -75,11 +75,11 @@ export const planarizeEdges = (graph, epsilon = EPSILON) => {
  * @description To be renamed to "planarize" and replace the current method
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {{ graph: FOLD, changes: object }}
+ * @returns {{ result: FOLD, changes: object }}
  */
 export const planarizeVEF = (graph, epsilon = EPSILON) => {
 	const {
-		graph: planarGraph,
+		result,
 		changes: {
 			vertices: { map: vertexNextMap },
 			edges: { map: edgeNextMap },
@@ -93,13 +93,13 @@ export const planarizeVEF = (graph, epsilon = EPSILON) => {
 		faces_vertices,
 		faces_edges,
 		faceMap,
-	} = planarizeMakeFaces(graph, planarGraph, edgeBackMap);
+	} = planarizeMakeFaces(graph, result, edgeBackMap);
 
-	planarGraph.faces_vertices = faces_vertices;
-	planarGraph.faces_edges = faces_edges;
+	result.faces_vertices = faces_vertices;
+	result.faces_edges = faces_edges;
 
 	return {
-		graph: planarGraph,
+		result,
 		changes: {
 			vertices: { map: vertexNextMap },
 			edges: { map: edgeNextMap },

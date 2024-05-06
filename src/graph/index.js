@@ -45,9 +45,11 @@ import * as normals from "./normals.js";
 import * as orders from "./orders.js";
 import * as overlap from "./overlap.js";
 import * as planarize from "./planarize.js";
+import * as intersectAllEdges from "./planarize/intersectAllEdges.js";
 import * as planarizeNew from "./planarize/planarize.js";
 import * as planarizeCollinearEdges from "./planarize/planarizeCollinearEdges.js";
 import * as planarizeCollinearVertices from "./planarize/planarizeCollinearVertices.js";
+import * as planarizeMakeFaces from "./planarize/planarizeMakeFaces.js";
 import * as planarizeOverlaps from "./planarize/planarizeOverlaps.js";
 import * as pleat from "./pleat.js";
 import * as populate from "./populate.js";
@@ -110,9 +112,11 @@ const graphMethods = {
 	...orders,
 	...overlap,
 	...planarize,
+	...intersectAllEdges,
 	...planarizeNew,
 	...planarizeCollinearEdges,
 	...planarizeCollinearVertices,
+	...planarizeMakeFaces,
 	...planarizeOverlaps,
 	...pleat,
 	...populate,

@@ -109,7 +109,7 @@ declare const _default: {
     identity2x2: number[];
     identity2x3: number[];
     multiplyMatrix2Vector2: (matrix: number[], vector: [number, number]) => [number, number];
-    multiplyMatrix2Line2: (matrix: number[], vector: [number, number], origin: [number, number]) => VecLine2;
+    multiplyMatrix2Line2: (matrix: number[], { vector, origin }: VecLine2) => VecLine2;
     multiplyMatrices2: (m1: number[], m2: number[]) => number[];
     determinant2: (m: number[]) => number;
     invertMatrix2: (m: number[]) => number[];

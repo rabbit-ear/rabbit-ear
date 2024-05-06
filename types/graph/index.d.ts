@@ -140,6 +140,11 @@ declare const graphExport: Function & {
         graph: FOLD;
         changes: any;
     };
+    planarizeMakeFaces: (oldGraph: FOLD, newGraph: FOLD, edgeBackmap: number[][]) => {
+        faces_vertices: number[][];
+        faces_edges: number[][];
+        faceMap: number[][];
+    };
     planarizeCollinearVertices: (graph: FOLD, epsilon?: number) => {
         graph: FOLD;
         changes: any;

@@ -2,33 +2,6 @@ import { expect, test } from "vitest";
 import fs from "fs";
 import ear from "../src/index.js";
 
-// test("write folded vertices", () => {
-// 	const foldfile = fs.readFileSync("./tests/files/fold/panels-6x2-90deg.fold", "utf-8");
-// 	const fold = JSON.parse(foldfile);
-// 	const folded = ear.graph.makeVerticesCoordsFolded(fold, [0]);
-// 	// const folded = ear.graph.makeVerticesCoordsFlatFolded(fold);
-// 	const foldedVertices = folded.map(p => p.map(n => ear.general.cleanNumber(n, 12)));
-// 	fs.writeFileSync(
-// 		`./tests/tmp/folded-vertices.json`,
-// 		JSON.stringify(foldedVertices, null, 2),
-// 	);
-// });
-
-// test("write layer solution to file", () => {
-// 	const foldfile = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
-// 	const fold = JSON.parse(foldfile);
-// 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
-// 	const solution = ear.layer.solveLayerOrders(folded);
-
-// 	// optional: delete faces_winding
-// 	delete solution.faces_winding;
-
-// 	fs.writeFileSync(
-// 		`./tests/tmp/layer-solution.json`,
-// 		JSON.stringify(solution, null, 2),
-// 	);
-// });
-
 test("layer strip weave", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/strip-weave.fold", "utf-8");
 	const fold = JSON.parse(foldfile);

@@ -161,3 +161,30 @@ test("convert svgToFold, crane all assignments", () => {
 // 	ear.convert.svgToFold("");
 // 	expect(true).toBe(true);
 // });
+
+
+// <svg xmlns="http://www.w3.org/2000/svg" viewBox="-10 -10 20 20" stroke-width="0.2" fill="none">
+// <line x1="0" y1="9" x2="0" y2="7.5" stroke="black" />
+// <rect x="0" y="0" width="8" height="8" stroke="purple" />
+// <rect x="0" y="1" width="6" height="6" stroke="red" />
+// <rect x="0" y="2" width="4" height="4" stroke="green" />
+// <rect x="0" y="3" width="2" height="2" stroke="blue" />
+// <line x1="0" y1="-1" x2="0" y2="2.5" stroke="black" />
+// </svg>
+
+test("svgEdgeGraph, overlapping edges", () => {
+	const svg = `<svg>
+		<line x1="0" y1="9" x2="0" y2="7.5" stroke="black" />
+		<rect x="0" y="0" width="8" height="8" stroke="purple" />
+		<rect x="0" y="1" width="6" height="6" stroke="red" />
+		<rect x="0" y="2" width="4" height="4" stroke="green" />
+		<rect x="0" y="3" width="2" height="2" stroke="blue" />
+		<line x1="0" y1="-1" x2="0" y2="2.5" stroke="black" />
+	</svg>`;
+	const graph = ear.convert.svgEdgeGraph(svg);
+	fs.writeFileSync(
+		"./tests/tmp/svgEdgeGraph-overlapping-edges.fold",
+		JSON.stringify(graph, null, 2),
+		"utf8",
+	);
+});

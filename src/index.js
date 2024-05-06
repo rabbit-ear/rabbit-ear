@@ -16,7 +16,7 @@ import svgLink from "./svg/environment/lib.js";
 import * as placeholder from "./types.js";
 
 /**
- * Rabbit Ear, the default exported object
+ * @description Rabbit Ear, the main entrypoint into the library methods
  */
 const ear = {
 	axiom,

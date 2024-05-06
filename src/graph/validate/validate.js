@@ -14,6 +14,9 @@ import {
 	validateWinding,
 } from "./validateWinding.js";
 import {
+	validateAssignments,
+} from "./validateAssignments.js";
+import {
 	validateOrders,
 } from "./validateOrders.js";
 
@@ -28,6 +31,7 @@ export const validate = (graph) => (validateTypes(graph)
 	.concat(validateReferences(graph))
 	.concat(validateReflexive(graph))
 	.concat(validateWinding(graph))
+	.concat(validateAssignments(graph))
 	.concat(validateOrders(graph))
 );
 

@@ -1,6 +1,6 @@
 export default ear;
 /**
- * Rabbit Ear, the default exported object
+ * @description Rabbit Ear, the main entrypoint into the library methods
  */
 declare const ear: {
     __types__: () => void;
@@ -291,6 +291,11 @@ declare const ear: {
         planarizeOverlaps: ({ vertices_coords, vertices_edges, edges_vertices, edges_assignment, edges_foldAngle }: FOLD, epsilon?: number) => {
             graph: FOLD;
             changes: any;
+        };
+        planarizeMakeFaces: (oldGraph: FOLD, newGraph: FOLD, edgeBackmap: number[][]) => {
+            faces_vertices: number[][];
+            faces_edges: number[][];
+            faceMap: number[][];
         };
         planarizeCollinearVertices: (graph: FOLD, epsilon?: number) => {
             graph: FOLD;
@@ -1068,7 +1073,7 @@ declare const ear: {
         identity2x2: number[];
         identity2x3: number[];
         multiplyMatrix2Vector2: (matrix: number[], vector: [number, number]) => [number, number];
-        multiplyMatrix2Line2: (matrix: number[], vector: [number, number], origin: [number, number]) => VecLine2;
+        multiplyMatrix2Line2: (matrix: number[], { vector, origin }: VecLine2) => VecLine2;
         multiplyMatrices2: (m1: number[], m2: number[]) => number[];
         determinant2: (m: number[]) => number;
         invertMatrix2: (m: number[]) => number[];
@@ -1171,7 +1176,7 @@ declare const ear: {
     };
     svg: ((...args: any[]) => SVGElement) & {
         /**
-         * Rabbit Ear, the default exported object
+         * @description Rabbit Ear, the main entrypoint into the library methods
          */
         window: any;
         svg: (...args: any[]) => SVGElement;

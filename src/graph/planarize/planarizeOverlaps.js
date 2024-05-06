@@ -5,7 +5,6 @@ import {
 	EPSILON,
 } from "../../math/constant.js";
 import {
-	includeS,
 	epsilonEqual,
 } from "../../math/compare.js";
 import {
@@ -14,19 +13,12 @@ import {
 	resize2,
 } from "../../math/vector.js";
 import {
-	intersectLineLine,
-} from "../../math/intersect.js";
-import {
 	clusterSortedGeneric,
 } from "../../general/cluster.js";
-import {
-	sweepValues,
-} from "../sweep.js";
 import {
 	removeDuplicateVertices,
 } from "../vertices/duplicate.js";
 import {
-	circularEdges,
 	removeCircularEdges,
 } from "../edges/circular.js";
 import {
@@ -36,57 +28,18 @@ import {
 } from "../maps.js";
 import {
 	edgeToLine2,
-	edgesToLines2,
 } from "../edges/lines.js";
 import {
 	makeVerticesEdgesUnsorted,
 } from "../make/verticesEdges.js";
-
-/**
- * @param {FOLD} graph a FOLD object
- * @todo line sweep
- */
-export const intersectAllEdges = ({
-	vertices_coords,
-	vertices_edges,
-	edges_vertices,
-}, epsilon = EPSILON) => {
-	const edgesEdgesLookup = edges_vertices.map(() => ({}));
-	edges_vertices.forEach((vertices, e) => vertices
-		.flatMap(v => vertices_edges[v])
-		.forEach(edge => {
-			edgesEdgesLookup[e][edge] = true;
-			edgesEdgesLookup[edge][e] = true;
-		}));
-	const lines = edgesToLines2({ vertices_coords, edges_vertices });
-	const results = [];
-	// todo: line sweep
-	for (let i = 0; i < edges_vertices.length - 1; i += 1) {
-		for (let j = i + 1; j < edges_vertices.length; j += 1) {
-			if (edgesEdgesLookup[i][j]) { continue; }
-			const { a, b, point } = intersectLineLine(
-				lines[i],
-				lines[j],
-				includeS,
-				includeS,
-				epsilon,
-			);
-			if (point) {
-				if ((epsilonEqual(a, 0) || epsilonEqual(a, 1))
-					&& (epsilonEqual(b, 0) || epsilonEqual(b, 1))) {
-					continue;
-				}
-				results.push({ i, j, a, b, point });
-			}
-		}
-	}
-	return results;
-};
+import {
+	intersectAllEdges,
+} from "./intersectAllEdges.js";
 
 /**
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {{ graph: FOLD, changes: object }}
+ * @returns {{ result: FOLD, changes: object }}
  */
 export const planarizeOverlaps = (
 	{ vertices_coords, vertices_edges, edges_vertices, edges_assignment, edges_foldAngle },
@@ -155,17 +108,17 @@ export const planarizeOverlaps = (
 		.concat(additionalVertices_coords)
 		.map(resize2);
 
-	const graph = {
+	const result = {
 		vertices_coords: vertices_coordsNew,
 		edges_vertices: edges_verticesNew,
 	};
 
 	if (edges_assignment) {
-		graph.edges_assignment = edgeBackmapPlanarized
+		result.edges_assignment = edgeBackmapPlanarized
 			.map(e => edges_assignment[e]);
 	}
 	if (edges_foldAngle) {
-		graph.edges_foldAngle = edgeBackmapPlanarized
+		result.edges_foldAngle = edgeBackmapPlanarized
 			.map(e => edges_foldAngle[e]);
 	}
 
@@ -174,18 +127,18 @@ export const planarizeOverlaps = (
 	/** @type {number[]} */
 	const startNextmap = vertices_coords.map((_, i) => i);
 
-	const { map: verticesMapDuplicate } = removeDuplicateVertices(graph, epsilon);
+	const { map: verticesMapDuplicate } = removeDuplicateVertices(result, epsilon);
 	// circular edges will be created at points where for example many lines cross
 	// at a point (but not exactly), creating little small edges with lengths
 	// around an epsilon, and by calling remove duplicate vertices these edges'
 	// two vertices become the same vertex, creating circular edges.
-	const { map: edgeMapCircular } = removeCircularEdges(graph);
+	const { map: edgeMapCircular } = removeCircularEdges(result);
 
 	const edgesMap = mergeNextmaps(edgeNextmapPlanarized, edgeMapCircular);
 	const verticesMap = mergeFlatNextmaps(startNextmap, verticesMapDuplicate);
 
 	return {
-		graph,
+		result,
 		changes: {
 			vertices: { map: verticesMap },
 			edges: { map: edgesMap },
