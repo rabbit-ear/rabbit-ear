@@ -108,3 +108,33 @@ test("planarize, crane already planar", () => {
 // 	ear.graph.planarize(graph);
 // 	console.timeEnd("old");
 // });
+
+test("planarize, foldedForm, windmill", () => {
+	const FOLD = fs.readFileSync("./tests/files/fold/windmill.fold", "utf-8");
+	const fold = JSON.parse(FOLD);
+	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	const { result, changes } = ear.graph.planarizeVEF(folded);
+
+	expect(changes.vertices.map).toMatchObject([
+		[4], [7], [5], [6], [7], [0], [1], [8], [2], [3], [7], [7],
+	]);
+
+	// 8 edges with just one mapping. checks out.
+	expect(changes.edges.map).toMatchObject([
+		[9, 10], [15, 16], [13, 14], [9, 10],
+		[6], [23],
+		[2, 3], [4, 5],
+		[17], [18], [0], [8], [7],
+		[19, 20], [21, 22], [15, 16], [11, 12], [11, 12], [13, 14],
+		[1],
+	]);
+
+	// console.log(changes.faces.map);
+
+	// expect(changes.faces.map).toMatchObject([
+	// 	[2, 9], [0, 2], [9, 11], [3, 11], [0, 6], [6, 7], undefined, [5, 7], [3, 5],
+	// ])
+
+	fs.writeFileSync("./tests/tmp/planarize-windmill.fold", JSON.stringify(result));
+	fs.writeFileSync("./tests/tmp/planarize-windmill.json", JSON.stringify(changes));
+});

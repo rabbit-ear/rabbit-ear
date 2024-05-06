@@ -166,3 +166,51 @@ test("planarizeOverlaps, non-planar-polygons hexagon", () => {
 		JSON.stringify(result),
 	);
 });
+
+test("planarize, foldedForm, windmill", () => {
+	const FOLD = fs.readFileSync("./tests/files/fold/windmill.fold", "utf-8");
+	const fold = JSON.parse(FOLD);
+	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	const { result, changes } = ear.graph.planarizeOverlaps(folded);
+
+	expect(folded.vertices_coords).toHaveLength(12);
+	expect(result.vertices_coords).toHaveLength(13);
+	expect(folded.edges_vertices).toHaveLength(20);
+	expect(result.edges_vertices).toHaveLength(32);
+
+	expect(result.vertices_coords).toMatchObject([
+		[0, 2], // bottom point
+		[2, 2], // center
+		[2, 0], // left point
+		[2, 4], // top point
+		[1, 1], // square corner 1
+		[3, 3], // square corner 2
+		[4, 2], // right point
+		[1, 3], // square corner 3
+		[3, 1], // square corner 4
+		[1, 2], // square edge 1
+		[2, 1], // square edge 2
+		[2, 3], // square edge 3
+		[3, 2], // square edge 4
+	]);
+
+	expect(result.edges_vertices).toMatchObject([
+		[0, 9], [9, 1], [1, 10], [10, 2], [3, 11], [11, 1], [1, 9], [9, 0], [0, 4],
+		[5, 6], [7, 9], [9, 4], [4, 10], [10, 8], [7, 1], [8, 1], [4, 1], [3, 7],
+		[8, 2], [8, 12], [12, 5], [5, 11], [11, 7], [2, 10], [10, 1], [1, 12],
+		[12, 6], [6, 12], [12, 1], [1, 11], [11, 3], [5, 1],
+	]);
+
+	expect(changes.vertices.map).toMatchObject([
+		0, 1, 2, 3, 1, 4, 5, 6, 7, 8, 1, 1,
+	]);
+
+	expect(changes.edges.map).toMatchObject([
+		[0, 1], [2, 3], [4, 5], [6, 7], [8], [9], [10, 11], [12, 13],
+		[14], [15], [16], [17], [18], [19, 20], [21, 22], [23, 24],
+		[25, 26], [27, 28], [29, 30], [31],
+	]);
+
+	fs.writeFileSync("./tests/tmp/planarizeOverlaps-windmill.fold", JSON.stringify(result));
+	fs.writeFileSync("./tests/tmp/planarizeOverlaps-windmill.json", JSON.stringify(changes));
+});

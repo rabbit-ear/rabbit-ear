@@ -114,7 +114,7 @@ test("inside of nudgeFacesWithFaceOrders", () => {
 });
 
 test("linear order face orders with cycle", () => {
-	const FOLD = fs.readFileSync("./tests/files/fold/windmill-face-cycle.fold", "utf-8");
+	const FOLD = fs.readFileSync("./tests/files/fold/windmill.fold", "utf-8");
 	const fold = JSON.parse(FOLD);
 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
 	const faces_normal = ear.graph.makeFacesNormal(folded);

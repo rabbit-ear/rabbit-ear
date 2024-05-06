@@ -15,6 +15,8 @@ import {
 } from "../make/facesEdges.js";
 import {
 	invertArrayMap,
+	invertFlatMap,
+	invertFlatToArrayMap,
 } from "../maps.js";
 
 // the face-matching algorithm should go like this:
@@ -52,15 +54,45 @@ const makeFaceBackmap = (
 		edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_vertices, faces_edges });
 	}
 
-	return faces_edgesNew
-		.map(edges => edges.filter(e => edgesBackmap[e] !== undefined))
+	// for each of the new faces_edges, use the backmap to replace all current
+	// edge indices with (a list of) the old edge indices. new edges map
+	// one-to-many to old edges, so this creates nested arrays.
+	// convert [4, 15, 0] into [[7], [1, 15], [10]]
+	const faces_backEdges = faces_edgesNew
 		.map(edges => edges
-			.map(newE => edgesBackmap[newE].flatMap(oldE => edges_faces[oldE]))
-			.filter(a => a.length)
-			.reduce((a, b) => callArrayIntersection(a, b), []));
+			.filter(e => edgesBackmap[e] !== undefined)
+			.map(e => edgesBackmap[e]));
+
+	// for every face, a list of its old edges' adjacent faces. these are
+	// contenders for matching the new face to one of the old faces from this list
+	const faces_backEdges_faces = faces_backEdges
+		.map(backEdges => backEdges.map(edges => edges.flatMap(e => edges_faces[e])));
+
+	const faces_faceAppearanceCount = faces_backEdges_faces
+		.map(edgesFaces => invertFlatToArrayMap(edgesFaces.flat())
+			.map(el => el.length));
+
+	// get the appearance with the most appearances (last in the list)
+	const facesBackMap = faces_faceAppearanceCount
+		.map(indexCounts => invertFlatToArrayMap(indexCounts))
+		.map(faces => faces.pop())
+		.map(res => (res === undefined ? [] : res));
+
+	// const faces_backFaces = faces_backEdges_faces
+	// 	.map(backEdges_faces => backEdges_faces
+	// 		.filter(a => a.length)
+	// 		.reduce((a, b) => callArrayIntersection(a, b), []));
+
+	// console.log("faces_backEdges", faces_backEdges);
+	// console.log("faces_backEdges_faces", faces_backEdges_faces);
+	// console.log("faces_faceAppearanceCount", faces_faceAppearanceCount);
+	// console.log("facesBackMap", facesBackMap);
+	// console.log("faces_backFaces", faces_backFaces);
 	// these are array maps with only one item, they can be changed into flat maps
 	// but the only use case is to merge them, and that method takes either.
 	// .map(arr => arr[0]);
+	// return faces_backFaces;
+	return facesBackMap;
 };
 
 /**

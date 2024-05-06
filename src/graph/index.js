@@ -32,6 +32,7 @@ import * as boundary from "./boundary.js";
 import * as clean from "./clean.js";
 import * as connectedComponents from "./connectedComponents.js";
 import * as count from "./count.js";
+import * as cycles from "./cycles.js";
 import * as directedGraph from "./directedGraph.js";
 import * as disjoint from "./disjoint.js";
 import * as explodeMethods from "./explode.js";
@@ -98,6 +99,7 @@ const graphMethods = {
 	...clean,
 	...connectedComponents,
 	...count,
+	...cycles,
 	...directedGraph,
 	...disjoint,
 	...explodeMethods,
