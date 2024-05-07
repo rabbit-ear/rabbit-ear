@@ -120,7 +120,14 @@ const highestPriorityAssignmentIndex = (assignments) => {
  * coordinate. Call "planarize" instead for the complete method.
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {{ result: FOLD, changes: object }} a new FOLD object, with
+ * @returns {{
+ *   result: FOLD,
+ *   changes: {
+ *     vertices: { map: number[] },
+ *     edges: { map: number[][] },
+ *   }
+ * }}
+ * a new FOLD object, with
  * an info object which describes all changes to the graph.
  */
 export const planarizeCollinearEdges = ({

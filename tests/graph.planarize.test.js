@@ -5,7 +5,18 @@ import ear from "../src/index.js";
 
 ear.window = xmldom;
 
-test("planarize empty graph", () => {
+test("planarizeEdges, empty graph", () => {
+	const graph = {
+		vertices_coords: [],
+		edges_vertices: [],
+		edges_assignment: [],
+		edges_foldAngle: [],
+	};
+	const result = ear.graph.planarizeEdges(graph);
+	expect(JSON.stringify(graph)).toBe(JSON.stringify(result));
+});
+
+test("planarize, empty graph", () => {
 	const graph = {
 		vertices_coords: [],
 		edges_vertices: [],
@@ -13,7 +24,15 @@ test("planarize empty graph", () => {
 		edges_foldAngle: [],
 	};
 	const result = ear.graph.planarize(graph);
-	expect(JSON.stringify(graph)).toBe(JSON.stringify(result));
+	const expected = {
+		vertices_coords: [],
+		edges_vertices: [],
+		edges_assignment: [],
+		edges_foldAngle: [],
+		faces_vertices: [],
+		faces_edges: [],
+	}
+	expect(JSON.stringify(expected)).toBe(JSON.stringify(result));
 });
 
 test("planarize random lines", () => {

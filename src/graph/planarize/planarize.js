@@ -5,9 +5,11 @@ import {
 	EPSILON,
 } from "../../math/constant.js";
 import {
-	invertArrayMap,
 	mergeNextmaps,
 } from "../maps.js";
+import {
+	makePlanarFaces,
+} from "../make/faces.js";
 import {
 	planarizeCollinearEdges,
 } from "./planarizeCollinearEdges.js";
@@ -18,15 +20,69 @@ import {
 	planarizeCollinearVertices,
 } from "./planarizeCollinearVertices.js";
 import {
-	planarizeMakeFaces
-} from "./planarizeMakeFaces.js";
+	makeFacesMap,
+} from "./makeFacesMap.js";
+
+/**
+ * @description To be renamed to "planarize" and replace the current method
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {FOLD}
+ */
+export const planarizeEdges = ({
+	vertices_coords,
+	edges_vertices,
+	edges_assignment,
+	edges_foldAngle,
+}, epsilon = EPSILON) => {
+	// first step: resolve all collinear and overlapping edges,
+	// after this point, no two edges parallel-overlap each other.
+	const { result: result1 } = planarizeCollinearEdges({
+		vertices_coords,
+		edges_vertices,
+		edges_assignment,
+		edges_foldAngle,
+	}, epsilon);
+
+	// second step: resolve all crossing edges,
+	// after this point the graph is planar, no two edges overlap.
+	const { result: result2 } = planarizeOverlaps(result1, epsilon);
+
+	// third step: remove all degree-2 vertices which lie between
+	// two parallel edges of the same assignment (currently, any assignment)
+	const { result: result3 } = planarizeCollinearVertices(result2, epsilon);
+	return result3;
+};
+
+/**
+ * @description To be renamed to "planarize" and replace the current method
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {FOLD}
+ */
+export const planarize = (graph, epsilon = EPSILON) => {
+	const result = planarizeEdges(graph, epsilon);
+	const {
+		faces_vertices,
+		faces_edges,
+	} = makePlanarFaces(result);
+	result.faces_vertices = faces_vertices;
+	result.faces_edges = faces_edges;
+	return result;
+};
 
 /**
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {{ result: FOLD, changes: object }}
+ * @returns {{
+ *   result: FOLD,
+ *   changes: {
+ *     vertices: { map: number[][] },
+ *     edges: { map: number[][] },
+ *   }
+ * }}
  */
-export const planarizeEdges = (graph, epsilon = EPSILON) => {
+export const planarizeEdgesVerbose = (graph, epsilon = EPSILON) => {
 	// first step: resolve all collinear and overlapping edges,
 	// after this point, no two edges parallel-overlap each other.
 	const {
@@ -75,28 +131,35 @@ export const planarizeEdges = (graph, epsilon = EPSILON) => {
  * @description To be renamed to "planarize" and replace the current method
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {{ result: FOLD, changes: object }}
+ * @returns {{
+ *   result: FOLD,
+ *   changes: {
+ *     vertices: { map: number[][] },
+ *     edges: { map: number[][] },
+ *     faces: { map: number[][] },
+ *   }
+ * }}
  */
-export const planarizeVEF = (graph, epsilon = EPSILON) => {
+export const planarizeVerbose = (graph, epsilon = EPSILON) => {
 	const {
 		result,
 		changes: {
 			vertices: { map: vertexNextMap },
 			edges: { map: edgeNextMap },
 		}
-	} = planarizeEdges(graph, epsilon);
-
-	// const vertexBackMap = invertArrayMap(vertexNextMap);
-	const edgeBackMap = invertArrayMap(edgeNextMap);
+	} = planarizeEdgesVerbose(graph, epsilon);
 
 	const {
 		faces_vertices,
 		faces_edges,
-		faceMap,
-	} = planarizeMakeFaces(graph, result, edgeBackMap);
-
+	} = makePlanarFaces(result);
 	result.faces_vertices = faces_vertices;
 	result.faces_edges = faces_edges;
+
+	const faceMap = makeFacesMap(graph, result, {
+		vertices: { map: vertexNextMap },
+		edges: { map: edgeNextMap },
+	});
 
 	return {
 		result,

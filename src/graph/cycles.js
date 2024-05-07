@@ -2,8 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import {
-	planarizeVEF,
-	planarizeEdges,
+	planarizeVerbose,
 } from "./planarize/planarize.js";
 
 /**
@@ -11,7 +10,7 @@ import {
  * @returns {FOLD}
  */
 export const fixCycles = (graph) => {
-	const { result, changes: { faces: { map }} } = planarizeVEF(graph);
-	// const { result, changes } = planarizeEdges(graph);
+	const { result, changes: { faces: { map }} } = planarizeVerbose(graph);
+
 	return result;
 };

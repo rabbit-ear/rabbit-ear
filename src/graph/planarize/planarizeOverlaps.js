@@ -42,7 +42,13 @@ import {
 /**
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {{ result: FOLD, changes: object }}
+ * @returns {{
+ *   result: FOLD,
+ *   changes: {
+ *     vertices: { map: number[] },
+ *     edges: { map: number[][] },
+ *   }
+ * }}
  */
 export const planarizeOverlaps = (
 	{ vertices_coords, vertices_edges, edges_vertices, edges_assignment, edges_foldAngle },

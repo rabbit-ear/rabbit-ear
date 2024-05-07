@@ -41,7 +41,7 @@ const callArrayIntersection = (a, b) => (!a.length
  * @param {number[][]} edgesBackmap
  * @returns {number[][]}
  */
-const makeFaceBackmap = (
+const makeFaceBackmapOld = (
 	{ edges_vertices, edges_faces, faces_vertices, faces_edges },
 	faces_edgesNew,
 	edgesBackmap,
@@ -83,14 +83,13 @@ const makeFaceBackmap = (
 	// 		.filter(a => a.length)
 	// 		.reduce((a, b) => callArrayIntersection(a, b), []));
 
+	// console.log("faces_edgesNew", faces_edgesNew);
 	// console.log("faces_backEdges", faces_backEdges);
 	// console.log("faces_backEdges_faces", faces_backEdges_faces);
 	// console.log("faces_faceAppearanceCount", faces_faceAppearanceCount);
 	// console.log("facesBackMap", facesBackMap);
 	// console.log("faces_backFaces", faces_backFaces);
-	// these are array maps with only one item, they can be changed into flat maps
-	// but the only use case is to merge them, and that method takes either.
-	// .map(arr => arr[0]);
+
 	// return faces_backFaces;
 	return facesBackMap;
 };
@@ -103,7 +102,7 @@ const makeFaceBackmap = (
  * "edgeBackmap" relates this graph to the newGraph
  * @param {FOLD} newGraph the planar graph after all changes to it,
  * "edgeBackmap" relates this graph to the oldGraph
- * @param {number[][]} edgeBackmap
+ * @param {{ edges: { map: number[][] }}} edgeBackmap
  * @returns {{
  *   faces_vertices: number[][],
  *   faces_edges: number[][],
@@ -111,15 +110,18 @@ const makeFaceBackmap = (
  * }} new face information for the newGraph, and a map relating the new
  * faces to the old faces.
  */
-export const planarizeMakeFaces = (oldGraph, newGraph, edgeBackmap) => {
+export const planarizeMakeFaces = (oldGraph, newGraph, { edges: { map: edgeNextMap } }) => {
+	// const vertexBackMap = invertArrayMap(vertexNextMap);
+	const edgeBackMap = invertArrayMap(edgeNextMap);
+
 	const {
 		faces_vertices,
 		faces_edges,
 	} = makePlanarFaces(newGraph);
-	const faceBackMap = makeFaceBackmap(
+	const faceBackMap = makeFaceBackmapOld(
 		oldGraph,
 		faces_edges,
-		edgeBackmap,
+		edgeBackMap,
 	);
 	return {
 		faces_vertices,
