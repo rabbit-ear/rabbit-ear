@@ -40,7 +40,7 @@ export const makeFacesMap = (
 	// get rid of the undefinedes, these will break the connected components
 	const faces_edgesNew = newGraph.faces_edges || makeFacesEdgesFromVertices(newGraph);
 	const faces_facesNew = makeFacesFaces(newGraph)
-		.map(arr => arr.filter(a => a));
+		.map(arr => arr.filter(a => a !== null && a !== undefined));
 	const edges_facesNew = makeEdgesFacesUnsorted(newGraph);
 	const edges_facesOld = makeEdgesFacesUnsorted(oldGraph);
 

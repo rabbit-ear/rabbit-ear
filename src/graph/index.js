@@ -56,6 +56,7 @@ import * as pleat from "./pleat.js";
 import * as populate from "./populate.js";
 import * as raycast from "./raycast.js";
 import * as remove from "./remove.js";
+import * as rendering from "./rendering.js";
 import * as replace from "./replace.js";
 import * as subgraphMethods from "./subgraph.js";
 import * as sweep from "./sweep.js";
@@ -123,6 +124,7 @@ const graphMethods = {
 	...populate,
 	...raycast,
 	...remove,
+	...rendering,
 	...replace,
 	...splitEdge,
 	...splitFace,

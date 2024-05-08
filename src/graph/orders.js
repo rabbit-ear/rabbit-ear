@@ -3,6 +3,7 @@
  */
 import {
 	dot,
+	resize3,
 } from "../math/vector.js";
 import {
 	uniqueSortedNumbers,
@@ -36,6 +37,16 @@ import {
 // } from "./globalSolver/index.js";
 
 /**
+ * @description
+ * @param {[number, number, number][]} faceOrders
+ * @param {number[][]} nextMap
+ * @returns {[number, number, number][]} a new copy of face orders
+ */
+// export const updateFaceOrdersWithMap = (faceOrders, nextMap) => {
+// 	const faceOrdersResult = faceOrders
+// };
+
+/**
  * @description given faceOrders and a list of faces, filter the list
  * of faceOrders so that it only contains orders between faces where
  * both faces are contained in the argument subset faces array.
@@ -48,6 +59,30 @@ export const faceOrdersSubset = (faceOrders, faces) => {
 	faces.forEach(f => { facesHash[f] = true; });
 	return faceOrders
 		.filter(order => facesHash[order[0]] && facesHash[order[1]]);
+};
+
+/**
+ * @description Using a graph's faceOrders data, cluster faces into groups
+ * where at least one face overlaps a face from the same group. Separate the
+ * faceOrders array into clusters as well, each containing only those faces
+ * present in that cluster.
+ * @param {FOLD} graph a FOLD object with faceOrders
+ * @returns {{
+ *   clusters_faces: number[][],
+ *   clusters_faceOrders: [number, number, number][][],
+ * }} clusters_faces, for every cluster, a list of faces
+ */
+export const overlappingFaceOrdersClusters = ({ faceOrders }) => {
+	const faces_cluster = connectedComponents(makeVerticesVerticesUnsorted({
+		edges_vertices: faceOrders.map(([a, b]) => [a, b]),
+	}));
+	const clusters_faces = invertFlatToArrayMap(faces_cluster);
+	const clusters_faceOrders = clusters_faces
+		.map(faces => faceOrdersSubset(faceOrders, faces));
+	return {
+		clusters_faces,
+		clusters_faceOrders,
+	};
 };
 
 /**
@@ -118,18 +153,16 @@ export const faceOrdersToDirectedEdges = (
  * @param {number} [rootFace] the user can choose which face determines the normal
  * direction, which for flat foldable models for example will linearize upwards
  * or downwards depending on this chosen face's winding.
- * @returns {number[]} layers_face, for every layer (key) which face (value)
- * inhabits it. This only includes faces which are found in faceOrders.
+ * @returns {number[]|undefined} layers_face, for every layer (key)
+ * which face (value) inhabits it. This only includes faces which are found
+ * in faceOrders. Undefined if no ordering exists (if a cycle is present)
  */
 export const linearizeFaceOrders = (
 	{ vertices_coords, faces_vertices, faceOrders, faces_normal },
 	rootFace,
-) => {
-	const sorting = topologicalSort(faceOrdersToDirectedEdges({
-		vertices_coords, faces_vertices, faceOrders, faces_normal,
-	}, rootFace));
-	return sorting || [];
-};
+) => (topologicalSort(faceOrdersToDirectedEdges({
+	vertices_coords, faces_vertices, faceOrders, faces_normal,
+}, rootFace)));
 
 /**
  * @param {FOLDExtended} graph a FOLD object with faceOrders, and either faces_normal
@@ -183,10 +216,13 @@ export const linearize2DFaces = ({
 		faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
 	}
 	if (faceOrders) {
-		return fillInMissingFaces(
-			{ faces_vertices },
-			invertFlatMap(linearizeFaceOrders({ faceOrders, faces_normal }, rootFace)),
+		const linearization = linearizeFaceOrders(
+			{ faceOrders, faces_normal },
+			rootFace,
 		);
+		return !linearization
+			? []
+			: fillInMissingFaces({ faces_vertices }, invertFlatMap(linearization));
 	}
 	if (faces_layer) {
 		return fillInMissingFaces({ faces_vertices }, faces_layer);
@@ -202,31 +238,42 @@ export const linearize2DFaces = ({
  * what is its displacement magnitude integer, indicating which layer
  * this face lies on.
  * @param {FOLDExtended} graph a FOLD object with faceOrders.
- * @returns {object[]} face-aligned array, one object per face,
+ * @returns {{
+ *   vector: [number, number, number],
+ *   layer: number,
+ * }[]} face-aligned array, one object per face,
  * each object with properties "vector" and "layer".
  */
 export const nudgeFacesWithFaceOrders = ({
-	vertices_coords, faces_vertices, faceOrders, faces_normal,
+	vertices_coords, faces_vertices, faceOrders, faces_normal: facesNormal,
 }) => {
-	if (!faces_normal) {
-		faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
-	}
+	const faces_normal = facesNormal
+		? facesNormal.map(resize3)
+		: makeFacesNormal({ vertices_coords, faces_vertices });
+
 	// create a graph where the vertices are the faces, and edges
 	// are connections between faces according to faceOrders
 	// using this representation, find the disjoint sets of faces,
 	// those which are isolated from each other according to layer orders
-	const faces_set = connectedComponents(makeVerticesVerticesUnsorted({
-		edges_vertices: faceOrders.map(ord => [ord[0], ord[1]]),
-	}));
-	const sets_faces = invertFlatToArrayMap(faces_set);
-	const sets_layers_face = sets_faces
-		.map(faces => faceOrdersSubset(faceOrders, faces))
+	const {
+		clusters_faces,
+		clusters_faceOrders,
+	} = overlappingFaceOrdersClusters({ faceOrders });
+
+	// if a cluster contains a cycle, it's entry will be undefined.
+	const clusters_layers_face = clusters_faceOrders
 		.map(orders => linearizeFaceOrders({ faceOrders: orders, faces_normal }));
-	const sets_normals = sets_faces.map(faces => faces_normal[faces[0]]);
+
+	// if one of the clusters contains a cycle, even though some
+	// clusters may be valid, exit early.
+	if (clusters_layers_face.includes(undefined)) { return undefined; }
+
+	const clusters_normals = clusters_faces.map(faces => faces_normal[faces[0]]);
+	/** @type {{ vector: [number, number, number], layer: number }[]} */
 	const faces_nudge = [];
-	sets_layers_face.forEach((set, i) => set.forEach((face, index) => {
+	clusters_layers_face.forEach((set, i) => set.forEach((face, index) => {
 		faces_nudge[face] = {
-			vector: sets_normals[i],
+			vector: clusters_normals[i],
 			layer: index,
 		};
 	}));
@@ -238,10 +285,14 @@ export const nudgeFacesWithFaceOrders = ({
  * of faces, for a flat-folded 2D graph, get an array where every face
  * is given a layer and a vector, which will always be [0, 0, 1].
  * @param {FOLDExtended} graph a FOLD object with the parameter faces_layer.
- * @returns {object[]} face-aligned array, one object per face,
+ * @returns {{
+ *     vector: [number, number]|[number, number, number],
+ *     layer: number,
+ * }[]} face-aligned array, one object per face,
  * each object with properties "vector" and "layer".
  */
 export const nudgeFacesWithFacesLayer = ({ faces_layer }) => {
+	/** @type {{ vector: [number, number, number], layer: number }[]} */
 	const faces_nudge = [];
 	const layers_face = invertFlatMap(faces_layer);
 	layers_face.forEach((face, layer) => {
@@ -268,7 +319,8 @@ export const makeFacesLayer = ({ vertices_coords, faces_vertices, faceOrders, fa
 	if (!faces_normal) {
 		faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
 	}
-	return invertFlatMap(linearizeFaceOrders({ faceOrders, faces_normal }));
+	const linearization = linearizeFaceOrders({ faceOrders, faces_normal });
+	return !linearization ? [] : invertFlatMap(linearization);
 };
 
 /**

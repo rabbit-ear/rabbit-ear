@@ -276,11 +276,61 @@ declare const ear: {
             };
         };
         replace: (graph: FOLD, key: string, replaceIndices: number[]) => number[];
+        prepareForRenderingWithCycles: (inputGraph: FOLDExtended, { earcut, layerNudge }?: {
+            earcut?: Function;
+            layerNudge?: number;
+        }) => FOLD;
+        prepareForRendering: (inputGraph: FOLDExtended, { earcut, layerNudge }?: {
+            earcut?: Function;
+            layerNudge?: number;
+        }) => FOLD;
         remove: (graph: FOLD, key: string, removeIndices: number[]) => number[];
         raycast: (graph: FOLD, ray: VecLine) => void;
         populate: (graph: FOLD, options?: any) => FOLD;
         pleat: ({ vertices_coords, edges_vertices }: FOLD, lineA: VecLine2, lineB: VecLine2, count: number, epsilon?: number) => [[number, number], [number, number]][][];
         pleatEdges: ({ vertices_coords, edges_vertices }: FOLD, edgeA: number, edgeB: number, count: number, epsilon?: number) => number[][][][];
+        planarizeOverlaps: ({ vertices_coords, vertices_edges, edges_vertices, edges_assignment, edges_foldAngle }: FOLD, epsilon?: number) => {
+            result: FOLD;
+            changes: {
+                vertices: {
+                    map: number[];
+                };
+                edges: {
+                    map: number[][];
+                };
+            };
+        };
+        planarizeMakeFaces: (oldGraph: FOLD, newGraph: FOLD, { edges: { map: edgeNextMap } }: {
+            edges: {
+                map: number[][];
+            };
+        }) => {
+            faces_vertices: number[][];
+            faces_edges: number[][];
+            faceMap: number[][];
+        };
+        planarizeCollinearVertices: (graph: FOLD, epsilon?: number) => {
+            result: FOLD;
+            changes: {
+                vertices: {
+                    map: number[];
+                };
+                edges: {
+                    map: number[][];
+                };
+            };
+        };
+        planarizeCollinearEdges: ({ vertices_coords, vertices_edges, edges_vertices, edges_assignment, edges_foldAngle, }: FOLD, epsilon?: number) => {
+            result: FOLD;
+            changes: {
+                vertices: {
+                    map: number[];
+                };
+                edges: {
+                    map: number[][];
+                };
+            };
+        };
         intersectAllEdges: ({ vertices_coords, vertices_edges, edges_vertices, }: FOLD, epsilon?: number) => {
             i: number;
             j: number;
@@ -288,32 +338,33 @@ declare const ear: {
             b: number;
             point: [number, number];
         }[];
-        planarizeOverlaps: ({ vertices_coords, vertices_edges, edges_vertices, edges_assignment, edges_foldAngle }: FOLD, epsilon?: number) => {
-            graph: FOLD;
-            changes: any;
+        planarizeEdges: ({ vertices_coords, edges_vertices, edges_assignment, edges_foldAngle, }: FOLD, epsilon?: number) => FOLD;
+        planarize: (graph: FOLD, epsilon?: number) => FOLD;
+        planarizeEdgesVerbose: (graph: FOLD, epsilon?: number) => {
+            result: FOLD;
+            changes: {
+                vertices: {
+                    map: number[][];
+                };
+                edges: {
+                    map: number[][];
+                };
+            };
         };
-        planarizeMakeFaces: (oldGraph: FOLD, newGraph: FOLD, edgeBackmap: number[][]) => {
-            faces_vertices: number[][];
-            faces_edges: number[][];
-            faceMap: number[][];
+        planarizeVerbose: (graph: FOLD, epsilon?: number) => {
+            result: FOLD;
+            changes: {
+                vertices: {
+                    map: number[][];
+                };
+                edges: {
+                    map: number[][];
+                };
+                faces: {
+                    map: number[][];
+                };
+            };
         };
-        planarizeCollinearVertices: (graph: FOLD, epsilon?: number) => {
-            graph: FOLD;
-            changes: any;
-        };
-        planarizeCollinearEdges: ({ vertices_coords, vertices_edges, edges_vertices, edges_assignment, edges_foldAngle, }: FOLD, epsilon?: number) => {
-            graph: FOLD;
-            changes: any;
-        };
-        planarizeEdges: (graph: FOLD, epsilon?: number) => {
-            graph: FOLD;
-            changes: any;
-        };
-        planarizeVEF: (graph: FOLD, epsilon?: number) => {
-            graph: FOLD;
-            changes: any;
-        };
-        planarize: ({ vertices_coords, edges_vertices, edges_assignment, edges_foldAngle, }: FOLD, epsilon?: number) => FOLD;
         getFacesFacesOverlap: ({ vertices_coords, faces_vertices, }: FOLD, epsilon?: number) => number[][];
         getEdgesEdgesCollinearOverlap: ({ vertices_coords, edges_vertices, }: FOLD, epsilon?: number) => number[][];
         getOverlappingComponents: ({ vertices_coords, edges_vertices, faces_vertices, }: FOLD, epsilon?: number) => {
@@ -325,12 +376,22 @@ declare const ear: {
         getFacesEdgesOverlap: ({ vertices_coords, edges_vertices, faces_vertices, faces_edges, }: FOLD, epsilon?: number) => number[][];
         getEdgesFacesOverlap: ({ vertices_coords, edges_vertices, faces_vertices, faces_edges, }: FOLD, epsilon?: number) => number[][];
         faceOrdersSubset: (faceOrders: [number, number, number][], faces: number[]) => [number, number, number][];
+        overlappingFaceOrdersClusters: ({ faceOrders }: FOLD) => {
+            clusters_faces: number[][];
+            clusters_faceOrders: [number, number, number][][];
+        };
         faceOrdersToDirectedEdges: ({ vertices_coords, faces_vertices, faceOrders, faces_normal }: FOLDExtended, rootFace?: number) => [number, number][];
         linearizeFaceOrders: ({ vertices_coords, faces_vertices, faceOrders, faces_normal }: FOLDExtended, rootFace?: number) => number[];
         faceOrdersCycles: ({ vertices_coords, faces_vertices, faceOrders, faces_normal }: FOLDExtended, rootFace?: number) => void;
         linearize2DFaces: ({ vertices_coords, faces_vertices, faceOrders, faces_layer, faces_normal, }: FOLDExtended, rootFace?: number) => number[];
-        nudgeFacesWithFaceOrders: ({ vertices_coords, faces_vertices, faceOrders, faces_normal, }: FOLDExtended) => any[];
-        nudgeFacesWithFacesLayer: ({ faces_layer }: FOLDExtended) => any[];
+        nudgeFacesWithFaceOrders: ({ vertices_coords, faces_vertices, faceOrders, faces_normal: facesNormal, }: FOLDExtended) => {
+            vector: [number, number, number];
+            layer: number;
+        }[];
+        nudgeFacesWithFacesLayer: ({ faces_layer }: FOLDExtended) => {
+            vector: [number, number] | [number, number, number];
+            layer: number;
+        }[];
         makeFacesLayer: ({ vertices_coords, faces_vertices, faceOrders, faces_normal }: FOLDExtended) => number[];
         flipFacesLayer: (faces_layer: number[]) => number[];
         makeFacesNormal: ({ vertices_coords, faces_vertices }: FOLD) => [number, number, number][];
@@ -432,6 +493,7 @@ declare const ear: {
         topologicalSortQuick: (directedEdges: [number, number][]) => number[];
         topologicalSort: (directedEdges: [number, number][]) => number[];
         topologicalSortCycles: (directedEdges: [number, number][]) => [number, number][];
+        fixCycles: (graph: FOLD) => FOLD;
         count: (graph: FOLD, key: string) => number;
         countVertices: ({ vertices_coords, vertices_vertices, vertices_edges, vertices_faces, }: FOLD) => number;
         countEdges: ({ edges_vertices, edges_faces }: FOLD) => number;
@@ -1768,9 +1830,13 @@ declare const ear: {
         outlined_model_300_vert: "#version 300 es\nuniform mat4 u_modelView;\nuniform mat4 u_matrix;\nuniform vec3 u_frontColor;\nuniform vec3 u_backColor;\nuniform vec3 u_outlineColor;\nin vec3 v_position;\nin vec3 v_normal;\nin vec3 v_barycentric;\nin float v_rawEdge;\nout vec3 front_color;\nout vec3 back_color;\nout vec3 outline_color;\nout vec3 barycentric;\n// flat out int rawEdge;\nflat out int provokedVertex;\nvoid main () {\n\tgl_Position = u_matrix * vec4(v_position, 1);\n\tprovokedVertex = gl_VertexID;\n\tbarycentric = v_barycentric;\n\t// rawEdge = int(v_rawEdge);\n\tvec3 light = abs(normalize((vec4(v_normal, 1) * u_modelView).xyz));\n\tfloat brightness = 0.5 + light.x * 0.15 + light.z * 0.35;\n\tfront_color = u_frontColor * brightness;\n\tback_color = u_backColor * brightness;\n\toutline_color = u_outlineColor;\n}\n";
         model_300_frag: "#version 300 es\n#ifdef GL_FRAGMENT_PRECISION_HIGH\n  precision highp float;\n#else\n  precision mediump float;\n#endif\nuniform float u_opacity;\nin vec3 front_color;\nin vec3 back_color;\nout vec4 outColor;\nvoid main () {\n\tgl_FragDepth = gl_FragCoord.z;\n\tvec3 color = gl_FrontFacing ? front_color : back_color;\n\toutColor = vec4(color, u_opacity);\n}\n";
         simple_100_frag: "#version 100\nprecision mediump float;\nvarying vec3 blend_color;\nvoid main () {\n\tgl_FragColor = vec4(blend_color.rgb, 1);\n}\n";
-        foldedFormFaces: (gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD, options?: any) => WebGLModel;
+        foldedFormFaces: (gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD, options?: {
+            layerNudge?: number;
+        }) => WebGLModel;
         foldedFormEdges: (gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD, options?: any) => WebGLModel;
-        foldedFormFacesOutlined: (gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD, options?: any) => WebGLModel;
+        foldedFormFacesOutlined: (gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD, options?: {
+            layerNudge?: number;
+        }) => WebGLModel;
         foldedForm: (gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD, options?: any) => WebGLModel[];
         makeFacesVertexData: ({ vertices_coords, edges_assignment, faces_vertices, faces_edges, faces_normal, }: {
             vertices_coords: any;

@@ -32,6 +32,7 @@ export const minimumSpanningTrees = (array_array = [], rootIndices = []) => {
 
 	// this serves two functions: a hash lookup to ensure we aren't using the
 	// same node twice, and when we need to start a new tree, query from here.
+	/** @type {{[key: number]: boolean}} */
 	const unvisited = {};
 	array_array.forEach((_, i) => { unvisited[i] = true; });
 
@@ -65,6 +66,7 @@ export const minimumSpanningTrees = (array_array = [], rootIndices = []) => {
 			// the above list we just made might contain duplicates.
 			// Iterate through the list and mark any duplicates to be removed
 			// by also updating the "unvisited" list.
+			/** @type {{[key: number]: boolean}} */
 			const duplicates = {};
 			nextLevel.forEach((el, i) => {
 				if (!unvisited[el.index]) { duplicates[i] = true; }

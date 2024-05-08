@@ -5,9 +5,6 @@ import {
 	createProgram,
 } from "../general/webgl.js";
 import {
-	makeExplodedGraph,
-} from "../general/graph.js";
-import {
 	makeFoldedVertexArrays,
 	makeFoldedElementArrays,
 	makeThickEdgesVertexArrays,
@@ -30,16 +27,23 @@ import {
 	simple_100_frag,
 	simple_300_frag,
 } from "./shaders.js";
+import {
+	prepareForRendering,
+} from "../../graph/rendering.js";
+// import {
+// 	makeExplodedGraph,
+// } from "../general/graph.js";
 
 /**
  * @param {WebGLRenderingContext|WebGL2RenderingContext} gl The WebGL Context.
  * @param {number} version the version of WebGL (1 or 2)
  * @param {FOLD} graph a FOLD object
- * @param {object} options
+ * @param {{ layerNudge?: number }} options
  * @returns {WebGLModel}
  */
 export const foldedFormFaces = (gl, version = 1, graph = {}, options = {}) => {
-	const exploded = makeExplodedGraph(graph, options.layerNudge);
+	// const exploded = makeExplodedGraph(graph, options.layerNudge);
+	const exploded = prepareForRendering(graph, options);
 	const program = version === 1
 		? createProgram(gl, model_100_vert, model_100_frag)
 		: createProgram(gl, model_300_vert, model_300_frag);
@@ -76,11 +80,12 @@ export const foldedFormEdges = (gl, version = 1, graph = {}, options = {}) => {
  * @param {WebGLRenderingContext|WebGL2RenderingContext} gl The WebGL Context.
  * @param {number} version the version of WebGL (1 or 2)
  * @param {FOLD} graph a FOLD object
- * @param {object} options
+ * @param {{ layerNudge?: number }} options
  * @returns {WebGLModel}
  */
 export const foldedFormFacesOutlined = (gl, version = 1, graph = {}, options = {}) => {
-	const exploded = makeExplodedGraph(graph, options.layerNudge);
+	// const exploded = makeExplodedGraph(graph, options.layerNudge);
+	const exploded = prepareForRendering(graph, options);
 	const program = version === 1
 		? createProgram(gl, outlined_model_100_vert, outlined_model_100_frag)
 		: createProgram(gl, outlined_model_300_vert, outlined_model_300_frag);
