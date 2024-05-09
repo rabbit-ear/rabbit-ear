@@ -27,13 +27,13 @@ declare const _default: {
         layerNudge?: number;
         showTriangulation?: boolean;
     }) => WebGLModel;
-    foldedFormEdges: (gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD, options?: {
-        assignment_color?: any;
-    }) => WebGLModel;
     foldedFormFacesOutlined: (gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD, options?: {
         earcut?: Function;
         layerNudge?: number;
         showTriangulation?: boolean;
+    }) => WebGLModel;
+    foldedFormEdges: (gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD, options?: {
+        assignment_color?: any;
     }) => WebGLModel;
     foldedForm: (gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD, options?: {
         edges?: boolean;

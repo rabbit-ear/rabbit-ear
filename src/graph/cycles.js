@@ -21,7 +21,6 @@ import {
 } from "./normals.js";
 import {
 	faceOrdersToDirectedEdges,
-	linearizeFaceOrders,
 } from "./orders.js";
 import {
 	planarizeVerbose,
@@ -73,7 +72,6 @@ const correctFaceWinding = (planar, faces_winding, flatBackmap) => (
 		}));
 
 /**
- * @todo make sure the input graph can contain holes.
  * @description Create a copy of a graph suitable for rendering, fixing
  * any cycles of orders between faces so that no cycles exist. The resulting
  * graph will be very different in its graph structure, but appear correct
@@ -90,8 +88,7 @@ export const fixCycles = (graph) => {
 	planar.edges_faces = makeEdgesFacesUnsorted(planar);
 	const facesBackMap = invertArrayMap(map);
 
-	if (!planar.edges_assignment) {
-		console.log("fixCycles had to make edges_assignment");
+	if (!planar.edges_assignment && planar.edges_vertices) {
 		planar.edges_assignment = planar.edges_vertices.map(() => "U");
 	}
 
@@ -136,7 +133,7 @@ export const fixCycles = (graph) => {
 	// to the g face ([f, g, order]) depending on its winding, so, order accordingly.
 	/** @type {[number, number, number][]} */
 	const faceOrders = front.faces_vertices
-		.map((_, f) => (faces_winding[faceMapFront[f][0]]
+		.map((_, f) => (faces_winding[faceMapFront[f]]
 			? [front.faces_vertices.length + f, f, -1]
 			: [front.faces_vertices.length + f, f, 1]))
 

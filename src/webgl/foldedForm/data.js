@@ -7,6 +7,20 @@ import { makeEdgesVector } from "../../graph/make/edges.js";
 import { light, dark } from "../general/colors.js";
 import { resize3 } from "../../math/vector.js";
 
+const getFaceEdgeIsJoined = ({
+	edges_assignment, faces_vertices, faces_edges,
+}) => {
+	if (faces_edges && edges_assignment) {
+		return faces_edges
+			.map(edges => edges
+				.map(e => edges_assignment[e])
+				.map(a => a === "J" || a === "j"));
+	}
+	return faces_vertices
+		? faces_vertices.map(arr => arr.map(() => false))
+		: [];
+};
+
 /**
  * @param {FOLDExtended} graph a FOLD object
  * @param {{ showTriangulation?: boolean }} options
@@ -30,10 +44,9 @@ export const makeFacesVertexData = ({
 		.map((_, i) => i % 3)
 		.map(n => [n === 0 ? 1 : 0, n === 1 ? 1 : 0, n === 2 ? 1 : 0]);
 	// const rawEdges = faces_rawEdge.flatMap(n => [n, n, n]);
-	const facesEdgesIsJoined = faces_edges
-		.map(edges => edges
-			.map(e => edges_assignment[e])
-			.map(a => a === "J" || a === "j"));
+	const facesEdgesIsJoined = getFaceEdgeIsJoined({
+		edges_assignment, faces_vertices, faces_edges,
+	});
 	if (!options.showTriangulation) {
 		for (let i = 0; i < facesEdgesIsJoined.length; i += 1) {
 			if (facesEdgesIsJoined[i][0]) {

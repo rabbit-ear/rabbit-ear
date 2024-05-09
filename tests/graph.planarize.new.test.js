@@ -13,6 +13,25 @@ import ear from "../src/index.js";
 // 	console.timeEnd("old");
 // });
 
+test("planarize, faces but no edges", () => {
+	const FOLD = fs.readFileSync("./tests/files/fold/windmill-no-edges.fold", "utf-8");
+	const graph = JSON.parse(FOLD);
+	const { result, changes } = ear.graph.planarizeVerbose(graph);
+
+	expect(result.vertices_coords).toHaveLength(13);
+	expect(result.edges_vertices).toHaveLength(24);
+	expect(result.faces_vertices).toHaveLength(12);
+
+	fs.writeFileSync(
+		"./tests/tmp/planarize-windmill-no-edges.fold",
+		JSON.stringify(result),
+	);
+	fs.writeFileSync(
+		"./tests/tmp/planarize-windmill-no-edges.json",
+		JSON.stringify(changes),
+	);
+});
+
 test("planarize, flapping bird with line through", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/randlett-flapping-bird.fold", "utf-8");
 	const cp = JSON.parse(FOLD);
@@ -23,6 +42,11 @@ test("planarize, flapping bird with line through", () => {
 	]);
 	cp.edges_assignment.push("F");
 	const { result, changes } = ear.graph.planarizeVerbose(cp);
+
+	expect(result.vertices_coords).toHaveLength(32);
+	expect(result.edges_vertices).toHaveLength(63);
+	expect(result.faces_vertices).toHaveLength(32);
+
 	fs.writeFileSync(
 		"./tests/tmp/planarize-flapping-bird.fold",
 		JSON.stringify(result),
@@ -37,6 +61,11 @@ test("planarize, non-planar bird base", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/non-planar-bird-base.fold", "utf-8");
 	const cp = JSON.parse(FOLD);
 	const { result, changes } = ear.graph.planarizeVerbose(cp);
+
+	expect(result.vertices_coords).toHaveLength(53);
+	expect(result.edges_vertices).toHaveLength(116);
+	expect(result.faces_vertices).toHaveLength(64);
+
 	fs.writeFileSync(
 		"./tests/tmp/planarize-non-planar-bird-base.fold",
 		JSON.stringify(result),
@@ -51,6 +80,11 @@ test("planarize, non-planar square fish base", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/non-planar-square-fish.fold", "utf-8");
 	const cp = JSON.parse(FOLD);
 	const { result, changes } = ear.graph.planarizeVerbose(cp);
+
+	expect(result.vertices_coords).toHaveLength(35);
+	expect(result.edges_vertices).toHaveLength(76);
+	expect(result.faces_vertices).toHaveLength(42);
+
 	fs.writeFileSync(
 		"./tests/tmp/planarize-non-planar-square-fish.fold",
 		JSON.stringify(result),
@@ -65,6 +99,11 @@ test("planarize, non-planar 50 random lines", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/non-planar-50-chaotic.fold", "utf-8");
 	const graph = JSON.parse(FOLD);
 	const { result } = ear.graph.planarizeVerbose(graph);
+
+	expect(result.vertices_coords).toHaveLength(396);
+	expect(result.edges_vertices).toHaveLength(642);
+	expect(result.faces_vertices).toHaveLength(249);
+
 	fs.writeFileSync(
 		"./tests/tmp/planarize-new-non-planar-50-random-chaotic.fold",
 		JSON.stringify(result),
@@ -75,6 +114,11 @@ test("planarize, non-planar 100 random lines", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/non-planar-100-chaotic.fold", "utf-8");
 	const graph = JSON.parse(FOLD);
 	const { result } = ear.graph.planarizeVerbose(graph, 1e-4);
+
+	expect(result.vertices_coords).toHaveLength(1224);
+	expect(result.edges_vertices).toHaveLength(2151);
+	expect(result.faces_vertices).toHaveLength(929);
+
 	fs.writeFileSync(
 		"./tests/tmp/planarize-new-non-planar-100-random-chaotic.fold",
 		JSON.stringify(result),
@@ -85,6 +129,11 @@ test("planarize, kraft bird base", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/kraft-bird-base.fold", "utf-8");
 	const graph = JSON.parse(FOLD);
 	const { result, changes } = ear.graph.planarizeVerbose(graph);
+
+	expect(result.vertices_coords).toHaveLength(245);
+	expect(result.edges_vertices).toHaveLength(572);
+	expect(result.faces_vertices).toHaveLength(328);
+
 	fs.writeFileSync(
 		"./tests/tmp/planarize-kraft-bird-base.fold",
 		JSON.stringify(result),
@@ -99,6 +148,11 @@ test("planarize, crane already planar", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
 	const graph = JSON.parse(FOLD);
 	const { result, changes } = ear.graph.planarizeVerbose(graph);
+
+	expect(result.vertices_coords).toHaveLength(56);
+	expect(result.edges_vertices).toHaveLength(114);
+	expect(result.faces_vertices).toHaveLength(59);
+
 	fs.writeFileSync(
 		"./tests/tmp/planarize-crane.fold",
 		JSON.stringify(result),
@@ -142,10 +196,6 @@ test("planarize, foldedForm, windmill", () => {
 	// 0, 1 left triangle
 	// 7, 8 right triangle
 	// additionally, all faces other than 6 go into the center square somewhere
-
-	// const backmap = ear.graph.invertArrayMap(changes.faces.map);
-	// console.log("nextmap", changes.faces.map);
-	// console.log("backmap", backmap);
 
 	// did this by hand
 	expect(changes.faces.map).toMatchObject([

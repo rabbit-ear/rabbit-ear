@@ -171,7 +171,7 @@ declare const graphExport: Function & {
             };
         };
     };
-    planarizeCollinearEdges: ({ vertices_coords, vertices_edges, edges_vertices, edges_assignment, edges_foldAngle, }: FOLD, epsilon?: number) => {
+    planarizeCollinearEdges: ({ vertices_coords, edges_vertices, edges_assignment, edges_foldAngle, }: FOLD, epsilon?: number) => {
         result: FOLD;
         changes: {
             vertices: {
@@ -189,8 +189,6 @@ declare const graphExport: Function & {
         b: number;
         point: [number, number];
     }[];
-    planarizeEdges: ({ vertices_coords, edges_vertices, edges_assignment, edges_foldAngle, }: FOLD, epsilon?: number) => FOLD;
-    planarize: (graph: FOLD, epsilon?: number) => FOLD;
     planarizeEdgesVerbose: (graph: FOLD, epsilon?: number) => {
         result: FOLD;
         changes: {
@@ -202,6 +200,7 @@ declare const graphExport: Function & {
             };
         };
     };
+    planarizeEdges: ({ vertices_coords, edges_vertices, edges_assignment, edges_foldAngle, }: FOLD, epsilon?: number) => FOLD;
     planarizeVerbose: (graph: FOLD, epsilon?: number) => {
         result: FOLD;
         changes: {
@@ -216,6 +215,7 @@ declare const graphExport: Function & {
             };
         };
     };
+    planarize: (graph: FOLD, epsilon?: number) => FOLD;
     getFacesFacesOverlap: ({ vertices_coords, faces_vertices, }: FOLD, epsilon?: number) => number[][];
     getEdgesEdgesCollinearOverlap: ({ vertices_coords, edges_vertices, }: FOLD, epsilon?: number) => number[][];
     getOverlappingComponents: ({ vertices_coords, edges_vertices, faces_vertices, }: FOLD, epsilon?: number) => {
@@ -293,6 +293,7 @@ declare const graphExport: Function & {
     makeFacesCenter2DQuick: ({ vertices_coords, faces_vertices }: FOLD) => [number, number][];
     makeFacesCenter3DQuick: ({ vertices_coords, faces_vertices }: FOLD) => [number, number, number][];
     makeFacesCenterQuick: ({ vertices_coords, faces_vertices }: FOLD) => [number, number][] | [number, number, number][];
+    makeEdgesVerticesFromFaces: ({ faces_vertices }: FOLD) => [number, number][];
     makeEdgesFoldAngle: ({ edges_assignment }: FOLD) => number[];
     makeEdgesFoldAngleFromFaces: ({ vertices_coords, edges_vertices, edges_faces, edges_assignment, faces_vertices, faces_edges, faces_normal, faces_center, }: FOLDExtended) => number[];
     makeEdgesFacesUnsorted: ({ edges_vertices, faces_vertices, faces_edges }: FOLD) => number[][];

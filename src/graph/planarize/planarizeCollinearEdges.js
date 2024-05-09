@@ -132,7 +132,6 @@ const highestPriorityAssignmentIndex = (assignments) => {
  */
 export const planarizeCollinearEdges = ({
 	vertices_coords,
-	vertices_edges,
 	edges_vertices,
 	edges_assignment,
 	edges_foldAngle,
@@ -142,9 +141,7 @@ export const planarizeCollinearEdges = ({
 		edges_line,
 	} = getEdgesLine({ vertices_coords, edges_vertices }, epsilon);
 
-	if (!vertices_edges) {
-		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
-	}
+	const vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 
 	// one to many mapping of a line and the edges along it.
 	const lines_edges = invertFlatToArrayMap(edges_line);

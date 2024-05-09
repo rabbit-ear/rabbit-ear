@@ -23,7 +23,7 @@ export const makeFoldedVertexArrays = (gl, program, {
 	if (!vertices_coords || !faces_vertices) {
 		return [];
 	}
-	if (!faces_edges) {
+	if (!faces_edges && edges_vertices && faces_vertices) {
 		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
 	}
 	const {

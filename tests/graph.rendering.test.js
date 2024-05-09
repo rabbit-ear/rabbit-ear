@@ -64,3 +64,15 @@ test("prepareForRendering, no-faces-3d", () => {
 	// expect(result.edges_vertices).toHaveLength(120);
 	// expect(result.faces_vertices).toHaveLength(40);
 });
+
+test("prepareForRendering, cycles-3d", () => {
+	const FOLD = fs.readFileSync("./tests/files/fold/cycles-3d.fold", "utf-8");
+	const fold = JSON.parse(FOLD);
+	const backup = structuredClone(fold);
+	const result = ear.graph.prepareForRendering(fold);
+	expect(fold).toMatchObject(backup);
+	fs.writeFileSync(
+		"./tests/tmp/prepareForRendering-cycles-3d.fold",
+		JSON.stringify(result),
+	);
+});

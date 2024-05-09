@@ -56,26 +56,6 @@ export const foldedFormFaces = (gl, version = 1, graph = {}, options = {}) => {
  * @param {WebGLRenderingContext|WebGL2RenderingContext} gl The WebGL Context.
  * @param {number} version the version of WebGL (1 or 2)
  * @param {FOLD} graph a FOLD object
- * @param {{ assignment_color?: any }} options
- * @returns {WebGLModel}
- */
-export const foldedFormEdges = (gl, version = 1, graph = {}, options = {}) => {
-	const program = version === 1
-		? createProgram(gl, thick_edges_100_vert, simple_100_frag)
-		: createProgram(gl, thick_edges_300_vert, simple_300_frag);
-	return {
-		program,
-		vertexArrays: makeThickEdgesVertexArrays(gl, program, graph, options),
-		elementArrays: makeThickEdgesElementArrays(gl, version, graph),
-		flags: [gl.DEPTH_TEST],
-		makeUniforms,
-	};
-};
-
-/**
- * @param {WebGLRenderingContext|WebGL2RenderingContext} gl The WebGL Context.
- * @param {number} version the version of WebGL (1 or 2)
- * @param {FOLD} graph a FOLD object
  * @param {{ earcut?: Function, layerNudge?: number, showTriangulation?: boolean }} options
  * @returns {WebGLModel}
  */
@@ -88,6 +68,26 @@ export const foldedFormFacesOutlined = (gl, version = 1, graph = {}, options = {
 		program,
 		vertexArrays: makeFoldedVertexArrays(gl, program, exploded, options),
 		elementArrays: makeFoldedElementArrays(gl, version, exploded), // , options),
+		flags: [gl.DEPTH_TEST],
+		makeUniforms,
+	};
+};
+
+/**
+ * @param {WebGLRenderingContext|WebGL2RenderingContext} gl The WebGL Context.
+ * @param {number} version the version of WebGL (1 or 2)
+ * @param {FOLD} graph a FOLD object
+ * @param {{ assignment_color?: any }} options
+ * @returns {WebGLModel}
+ */
+export const foldedFormEdges = (gl, version = 1, graph = {}, options = {}) => {
+	const program = version === 1
+		? createProgram(gl, thick_edges_100_vert, simple_100_frag)
+		: createProgram(gl, thick_edges_300_vert, simple_300_frag);
+	return {
+		program,
+		vertexArrays: makeThickEdgesVertexArrays(gl, program, graph, options),
+		elementArrays: makeThickEdgesElementArrays(gl, version, graph),
 		flags: [gl.DEPTH_TEST],
 		makeUniforms,
 	};
