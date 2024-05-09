@@ -444,17 +444,21 @@ export const isFoldedForm = ({
 	// unfortunately, anything beyond this point cannot be calculated precisely,
 	// or it cannot be calculated precisely without a significant overhead
 
-	// if vertices or edges don't exist, we can't tell anything about the graph,
-	// return false in this case
-	if (!vertices_coords || !edges_vertices) { return false; }
+	// if vertices don't exist, the graph is abstract. return false.
+	if (!vertices_coords) { return false; }
+
+	const dimensions = getDimensionQuick({ vertices_coords });
 
 	// if there are no faces, the idea of "folded" kinda doesn't exist, does it?
-	if (!faces_vertices && !faces_edges) { return false; }
+	if (!faces_vertices && !faces_edges) {
+		// our best guess is yes, it's folded if the vertices are in 3D.
+		return dimensions === 3;
+	}
 
 	// if the coordinates have only 2 dimensions, we only know that it's flat.
 	// we have to check if it's a crease pattern or a flat-folded model,
 	// do this by checking if any two edges overlap.
-	if (getDimensionQuick({ vertices_coords }) === 2) {
+	if (edges_vertices && dimensions === 2) {
 		return doEdgesOverlap({ vertices_coords, edges_vertices });
 	}
 
@@ -466,8 +470,9 @@ export const isFoldedForm = ({
 		if (!epsilonEqual(vertices_coords[i][2], 0, epsilon)) { return true; }
 	}
 
-	// no evidence that the graph is folded. return false
-	return false;
+	// no evidence that the graph is folded.
+	// our best guess is yes, it's folded if the vertices are in 3D.
+	return dimensions === 3;
 };
 
 /**

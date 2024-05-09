@@ -60,14 +60,17 @@ export const makeExplodedGraph = (graph, layerNudge = LAYER_NUDGE) => {
 	}
 	// triangulate will modify faces and edges.
 	// use face information to match data.
-	const change = triangulate(copy);
+	const {
+		changes,
+		result: triangulated,
+	} = triangulate(copy);
 	// explode will modify edges and vertices.
 	// we don't need the return information for anything just yet.
-	const exploded = explodeFaces(copy);
-	// Object.assign(change, change2);
+	const exploded = explodeFaces(triangulated);
+	// Object.assign(changes, changes2);
 
-	if (change.faces) {
-		const backmap = invertArrayToFlatMap(change.faces.map);
+	if (changes.faces) {
+		const backmap = invertArrayToFlatMap(changes.faces.map);
 		backmap.forEach((oldFace, face) => {
 			const nudge = faces_nudge[oldFace];
 			if (!nudge) { return; }

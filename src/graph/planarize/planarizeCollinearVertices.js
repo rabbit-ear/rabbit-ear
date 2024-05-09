@@ -9,21 +9,9 @@ import {
 	// removeCollinearVertex, // this method could move here someday
 } from "../vertices/collinear.js";
 import {
-	removeDuplicateVertices,
-} from "../vertices/duplicate.js";
-import {
-	duplicateEdges,
 	removeDuplicateEdges,
 } from "../edges/duplicate.js";
 import {
-	circularEdges,
-	removeCircularEdges,
-} from "../edges/circular.js";
-import {
-	invertFlatToArrayMap,
-	invertArrayMap,
-	invertFlatMap,
-	invertArrayToFlatMap,
 	mergeNextmaps,
 } from "../maps.js";
 import {
@@ -68,7 +56,13 @@ const removeCollinearVertex = ({ edges_vertices, vertices_edges }, vertex) => {
 /**
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {{ result: FOLD, changes: object }}
+ * @returns {{
+ *   result: FOLD,
+ *   changes: {
+ *     vertices: { map: number[] },
+ *     edges: { map: number[][] },
+ *   }
+ * }}
  */
 export const planarizeCollinearVertices = (
 	graph,

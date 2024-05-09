@@ -21,6 +21,11 @@ import {
 } from "./validateOrders.js";
 
 /**
+ * @notes
+ * should non-planar faces be an invalid case?
+ */
+
+/**
  * @description Validate a graph, ensuring that all references across
  * different arrays point to valid data, there are no mismatching
  * array references.

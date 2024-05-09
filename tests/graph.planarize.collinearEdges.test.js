@@ -213,3 +213,68 @@ test("planarize, non-planar-polygons", () => {
 		JSON.stringify(result),
 	);
 });
+
+test("planarize, foldedForm, kabuto", () => {
+	const FOLD = fs.readFileSync("./tests/files/fold/kabuto.fold", "utf-8");
+	const fold = JSON.parse(FOLD);
+	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	const { result, changes } = ear.graph.planarizeCollinearEdges(folded);
+	fs.writeFileSync("./tests/tmp/planarizeCollinearEdges-kabuto.fold", JSON.stringify(result));
+	fs.writeFileSync("./tests/tmp/planarizeCollinearEdges-kabuto.json", JSON.stringify(changes));
+});
+
+test("planarize, foldedForm, kraft bird", () => {
+	const FOLD = fs.readFileSync("./tests/files/fold/kraft-bird-base.fold", "utf-8");
+	const fold = JSON.parse(FOLD);
+	const folded = {
+		...fold,
+		vertices_coords: ear.graph.makeVerticesCoordsFlatFolded(fold),
+	};
+	const { result, changes } = ear.graph.planarizeCollinearEdges(folded);
+
+	fs.writeFileSync("./tests/tmp/planarizeCollinearEdges-kraft-bird.fold", JSON.stringify(result));
+	fs.writeFileSync("./tests/tmp/planarizeCollinearEdges-kraft-bird.json", JSON.stringify(changes));
+});
+
+test("planarize, foldedForm, windmill", () => {
+	const FOLD = fs.readFileSync("./tests/files/fold/windmill.fold", "utf-8");
+	const fold = JSON.parse(FOLD);
+	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	const { result, changes } = ear.graph.planarizeCollinearEdges(folded);
+
+	expect(folded.vertices_coords).toHaveLength(12);
+	expect(result.vertices_coords).toHaveLength(9);
+	expect(folded.edges_vertices).toHaveLength(20);
+	expect(result.edges_vertices).toHaveLength(16);
+
+	expect(result.vertices_coords).toMatchObject([
+		[1, 1], // square corner 1
+		[3, 3], // square corner 2
+		[1, 3], // square corner 3
+		[3, 1], // square corner 4
+		[0, 2], // tip 1
+		[2, 0], // tip 2
+		[2, 4], // tip 3
+		[2, 2], // center (appears twice)
+		[4, 2], // tip 4
+	]);
+
+	// console.log(JSON.stringify(changes.edges.map));
+
+	expect(result.edges_vertices).toMatchObject([
+		[0, 7], [7, 1], [2, 0], [0, 3], [4, 0], [3, 5], [6, 2], [4, 7],
+		[7, 8], [6, 7], [7, 5], [2, 7], [7, 3], [3, 1], [1, 2], [1, 8],
+	]);
+
+	expect(changes.vertices.map).toMatchObject([
+		4, 7, 5, 6, 7, 0, 1, 8, 2, 3, 7, 7,
+	]);
+
+	expect(changes.edges.map).toMatchObject([
+		[7], [10], [9], [7], [4], [15], [2], [3], [11], [12],
+		[0], [6], [5], [13], [14], [10], [8], [8], [9], [1],
+	]);
+
+	fs.writeFileSync("./tests/tmp/planarizeCollinearEdges-windmill.fold", JSON.stringify(result));
+	fs.writeFileSync("./tests/tmp/planarizeCollinearEdges-windmill.json", JSON.stringify(changes));
+});

@@ -32,6 +32,7 @@ declare const _default: {
     makeFacesCenter2DQuick: ({ vertices_coords, faces_vertices }: FOLD) => [number, number][];
     makeFacesCenter3DQuick: ({ vertices_coords, faces_vertices }: FOLD) => [number, number, number][];
     makeFacesCenterQuick: ({ vertices_coords, faces_vertices }: FOLD) => [number, number][] | [number, number, number][];
+    makeEdgesVerticesFromFaces: ({ faces_vertices }: FOLD) => [number, number][];
     makeEdgesFoldAngle: ({ edges_assignment }: FOLD) => number[];
     makeEdgesFoldAngleFromFaces: ({ vertices_coords, edges_vertices, edges_faces, edges_assignment, faces_vertices, faces_edges, faces_normal, faces_center, }: FOLDExtended) => number[];
     makeEdgesFacesUnsorted: ({ edges_vertices, faces_vertices, faces_edges }: FOLD) => number[][];

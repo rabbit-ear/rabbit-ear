@@ -32,6 +32,7 @@ import * as boundary from "./boundary.js";
 import * as clean from "./clean.js";
 import * as connectedComponents from "./connectedComponents.js";
 import * as count from "./count.js";
+import * as cycles from "./cycles.js";
 import * as directedGraph from "./directedGraph.js";
 import * as disjoint from "./disjoint.js";
 import * as explodeMethods from "./explode.js";
@@ -44,9 +45,9 @@ import * as normalize from "./normalize.js";
 import * as normals from "./normals.js";
 import * as orders from "./orders.js";
 import * as overlap from "./overlap.js";
-import * as planarize from "./planarize.js";
+// import * as planarize from "./planarize.js";
 import * as intersectAllEdges from "./planarize/intersectAllEdges.js";
-import * as planarizeNew from "./planarize/planarize.js";
+import * as planarize from "./planarize/planarize.js";
 import * as planarizeCollinearEdges from "./planarize/planarizeCollinearEdges.js";
 import * as planarizeCollinearVertices from "./planarize/planarizeCollinearVertices.js";
 import * as planarizeMakeFaces from "./planarize/planarizeMakeFaces.js";
@@ -55,6 +56,7 @@ import * as pleat from "./pleat.js";
 import * as populate from "./populate.js";
 import * as raycast from "./raycast.js";
 import * as remove from "./remove.js";
+import * as rendering from "./rendering.js";
 import * as replace from "./replace.js";
 import * as subgraphMethods from "./subgraph.js";
 import * as sweep from "./sweep.js";
@@ -98,6 +100,7 @@ const graphMethods = {
 	...clean,
 	...connectedComponents,
 	...count,
+	...cycles,
 	...directedGraph,
 	...disjoint,
 	...explodeMethods,
@@ -113,7 +116,6 @@ const graphMethods = {
 	...overlap,
 	...planarize,
 	...intersectAllEdges,
-	...planarizeNew,
 	...planarizeCollinearEdges,
 	...planarizeCollinearVertices,
 	...planarizeMakeFaces,
@@ -122,6 +124,7 @@ const graphMethods = {
 	...populate,
 	...raycast,
 	...remove,
+	...rendering,
 	...replace,
 	...splitEdge,
 	...splitFace,

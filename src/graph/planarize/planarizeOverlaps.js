@@ -35,11 +35,20 @@ import {
 import {
 	intersectAllEdges,
 } from "./intersectAllEdges.js";
+import {
+	removeDuplicateEdges,
+} from "../edges/duplicate.js";
 
 /**
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {{ result: FOLD, changes: object }}
+ * @returns {{
+ *   result: FOLD,
+ *   changes: {
+ *     vertices: { map: number[] },
+ *     edges: { map: number[][] },
+ *   }
+ * }}
  */
 export const planarizeOverlaps = (
 	{ vertices_coords, vertices_edges, edges_vertices, edges_assignment, edges_foldAngle },
@@ -133,8 +142,10 @@ export const planarizeOverlaps = (
 	// around an epsilon, and by calling remove duplicate vertices these edges'
 	// two vertices become the same vertex, creating circular edges.
 	const { map: edgeMapCircular } = removeCircularEdges(result);
+	// const { map: edgeMapDuplicate } = removeDuplicateEdges(result);
 
 	const edgesMap = mergeNextmaps(edgeNextmapPlanarized, edgeMapCircular);
+	// const edgesMap = mergeNextmaps(edgeNextmapPlanarized, edgeMapCircular, edgeMapDuplicate);
 	const verticesMap = mergeFlatNextmaps(startNextmap, verticesMapDuplicate);
 
 	return {

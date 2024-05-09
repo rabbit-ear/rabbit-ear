@@ -5,7 +5,18 @@ import ear from "../src/index.js";
 
 ear.window = xmldom;
 
-test("planarize empty graph", () => {
+test("planarizeEdges, empty graph", () => {
+	const graph = {
+		vertices_coords: [],
+		edges_vertices: [],
+		edges_assignment: [],
+		edges_foldAngle: [],
+	};
+	const result = ear.graph.planarizeEdges(graph);
+	expect(JSON.stringify(graph)).toBe(JSON.stringify(result));
+});
+
+test("planarize, empty graph", () => {
 	const graph = {
 		vertices_coords: [],
 		edges_vertices: [],
@@ -13,7 +24,15 @@ test("planarize empty graph", () => {
 		edges_foldAngle: [],
 	};
 	const result = ear.graph.planarize(graph);
-	expect(JSON.stringify(graph)).toBe(JSON.stringify(result));
+	const expected = {
+		vertices_coords: [],
+		edges_vertices: [],
+		edges_assignment: [],
+		edges_foldAngle: [],
+		faces_vertices: [],
+		faces_edges: [],
+	}
+	expect(JSON.stringify(expected)).toBe(JSON.stringify(result));
 });
 
 test("planarize random lines", () => {
@@ -72,7 +91,7 @@ test("planarize, svg import", () => {
 	expect(true).toBe(true);
 });
 
-test("overlapping edge assignments", () => {
+test("planarize, overlapping edge assignments", () => {
 	const svg = `<svg>
 		<line x1="0" y1="9" x2="0" y2="7.5" stroke="black" />
 		<rect x="0" y="0" width="8" height="8" stroke="purple" />
@@ -138,6 +157,32 @@ test("planarize, one edges crossing boundary, more assignments than fold angles"
 	expect(planar.edges_foldAngle.filter(a => a === 180).length).toBe(0);
 	expect(planar.edges_foldAngle.filter(a => a === undefined).length).toBe(3);
 });
+
+test("planarize, graphs with bad arrays", () => {
+	const {
+		vertices_coords,
+		edges_vertices,
+		edges_assignment,
+		edges_foldAngle,
+		faces_vertices,
+	} = ear.graph.square();
+	const graph1 = {
+		vertices_coords,
+		edges_vertices,
+		edges_assignment,
+		edges_foldAngle,
+		faces_vertices,
+	};
+	const graph2 = ear.graph.square();
+	graph1.vertices_coords.push([-0.1, 0.3], [1.1, 0.9]);
+	graph1.edges_vertices.push([4, 5]);
+	graph1.edges_assignment.push("V");
+	graph2.vertices_coords.push([-0.1, 0.3], [1.1, 0.9]);
+	graph2.edges_vertices.push([4, 5]);
+	graph2.edges_assignment.push("V");
+
+	expect(ear.graph.planarize(graph1)).toMatchObject(ear.graph.planarize(graph2));
+})
 
 test("planarize, two crossing edges, more assignments than fold angles", () => {
 	const graph = ear.graph.square();

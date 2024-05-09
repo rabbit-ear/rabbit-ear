@@ -6,6 +6,7 @@ import * as makeEdgesAssignment from "./edgesAssignment.js";
 import * as makeEdgesEdges from "./edgesEdges.js";
 import * as makeEdgesFaces from "./edgesFaces.js";
 import * as makeEdgesFoldAngle from "./edgesFoldAngle.js";
+import * as makeEdgesVertices from "./edgesVertices.js";
 import * as makeFaces from "./faces.js";
 import * as makeFacesEdges from "./facesEdges.js";
 import * as makeFacesFaces from "./facesFaces.js";
@@ -22,6 +23,7 @@ export default {
 	...makeEdgesEdges,
 	...makeEdgesFaces,
 	...makeEdgesFoldAngle,
+	...makeEdgesVertices,
 	...makeFaces,
 	...makeFacesEdges,
 	...makeFacesFaces,

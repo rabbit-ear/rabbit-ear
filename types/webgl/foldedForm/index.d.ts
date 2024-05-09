@@ -22,30 +22,51 @@ declare const _default: {
     outlined_model_300_vert: "#version 300 es\nuniform mat4 u_modelView;\nuniform mat4 u_matrix;\nuniform vec3 u_frontColor;\nuniform vec3 u_backColor;\nuniform vec3 u_outlineColor;\nin vec3 v_position;\nin vec3 v_normal;\nin vec3 v_barycentric;\nin float v_rawEdge;\nout vec3 front_color;\nout vec3 back_color;\nout vec3 outline_color;\nout vec3 barycentric;\n// flat out int rawEdge;\nflat out int provokedVertex;\nvoid main () {\n\tgl_Position = u_matrix * vec4(v_position, 1);\n\tprovokedVertex = gl_VertexID;\n\tbarycentric = v_barycentric;\n\t// rawEdge = int(v_rawEdge);\n\tvec3 light = abs(normalize((vec4(v_normal, 1) * u_modelView).xyz));\n\tfloat brightness = 0.5 + light.x * 0.15 + light.z * 0.35;\n\tfront_color = u_frontColor * brightness;\n\tback_color = u_backColor * brightness;\n\toutline_color = u_outlineColor;\n}\n";
     model_300_frag: "#version 300 es\n#ifdef GL_FRAGMENT_PRECISION_HIGH\n  precision highp float;\n#else\n  precision mediump float;\n#endif\nuniform float u_opacity;\nin vec3 front_color;\nin vec3 back_color;\nout vec4 outColor;\nvoid main () {\n\tgl_FragDepth = gl_FragCoord.z;\n\tvec3 color = gl_FrontFacing ? front_color : back_color;\n\toutColor = vec4(color, u_opacity);\n}\n";
     simple_100_frag: "#version 100\nprecision mediump float;\nvarying vec3 blend_color;\nvoid main () {\n\tgl_FragColor = vec4(blend_color.rgb, 1);\n}\n";
-    foldedFormFaces: (gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD, options?: any) => WebGLModel;
-    foldedFormEdges: (gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD, options?: any) => WebGLModel;
-    foldedFormFacesOutlined: (gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD, options?: any) => WebGLModel;
-    foldedForm: (gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD, options?: any) => WebGLModel[];
-    makeFacesVertexData: ({ vertices_coords, edges_assignment, faces_vertices, faces_edges, faces_normal, }: {
-        vertices_coords: any;
-        edges_assignment: any;
-        faces_vertices: any;
-        faces_edges: any;
-        faces_normal: any;
-    }, options?: {}) => {
+    foldedFormFaces: (gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD, options?: {
+        earcut?: Function;
+        layerNudge?: number;
+        showTriangulation?: boolean;
+    }) => WebGLModel;
+    foldedFormFacesOutlined: (gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD, options?: {
+        earcut?: Function;
+        layerNudge?: number;
+        showTriangulation?: boolean;
+    }) => WebGLModel;
+    foldedFormEdges: (gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD, options?: {
+        assignment_color?: any;
+    }) => WebGLModel;
+    foldedForm: (gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD, options?: {
+        edges?: boolean;
+        faces?: boolean;
+        outlines?: boolean;
+        earcut?: Function;
+        layerNudge?: number;
+        showTriangulation?: boolean;
+        assignment_color?: any;
+    }) => WebGLModel[];
+    makeFacesVertexData: ({ vertices_coords, edges_assignment, faces_vertices, faces_edges, faces_normal, }: FOLDExtended, options?: {
+        showTriangulation?: boolean;
+    }) => {
         vertices_coords: [number, number][] | [number, number, number][];
         vertices_normal: number[][];
         vertices_barycentric: [number, number, number][];
     };
-    makeThickEdgesVertexData: (graph: any, options: any) => {
+    makeThickEdgesVertexData: (graph: FOLD, options: {
+        assignment_color?: any;
+        dark: boolean;
+    }) => {
         vertices_coords: any;
         vertices_color: any;
         verticesEdgesVector: any;
         vertices_vector: any;
     };
-    makeFoldedVertexArrays: (gl: WebGLRenderingContext | WebGL2RenderingContext, program: any, { vertices_coords, edges_vertices, edges_assignment, faces_vertices, faces_edges, faces_normal, }?: FOLDExtended, options?: {}) => WebGLVertexArray[];
+    makeFoldedVertexArrays: (gl: WebGLRenderingContext | WebGL2RenderingContext, program: any, { vertices_coords, edges_vertices, edges_assignment, faces_vertices, faces_edges, faces_normal, }?: FOLDExtended, options?: {
+        showTriangulation?: boolean;
+    }) => WebGLVertexArray[];
     makeFoldedElementArrays: (gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD) => WebGLElementArray[];
-    makeThickEdgesVertexArrays: (gl: WebGLRenderingContext | WebGL2RenderingContext, program: any, graph: FOLD, options?: {}) => WebGLVertexArray[];
+    makeThickEdgesVertexArrays: (gl: WebGLRenderingContext | WebGL2RenderingContext, program: any, graph: FOLD, options?: {
+        assignment_color?: any;
+    }) => WebGLVertexArray[];
     makeThickEdgesElementArrays: (gl: WebGLRenderingContext | WebGL2RenderingContext, version?: number, graph?: FOLD) => WebGLElementArray[];
 };
 export default _default;

@@ -124,7 +124,7 @@ test("layer panels 5", () => {
 });
 
 test("layer windmill faces with a cycle", () => {
-	const foldfile = fs.readFileSync("./tests/files/fold/windmill-face-cycle.fold", "utf-8");
+	const foldfile = fs.readFileSync("./tests/files/fold/windmill.fold", "utf-8");
 	const fold = JSON.parse(foldfile);
 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
 	const {

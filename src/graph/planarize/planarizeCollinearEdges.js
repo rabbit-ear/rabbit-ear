@@ -21,6 +21,7 @@ import {
 import {
 	invertFlatToArrayMap,
 	invertArrayMap,
+	invertArrayToFlatMap,
 } from "../maps.js";
 import {
 	getEdgesLine,
@@ -38,14 +39,23 @@ const lineVertexClustersToNewVertices = (lines_verticesClusters) => {
 	let newIndex = 0;
 	lines_verticesClusters
 		.map(clusters => clusters
-			.map(cluster => {
-				const match = cluster.map(v => nextMap[v]).shift();
+			.map(verticesCluster => {
+				const match = verticesCluster.map(v => nextMap[v]).shift();
 				const matchFound = match !== undefined;
 				const index = matchFound ? match : newIndex;
-				cluster.forEach(v => { nextMap[v] = index; })
+				verticesCluster.forEach(v => { nextMap[v] = index; });
 				return matchFound ? match : newIndex++;
 			}));
-	return nextMap;
+	// it's possible for two or more vertices to lie at the same point and
+	// each be involved in two or more crossing lines (folded form windmill base).
+	// as a result, multiple lines are trying to claim the same vertex, causing
+	// nextMap[v] above to be overwritten multiple times, one of those values
+	// possibly getting left out, causing a situation where when the backmap is
+	// created, a row is missing. a real simple and elegant solution is simply to
+	// create the backmap, remove any empty rows, then convert it back into
+	// a next map, this will decrement all indices to cover the gaps in the counting.
+	const backMap = invertFlatToArrayMap(nextMap).filter(a => a);
+	return invertArrayToFlatMap(backMap);
 };
 
 /**
@@ -110,12 +120,18 @@ const highestPriorityAssignmentIndex = (assignments) => {
  * coordinate. Call "planarize" instead for the complete method.
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {{ result: FOLD, changes: object }} a new FOLD object, with
+ * @returns {{
+ *   result: FOLD,
+ *   changes: {
+ *     vertices: { map: number[] },
+ *     edges: { map: number[][] },
+ *   }
+ * }}
+ * a new FOLD object, with
  * an info object which describes all changes to the graph.
  */
 export const planarizeCollinearEdges = ({
 	vertices_coords,
-	vertices_edges,
 	edges_vertices,
 	edges_assignment,
 	edges_foldAngle,
@@ -125,9 +141,7 @@ export const planarizeCollinearEdges = ({
 		edges_line,
 	} = getEdgesLine({ vertices_coords, edges_vertices }, epsilon);
 
-	if (!vertices_edges) {
-		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
-	}
+	const vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 
 	// one to many mapping of a line and the edges along it.
 	const lines_edges = invertFlatToArrayMap(edges_line);
@@ -197,6 +211,7 @@ export const planarizeCollinearEdges = ({
 
 	/** @type {[number, number][]} */
 	const newEdgesVertices = lines_verticesClusters
+		// .map(clusters => clusters.map(cluster => vertexNextMap[cluster[0]][0]))
 		.map(clusters => clusters.map(cluster => vertexNextMap[cluster[0]]))
 		.flatMap((vertices, i) => Array
 			.from(Array(vertices.length - 1))
