@@ -22,12 +22,15 @@ declare const graphExport: Function & {
     }[];
     triangulateConvexFacesVertices: ({ faces_vertices }: FOLD) => number[][];
     triangulateNonConvexFacesVertices: ({ vertices_coords, faces_vertices }: FOLD, earcut: any) => number[][];
-    triangulate: (graph: FOLD, earcut: any) => {
-        faces?: {
-            map: number[][];
-        };
-        edges?: {
-            new: number[];
+    triangulate: ({ vertices_coords, edges_vertices, edges_assignment, edges_foldAngle, faces_vertices, faceOrders, }: FOLD, earcut: any) => {
+        result: FOLD;
+        changes: {
+            faces?: {
+                map: number[][];
+            };
+            edges?: {
+                new: number[];
+            };
         };
     };
     minimumSpanningTrees: (array_array?: number[][], rootIndices?: number[]) => trees.BreadthFirstTreeNode[][][];

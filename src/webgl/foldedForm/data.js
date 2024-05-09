@@ -5,8 +5,11 @@
 import { makeVerticesNormal } from "../../graph/normals.js";
 import { makeEdgesVector } from "../../graph/make/edges.js";
 import { light, dark } from "../general/colors.js";
+import { resize3 } from "../../math/vector.js";
 
 /**
+ * @param {FOLDExtended} graph a FOLD object
+ * @param {{ showTriangulation?: boolean }} options
  * @returns {{
  *   vertices_coords: [number, number][]|[number, number, number][],
  *   vertices_normal: number[][],
@@ -17,10 +20,12 @@ export const makeFacesVertexData = ({
 	vertices_coords, edges_assignment, faces_vertices, faces_edges, faces_normal,
 }, options = {}) => {
 	const vertices_coords3 = vertices_coords
-		.map(coord => [...coord].concat(Array(3 - coord.length).fill(0)));
+		.map(coord => [...coord].concat(Array(3 - coord.length).fill(0)))
+		.map(resize3);
 	const vertices_normal = makeVerticesNormal({
 		vertices_coords: vertices_coords3, faces_vertices, faces_normal,
 	});
+	/** @type {[number, number, number][]} */
 	const vertices_barycentric = vertices_coords3
 		.map((_, i) => i % 3)
 		.map(n => [n === 0 ? 1 : 0, n === 1 ? 1 : 0, n === 2 ? 1 : 0]);
@@ -29,7 +34,7 @@ export const makeFacesVertexData = ({
 		.map(edges => edges
 			.map(e => edges_assignment[e])
 			.map(a => a === "J" || a === "j"));
-	if (!options.showTrianglulation) {
+	if (!options.showTriangulation) {
 		for (let i = 0; i < facesEdgesIsJoined.length; i += 1) {
 			if (facesEdgesIsJoined[i][0]) {
 				vertices_barycentric[i * 3 + 0][2] = vertices_barycentric[i * 3 + 1][2] = 100;
@@ -50,6 +55,8 @@ export const makeFacesVertexData = ({
 };
 
 /**
+ * @param {FOLD} graph a FOLD object
+ * @param {{ assignment_color?: any, dark: boolean }} options
  * @returns {{
  *   vertices_coords: any,
  *   vertices_color: any,

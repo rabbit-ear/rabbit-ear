@@ -12,8 +12,8 @@ test("explodeFaces and explodeEdges", () => {
 });
 
 test("empty graphs", () => {
-	expect(ear.graph.explodeEdges({})).toBe(undefined);
-	expect(ear.graph.explodeFaces({})).toBe(undefined);
+	expect(ear.graph.explodeEdges({})).toMatchObject({});
+	expect(ear.graph.explodeFaces({})).toMatchObject({});
 });
 
 test("simple graphs", () => {

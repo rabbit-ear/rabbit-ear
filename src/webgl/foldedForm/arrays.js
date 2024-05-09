@@ -13,6 +13,7 @@ import {
  * @param {WebGLRenderingContext|WebGL2RenderingContext} gl WebGL context
  * @param {object} program
  * @param {FOLDExtended} graph a FOLD object
+ * @param {{ showTriangulation?: boolean }} options
  * @returns {WebGLVertexArray[]}
  */
 export const makeFoldedVertexArrays = (gl, program, {
@@ -88,6 +89,7 @@ export const makeFoldedElementArrays = (gl, version = 1, graph = {}) => {
  * @param {WebGLRenderingContext|WebGL2RenderingContext} gl WebGL context
  * @param {object} program
  * @param {FOLD} graph a FOLD object
+ * @param {{ assignment_color?: any }} options
  * @returns {WebGLVertexArray[]}
  */
 export const makeThickEdgesVertexArrays = (gl, program, graph, options = {}) => {

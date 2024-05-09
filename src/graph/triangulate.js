@@ -113,6 +113,61 @@ const rebuildWithNewFaces = (graph) => {
 };
 
 /**
+ * @description A subroutine for both convex and non-convex triangulation
+ * methods. This will run just after faces_vertices was modified to contain
+ * only triangulated faces. This method rebuild faces_edges and
+ * add new joined edges edges_vertices, assignment, and foldAngle.
+ * @param {FOLD} graph a FOLD object
+ * @param {FOLD} graph a FOLD object
+ * @returns {FOLD} the same FOLD object as the parameter
+ */
+const rebuildTriangleEdges = (
+	{ edges_vertices, edges_assignment, edges_foldAngle },
+	{ faces_vertices },
+) => {
+	// if (!edges_vertices) { edges_vertices = []; }
+	const edgeLookup = edges_vertices ? makeVerticesToEdge({ edges_vertices }) : {};
+	let e = edges_vertices ? edges_vertices.length : 0;
+	// as we traverse the new faces_edges, if we encounter a new edge, add
+	// it here in the form of a new edges_vertices
+
+	// these are additional edges_vertices, to be appended to the current list
+	/** @type {[number, number][]} */
+	const edges_verticesAppended = [];
+
+	// this is an entirely new list of faces_edges, to replace entirely the old one
+	const faces_edgesNew = faces_vertices
+		.map(vertices => vertices
+			.map((v, i, arr) => {
+				/** @type {[number, number]} */
+				const edge_vertices = [v, arr[(i + 1) % arr.length]];
+				const vertexPair = edge_vertices.join(" ");
+				if (vertexPair in edgeLookup) { return edgeLookup[vertexPair]; }
+				edges_verticesAppended.push(edge_vertices);
+				edgeLookup[vertexPair] = e;
+				edgeLookup[edge_vertices.slice().reverse().join(" ")] = e;
+				return e++;
+			}));
+
+	const edges_assignmentAppended = edges_verticesAppended.map(() => "J");
+	const edges_foldAngleAppended = edges_verticesAppended.map(() => 0);
+
+	const result = {
+		edges_vertices: edges_vertices
+			? edges_vertices.concat(edges_verticesAppended)
+			: edges_verticesAppended,
+		faces_edges: faces_edgesNew,
+	};
+	if (edges_assignment) {
+		result.edges_assignment = edges_assignment.concat(edges_assignmentAppended);
+	}
+	if (edges_foldAngle) {
+		result.edges_foldAngle = edges_foldAngle.concat(edges_foldAngleAppended);
+	}
+	return result;
+};
+
+/**
  * @description Given a faces_vertices, generate a nextmap which
  * describes how the faces will change after triangulation,
  * specifically by triangulateConvexFacesVertices or
@@ -144,20 +199,83 @@ const makeTriangulatedFacesNextMap = ({ faces_vertices }) => {
  * @todo preserve faceOrders, match preexisting faces against new ones,
  * this may create too much unnecessary data but at least it will work.
  */
-export const triangulate = (graph, earcut) => {
-	if (!graph.faces_vertices) { return {}; }
-	const edgeCount = graph.edges_vertices ? graph.edges_vertices.length : 0;
-	const nextMap = makeTriangulatedFacesNextMap(graph);
-	graph.faces_vertices = earcut
-		? triangulateNonConvexFacesVertices(graph, earcut)
-		: triangulateConvexFacesVertices(graph);
+// export const triangulate = (graph, earcut) => {
+// 	if (!graph.faces_vertices) { return {}; }
+// 	const edgeCount = graph.edges_vertices ? graph.edges_vertices.length : 0;
+// 	const nextMap = makeTriangulatedFacesNextMap(graph);
+// 	graph.faces_vertices = earcut
+// 		? triangulateNonConvexFacesVertices(graph, earcut)
+// 		: triangulateConvexFacesVertices(graph);
+// 	// if the graph did not contain edges_vertices after this method, it will
+// 	rebuildWithNewFaces(graph);
+// 	const newEdges = Array
+// 		.from(Array(graph.edges_vertices.length - edgeCount))
+// 		.map((_, i) => edgeCount + i);
+// 	return {
+// 		faces: { map: nextMap },
+// 		edges: { new: newEdges },
+// 	};
+// };
+/**
+ * @description Modify a fold graph so that all faces are triangles.
+ * This will increase the number of faces and edges, and give all
+ * new edges a "J" join assignment.
+ * This method is capable of parsing models with convex faces only without
+ * any additional help. If your model contains non-convex faces, this method
+ * can still triangulate your model, however, you will need to link
+ * a reference to the package "Earcut" by Mapbox. Earcut is a small and
+ * capable library with zero dependencies: https://www.npmjs.com/package/earcut
+ * @param {FOLD} graph a FOLD object, modified in place.
+ * @param {any} earcut an optional reference to the Earcut library
+ * by Mapbox, required to operate on a graph with non-convex faces.
+ * @returns {{
+ *   result: FOLD,
+ *   changes: { faces?: { map: number[][] }, edges?: { new: number[] } },
+ * }}
+ * a summary of changes to the input parameter. the faceMap is an arrayMap
+ * @todo preserve faceOrders, match preexisting faces against new ones,
+ * this may create too much unnecessary data but at least it will work.
+ */
+export const triangulate = ({
+	vertices_coords, edges_vertices, edges_assignment, edges_foldAngle,
+	faces_vertices, faceOrders,
+}, earcut) => {
+	if (!faces_vertices) {
+		const result = {
+			vertices_coords, edges_vertices, edges_assignment, edges_foldAngle,
+		};
+		Object.keys(result)
+			.filter(key => !result[key])
+			.forEach(key => delete result[key]);
+		return { result, changes: {} };
+	}
+	const nextMap = makeTriangulatedFacesNextMap({ faces_vertices });
+	const faces_verticesNew = earcut
+		? triangulateNonConvexFacesVertices({ vertices_coords, faces_vertices }, earcut)
+		: triangulateConvexFacesVertices({ faces_vertices });
 	// if the graph did not contain edges_vertices after this method, it will
-	rebuildWithNewFaces(graph);
+
+	// this graph contains edges_vertices and faces_edges, and if they exist,
+	// edges_assignment and edges_foldAngle
+	const edgeGraph = rebuildTriangleEdges({
+		vertices_coords, edges_vertices, edges_assignment, edges_foldAngle,
+	}, { faces_vertices: faces_verticesNew });
+
+	// add vertices_coords and faces_vertices to the new triangulated edge graph
+	const result = {
+		...edgeGraph,
+		vertices_coords,
+		faces_vertices: faces_verticesNew,
+	};
+
+	// create an edge map
+	const startingEdgeCount = edges_vertices ? edges_vertices.length : 0;
 	const newEdges = Array
-		.from(Array(graph.edges_vertices.length - edgeCount))
-		.map((_, i) => edgeCount + i);
-	return {
+		.from(Array(edgeGraph.edges_vertices.length - startingEdgeCount))
+		.map((_, i) => startingEdgeCount + i);
+	const changes = {
 		faces: { map: nextMap },
 		edges: { new: newEdges },
 	};
+	return { result, changes };
 };
