@@ -111,6 +111,7 @@ export const kawasakiSolutions = (
 	// to calculate Kawasaki's theorem, we need the 3 edges
 	// as vectors, and we need them sorted radially.
 	if (!vertices_edges) {
+		// eslint-disable-next-line no-param-reassign
 		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 	}
 	// for each of the vertex's adjacent edges,

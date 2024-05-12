@@ -1,8 +1,6 @@
 import { expect, test } from "vitest";
 import ear from "../src/index.js";
 
-// todo: bring back axiom 7 validate
-
 test("validate, valid results", () => {
 	const boundary = [[0, 0], [1, 0], [1, 1], [0, 1]];
 

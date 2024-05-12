@@ -3,6 +3,7 @@
  */
 import Messages from "../environment/messages.js";
 import { countImpliedEdges } from "./count.js";
+import { makeFacesWinding } from "./faces/winding.js";
 import { makeVerticesToEdge, makeVerticesToFace } from "./make/lookup.js";
 
 /**
@@ -61,13 +62,20 @@ export const triangulateNonConvexFacesVertices = (
 	}
 	const dimensions = vertices_coords.filter(() => true).shift().length;
 
-	// I found some examples where earcut (silently) fails in 3D.
-	// (a simple strip of faces that joins up with itself)
-	// until we can figure out what is going on, it's better to have some
-	// visualization even if it's incorrect rather than nothing.
+	// Small note on Earcut documentation: Earcut does not truly work in 3D,
+	// it simply projects points down into 2D and ignores the Z component.
+	// if we refactor this to include the plane which the face lies in, we can
+	// filter only if the plane is orthogonal to the XY, therefore still
+	// use earcut for some 3D faces, or even better, transform those planes
+	// into the XY so that earcut works for everything.
 	if (dimensions === 3 || !earcut) {
 		return triangulateConvexFacesVertices({ faces_vertices });
 	}
+
+	// dimensions are 2 from here on
+	// earcut does not maintain winding order, create a lookup for use later
+	const faces_winding = makeFacesWinding({ vertices_coords, faces_vertices });
+
 	return faces_vertices
 		.map(fv => fv.flatMap(v => vertices_coords[v]))
 		.map(polygon => earcut(polygon, null, dimensions))
@@ -75,7 +83,12 @@ export const triangulateNonConvexFacesVertices = (
 		// convert these indices back to the face's faces_vertices.
 		.map((vertices, i) => vertices
 			.map(j => faces_vertices[i][j]))
-		.flatMap(res => groupByThree(res));
+		// finally, earcut does not maintain winding order, before we flatten
+		// the list, reverse the triangles if they come from a face with an
+		// upside-down winding.
+		.flatMap((res, face) => (faces_winding[face]
+			? groupByThree(res)
+			: groupByThree(res).map(arr => arr.reverse())));
 };
 
 /**
@@ -100,7 +113,7 @@ const makeNewEdgesAssignment = (
 			.map(() => "U");
 	const lookup = makeVerticesToFace({ faces_vertices });
 	faces_verticesNew.map((verts, i) => verts
-		.map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
+		.map((v, j, arr) => [v, arr[(j + 1) % arr.length]])
 		.forEach(([v0, v1], j) => {
 			const keys = [`${v0} ${v1}`, `${v1} ${v0}`];
 			if (lookup[keys[0]] === undefined && lookup[keys[1]] === undefined) {
@@ -156,7 +169,8 @@ const rebuildTriangleEdges = (
 		? edges_assignment.concat(edges_verticesAppended.map(() => "J"))
 		: makeNewEdgesAssignment(
 			{ edges_vertices, faces_vertices },
-			{ faces_vertices: faces_verticesNew, faces_edges: faces_edgesNew });
+			{ faces_vertices: faces_verticesNew, faces_edges: faces_edgesNew },
+		);
 
 	const result = {
 		edges_vertices: edges_vertices

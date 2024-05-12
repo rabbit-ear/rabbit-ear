@@ -229,34 +229,3 @@ test("topologicalSortQuick, Graph with loops", () => {
 	const result = ear.graph.topologicalSortQuick(directedEdges);
 	expect(result).toMatchObject([0, 2, 3, 1]);
 });
-
-test("topologicalSortCycles, Graph with cycles", () => {
-	const directedEdges = [[0, 1], [1, 2], [2, 0]];
-	const result = ear.graph.topologicalSortCycles(directedEdges);
-	// Since the graph contains a cycle, the result should be undefined
-	expect(result).toMatchObject([[0, 1]]);
-});
-
-test("topologicalSortCycles, Graph with cycles", () => {
-	const directedEdges = [[11, 12], [12, 13], [13, 14], [14, 15], [15, 11]];
-	const result = ear.graph.topologicalSortCycles(directedEdges);
-	// Since the graph contains a cycle, the result should be undefined
-	expect(result).toMatchObject([[11, 12]]);
-});
-
-test("topologicalSortCycles, Graph with multiple disconnected components", () => {
-	const directedEdges = [
-		[0, 1], [1, 2], [2, 0], [3, 4], [4, 5], [5, 3]
-	];
-	const result = ear.graph.topologicalSortCycles(directedEdges);
-	// two separate cycles, two elements in this result
-	expect(result).toMatchObject([[0, 1], [3, 4]]);
-});
-
-test("topologicalSortCycles, Graph with loops", () => {
-	const directedEdges = [
-		[0, 1], [1, 2], [2, 3], [3, 1]
-	];
-	const result = ear.graph.topologicalSortCycles(directedEdges);
-	expect(result).toMatchObject([[1, 2]]);
-});

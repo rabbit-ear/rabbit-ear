@@ -25,7 +25,10 @@ const setArrowheadOptions = (element, options, which) => {
 };
 
 const setArrowStyle = (element, options = {}, which = str_head) => {
-	const path = element.getElementsByClassName(`${str_arrow}-${which}`)[0];
+	const path = Array.from(element.childNodes)
+		.filter(el => el.getAttribute("class") === `${str_arrow}-${which}`)
+		.shift();
+	// const path = element.getElementsByClassName(`${str_arrow}-${which}`)[0];
 	// find options which translate to object methods (el.stroke("red"))
 	Object.keys(options)
 		.map(key => ({ key, fn: path[toCamel(key)] }))
@@ -48,7 +51,9 @@ const redraw = (element) => {
 	Object.keys(paths)
 		.map(path => ({
 			path,
-			element: element.getElementsByClassName(`${str_arrow}-${path}`)[0],
+			element: Array.from(element.childNodes)
+				.filter(el => el.getAttribute("class") === `${str_arrow}-${path}`)
+				.shift(),
 		}))
 		.filter(el => el.element)
 		.map(el => { el.element.setAttribute("d", paths[el.path]); return el; })
@@ -94,9 +99,18 @@ const tail = (element, options) => {
 	return redraw(element);
 };
 
-const getLine = element => element.getElementsByClassName(`${str_arrow}-line`)[0];
-const getHead = element => element.getElementsByClassName(`${str_arrow}-${str_head}`)[0];
-const getTail = element => element.getElementsByClassName(`${str_arrow}-${str_tail}`)[0];
+// const getLine = element => element.getElementsByClassName(`${str_arrow}-line`)[0];
+// const getHead = element => element.getElementsByClassName(`${str_arrow}-${str_head}`)[0];
+// const getTail = element => element.getElementsByClassName(`${str_arrow}-${str_tail}`)[0];
+const getLine = element => Array.from(element.childNodes)
+	.filter(el => el.getAttribute("class") === `${str_arrow}-line`)
+	.shift();
+const getHead = element => Array.from(element.childNodes)
+	.filter(el => el.getAttribute("class") === `${str_arrow}-${str_head}`)
+	.shift();
+const getTail = element => Array.from(element.childNodes)
+	.filter(el => el.getAttribute("class") === `${str_arrow}-${str_tail}`)
+	.shift();
 
 const ArrowMethods = {
 	setPoints,

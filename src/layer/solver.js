@@ -104,7 +104,7 @@ const solveBranch = (
 					branchUnsolvedKeys,
 					...orders,
 					order,
-				))
+				)),
 			}));
 };
 

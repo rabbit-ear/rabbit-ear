@@ -13,5 +13,7 @@ build-shaders.py
 changelog.md
 contribute.md
 developers.md
+docs-style.css
 rollup.config.js
 tsconfig.json
+typedoc.config.json

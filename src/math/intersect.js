@@ -121,6 +121,7 @@ export const intersectLineLine = (
 export const intersectCircleLine = (
 	circle,
 	line,
+	// eslint-disable-next-line no-unused-vars
 	_ = include,
 	lineDomain = includeL,
 	epsilon = EPSILON,

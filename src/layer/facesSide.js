@@ -113,6 +113,7 @@ export const makeEdgesFacesSide2D = (
 	{ lines, edges_line },
 ) => {
 	if (!faces_center) {
+		// eslint-disable-next-line no-param-reassign
 		faces_center = makeFacesCenter2DQuick({ vertices_coords, faces_vertices });
 	}
 
@@ -153,6 +154,7 @@ export const makeEdgesFacesSide3D = (
 	if (!faces_center) {
 		// this method will always return 3D points, necessary for the
 		// multiply matrix and vector method
+		// eslint-disable-next-line no-param-reassign
 		faces_center = makeFacesCenter3DQuick({ vertices_coords, faces_vertices })
 			.map((center, f) => multiplyMatrix4Vector3(
 				planes_transform[faces_plane[f]],

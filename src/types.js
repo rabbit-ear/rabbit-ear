@@ -261,6 +261,24 @@
  */
 
 /**
+ * @typedef Arrow
+ * @type {{
+ *   segment: [[number, number], [number, number]],
+ *   head?: { width: number, height: number },
+ *   tail?: { width: number, height: number },
+ *   bend?: number,
+ *   padding?: number,
+ * }}
+ * @description An arrow intended for being rendered in SVG for
+ * the use in diagrams in 2D.
+ * @property {[[number, number], [number, number]]} segment the two 2D points "from" and "to"
+ * @property {{ width: number, height: number }} [head] the size of the arrow head
+ * @property {{ width: number, height: number }} [tail] the size of the arrow tail
+ * @property {number} [bend] the magnitude of the bend of the path
+ * @property {number} [padding] the little space to inset the endpoints
+ */
+
+/**
  * @typedef TacoTacoConstraint
  * @type {[number, number, number, number]}
  * @description four face indices involved

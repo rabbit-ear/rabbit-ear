@@ -66,6 +66,7 @@ export const exclude = (n, epsilon = EPSILON) => n > epsilon;
  * @param {number} [__] an optional epsilon
  * @returns {boolean} true
  */
+// eslint-disable-next-line no-unused-vars
 export const includeL = (_, __) => true;
 
 /**
@@ -74,6 +75,7 @@ export const includeL = (_, __) => true;
  * @param {number} [__=1e-6] an optional epsilon
  * @returns {boolean} true
  */
+// eslint-disable-next-line no-unused-vars
 export const excludeL = (_, __) => true;
 
 /**

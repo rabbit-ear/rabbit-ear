@@ -43,14 +43,17 @@ export const verticesFoldability = ({
 	edges_vertices, edges_foldAngle, edges_vector, faces_vertices,
 }) => {
 	if (!vertices_vertices) {
+		// eslint-disable-next-line no-param-reassign
 		vertices_vertices = makeVerticesVertices({
 			vertices_coords, vertices_edges, vertices_faces, edges_vertices, faces_vertices,
 		});
 	}
 	if (!vertices_edges) {
+		// eslint-disable-next-line no-param-reassign
 		vertices_edges = makeVerticesEdges({ edges_vertices, vertices_vertices });
 	}
 	if (!vertices_faces) {
+		// eslint-disable-next-line no-param-reassign
 		vertices_faces = makeVerticesFaces({ vertices_coords, vertices_vertices, faces_vertices });
 	}
 	const vertices_vectors = makeVerticesVerticesVector({

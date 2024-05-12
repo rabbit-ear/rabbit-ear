@@ -13,7 +13,6 @@ import {
 } from "./normals.js";
 import {
 	topologicalSort,
-	topologicalSortCycles,
 } from "./directedGraph.js";
 import {
 	makeVerticesVerticesUnsorted,
@@ -105,6 +104,7 @@ export const faceOrdersToDirectedEdges = (
 ) => {
 	if (!faceOrders || !faceOrders.length) { return []; }
 	if (!faces_normal) {
+		// eslint-disable-next-line no-param-reassign
 		faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
 	}
 
@@ -165,23 +165,6 @@ export const linearizeFaceOrders = (
 }, rootFace)));
 
 /**
- * @param {FOLDExtended} graph a FOLD object with faceOrders, and either faces_normal
- * pre-calculated, or faces_vertices and vertices_coords to get the normals.
- * @param {number} [rootFace] the user can choose which face determines the normal
- * direction, which for flat foldable models for example will linearize upwards
- * or downwards depending on this chosen face's winding.
- */
-export const faceOrdersCycles = (
-	{ vertices_coords, faces_vertices, faceOrders, faces_normal },
-	rootFace,
-) => {
-	const directedEdges = faceOrdersToDirectedEdges({
-		vertices_coords, faces_vertices, faceOrders, faces_normal,
-	}, rootFace);
-	topologicalSortCycles(directedEdges);
-};
-
-/**
  * todo: assuming faces_vertices instead of faces_edges
  * @returns {number[]} layers_face
  */
@@ -213,6 +196,7 @@ export const linearize2DFaces = ({
 	vertices_coords, faces_vertices, faceOrders, faces_layer, faces_normal,
 }, rootFace) => {
 	if (!faces_normal) {
+		// eslint-disable-next-line no-param-reassign
 		faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
 	}
 	if (faceOrders) {
@@ -317,6 +301,7 @@ export const nudgeFacesWithFacesLayer = ({ faces_layer }) => {
  */
 export const makeFacesLayer = ({ vertices_coords, faces_vertices, faceOrders, faces_normal }) => {
 	if (!faces_normal) {
+		// eslint-disable-next-line no-param-reassign
 		faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
 	}
 	const linearization = linearizeFaceOrders({ faceOrders, faces_normal });

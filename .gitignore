@@ -4,5 +4,6 @@ coverage/
 docs/
 module/
 tests/tmp/
+types/
 package-lock.json
 *.d.ts.map

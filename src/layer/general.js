@@ -10,7 +10,7 @@ export const tacoTypeNames = [
 	"taco_taco",
 	"taco_tortilla",
 	"tortilla_tortilla",
-	"transitivity"
+	"transitivity",
 ];
 
 export const emptyCategoryObject = () => ({

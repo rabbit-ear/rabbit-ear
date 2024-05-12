@@ -59,6 +59,7 @@ export const verticesFlatFoldabilityMaekawa = ({
 	edges_vertices, vertices_edges, edges_assignment,
 }) => {
 	if (!vertices_edges) {
+		// eslint-disable-next-line no-param-reassign
 		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 	}
 	const verticesValidCount = vertices_edges
@@ -96,11 +97,13 @@ export const verticesFlatFoldabilityKawasaki = ({
 	edges_assignment,
 }) => {
 	if (!vertices_vertices) {
+		// eslint-disable-next-line no-param-reassign
 		vertices_vertices = makeVerticesVertices({
 			vertices_coords, vertices_edges, edges_vertices,
 		});
 	}
 	if (!vertices_edges) {
+		// eslint-disable-next-line no-param-reassign
 		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 	}
 	const verticesValidAmount = makeVerticesVerticesVector({
@@ -166,7 +169,7 @@ export const verticesFlatFoldability = (graph, epsilon) => {
 		.map(k => (k ? 0 : 1));
 	// "logical or" maekawa in the ones place, kawasaki in the twos place
 	// results: 1: maekawa, 2: kawasaki, 3: maekawa and kawasaki
-	return maekawa.map((mae, v) => mae | (kawasaki[v] << 1))
+	return maekawa.map((mae, v) => mae | (kawasaki[v] << 1));
 };
 
 /**

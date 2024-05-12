@@ -76,6 +76,7 @@ export const sweepValues = (
 	epsilon = EPSILON,
 ) => {
 	if (!vertices_edges) {
+		// eslint-disable-next-line no-param-reassign
 		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 	}
 	const edgesValues = edges_vertices.map(edge => edge.map(e => values[e]));

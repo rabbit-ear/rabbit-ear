@@ -54,10 +54,12 @@ export const join = (target, source) => {
 	Object.keys(sourceClone)
 		.filter(key => sourceClone[key].constructor === Array)
 		.filter(key => !(key in target))
+		// eslint-disable-next-line no-param-reassign
 		.forEach(key => { target[key] = []; });
 	Object.keys(sourceClone)
 		.filter(key => sourceClone[key].constructor === Array)
 		.forEach(key => sourceClone[key]
+			// eslint-disable-next-line no-param-reassign
 			.forEach((v, i) => { target[key][i] = v; }));
 	const summary = {};
 	const targetKeyArrays = {};
@@ -75,6 +77,7 @@ export const join = (target, source) => {
 			.map((coords, i) => (coords.length === 2 ? i : undefined))
 			.filter(a => a !== undefined)
 		: [];
+	// eslint-disable-next-line no-param-reassign
 	target2DVertices.forEach(v => { target.vertices_coords[v][2] = 0; });
 	return summary;
 };

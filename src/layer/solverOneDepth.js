@@ -85,9 +85,9 @@ const solveBranch = (
 	const resultCount = guessResults
 		.map(result => Object.keys(result).length);
 	const completed = guessResults
-		.filter((_, i) => resultCount[i] === unsolvedKeys.length)
+		.filter((_, i) => resultCount[i] === unsolvedKeys.length);
 	const unfinished = guessResults
-		.filter((_, i) => resultCount[i] !== unsolvedKeys.length)
+		.filter((_, i) => resultCount[i] !== unsolvedKeys.length);
 
 	// For every unfinished solution, where each solution contains a different
 	// result to one or more of the face-pairs from each other, consider each

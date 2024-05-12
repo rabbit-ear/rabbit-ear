@@ -77,6 +77,7 @@ const setState = (states, t, key) => {
 	if (characters.filter(x => x === 0).length !== t) { return; }
 
 	// initialize the result to false (no solution possible).
+	// eslint-disable-next-line no-param-reassign
 	states[t][key] = false;
 
 	// solution will either be true, false, or an array of two integers
@@ -112,6 +113,7 @@ const setState = (states, t, key) => {
 		// we can say the solution is no longer false. now we just need to know if
 		// the solution will be a modification instruction or simply "true".
 		if (roundModifications.length) {
+			// eslint-disable-next-line no-param-reassign
 			states[t][key] = true;
 		}
 
@@ -126,6 +128,7 @@ const setState = (states, t, key) => {
 	// if found, the result will be the (first) modification instruction.
 	// it doesn't matter which one, we just need one.
 	if (modifications.length) {
+		// eslint-disable-next-line no-param-reassign
 		states[t][key] = [modifications[0][0], modifications[0][1]];
 	}
 };

@@ -68,6 +68,7 @@ export const explodeFaces = ({
 
 	// get faces_edges from the old graph data
 	if (!faces_edges) {
+		// eslint-disable-next-line no-param-reassign
 		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
 	}
 

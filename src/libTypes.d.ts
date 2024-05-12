@@ -132,6 +132,13 @@ type WebGLModel = {
         [key: string]: WebGLUniform;
     });
 };
+type Arrow = {
+	segment: [[number, number], [number, number]],
+	head?: {},
+	tail?: {},
+	bend?: number,
+	padding?: number,
+}
 type TacoTacoConstraint = [number, number, number, number];
 type TacoTortillaConstraint = [number, number, number];
 type TortillaTortillaConstraint = [number, number, number, number];

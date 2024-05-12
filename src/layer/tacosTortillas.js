@@ -163,6 +163,7 @@ export const makeTacosAndTortillas = ({
 	faces_center,
 }, epsilon = EPSILON) => {
 	if (!faces_center) {
+		// eslint-disable-next-line no-param-reassign
 		faces_center = makeFacesCenterQuick({ vertices_coords, faces_vertices });
 	}
 

@@ -28,7 +28,9 @@ export const rebuildViewport = (gl, canvas) => {
 	const size = [canvas.clientWidth, canvas.clientHeight]
 		.map(n => n * devicePixelRatio);
 	if (canvas.width !== size[0] || canvas.height !== size[1]) {
+		// eslint-disable-next-line no-param-reassign
 		canvas.width = size[0];
+		// eslint-disable-next-line no-param-reassign
 		canvas.height = size[1];
 	}
 	gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);

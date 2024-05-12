@@ -63,7 +63,9 @@ export const replace = (graph, key, replaceIndices) => {
 		.map(([index, value]) => [parseInt(index, 10), value])
 		.filter(([index, value]) => index < value)
 		.forEach(([index, value]) => {
+			// eslint-disable-next-line no-param-reassign
 			delete replaceIndices[index];
+			// eslint-disable-next-line no-param-reassign
 			replaceIndices[value] = index;
 		});
 	const removes = Object.keys(replaceIndices).map(n => parseInt(n, 10));

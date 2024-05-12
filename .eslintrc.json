@@ -5,6 +5,7 @@
     "node": true
   },
   "extends": "airbnb-base",
+  "ignores": ["*.d.ts"],
   "parserOptions": {
     "ecmaVersion": "latest",
     "ecmaFeatures": { "jsx": true },
@@ -21,7 +22,11 @@
     "no-plusplus": 0,
     "no-param-reassign": ["error", {
     	"props": true,
-      "ignorePropertyModificationsFor": ["graph", "epsilon", "faces_edges"]
+      "ignorePropertyModificationsFor": [
+	      "graph",
+	      "epsilon",
+	      "faces_edges"
+      ]
     }],
     "no-sparse-arrays": 0,
     "no-tabs": 0,

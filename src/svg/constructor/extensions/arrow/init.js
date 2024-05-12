@@ -38,8 +38,8 @@ const init = function (parent, ...args) {
 	paths[1].setAttribute(str_stroke, str_none);
 	paths[2].setAttribute(str_stroke, str_none);
 	element.options = makeArrowOptions();
-	ArrowMethods.setPoints(element, ...args);
 	const options = matchingOptions(...args);
+	ArrowMethods.setPoints(element, ...(options.segment || args));
 	if (options) {
 		Object.keys(options)
 			.filter(key => ArrowMethods[key])

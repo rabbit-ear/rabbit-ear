@@ -65,7 +65,7 @@ export const prepareForRenderingWithCycles = (inputGraph, { earcut, layerNudge }
 		planes_faces,
 		planes_transform,
 		// faces_plane,
-		faces_winding,
+		// faces_winding,
 	} = getFacesPlane(graph);
 	if (!graph.faceOrders) {
 		return triangulate(graph, earcut).result;
@@ -88,7 +88,7 @@ export const prepareForRenderingWithCycles = (inputGraph, { earcut, layerNudge }
 		.map((g, p) => ({
 			...g,
 			vertices_coords: g.vertices_coords
-				.map(coord => multiplyMatrix4Vector3(planes_transform[p], coord))
+				.map(coord => multiplyMatrix4Vector3(planes_transform[p], coord)),
 		}));
 
 	// this resizes the length of the coordinates back to 2.
@@ -160,8 +160,7 @@ export const prepareForRenderingWithCycles = (inputGraph, { earcut, layerNudge }
  * the faces in the cross axis to prevent Z-fighting
  * @returns {FOLD} a copy of the input FOLD graph, with exploded faces
  */
-export const prepareForRendering = (inputGraph, { earcut, layerNudge } = {}) => {
-	if (layerNudge == null) { layerNudge = LAYER_NUDGE; }
+export const prepareForRendering = (inputGraph, { earcut, layerNudge = LAYER_NUDGE } = {}) => {
 	// todo: remove the structured clone as long as everything is working.
 	// update: shallow copy is not working. the input parameter is still modified.
 	const graph = clone(inputGraph);

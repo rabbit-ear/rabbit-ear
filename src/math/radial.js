@@ -32,8 +32,11 @@ import {
  * @returns {boolean} is the angle between floor and ceiling
  */
 export const isCounterClockwiseBetween = (angle, floor, ceiling) => {
+	// eslint-disable-next-line no-param-reassign
 	while (ceiling < floor) { ceiling += TWO_PI; }
+	// eslint-disable-next-line no-param-reassign
 	while (angle > floor) { angle -= TWO_PI; }
+	// eslint-disable-next-line no-param-reassign
 	while (angle < floor) { angle += TWO_PI; }
 	return angle < ceiling;
 };
@@ -47,9 +50,13 @@ export const isCounterClockwiseBetween = (angle, floor, ceiling) => {
  */
 export const clockwiseAngleRadians = (a, b) => {
 	// this is on average 50 to 100 times faster than clockwiseAngle2
+	// eslint-disable-next-line no-param-reassign
 	while (a < 0) { a += TWO_PI; }
+	// eslint-disable-next-line no-param-reassign
 	while (b < 0) { b += TWO_PI; }
+	// eslint-disable-next-line no-param-reassign
 	while (a > TWO_PI) { a -= TWO_PI; }
+	// eslint-disable-next-line no-param-reassign
 	while (b > TWO_PI) { b -= TWO_PI; }
 	const a_b = a - b;
 	return (a_b >= 0)
@@ -66,9 +73,13 @@ export const clockwiseAngleRadians = (a, b) => {
  */
 export const counterClockwiseAngleRadians = (a, b) => {
 	// this is on average 50 to 100 times faster than counterClockwiseAngle2
+	// eslint-disable-next-line no-param-reassign
 	while (a < 0) { a += TWO_PI; }
+	// eslint-disable-next-line no-param-reassign
 	while (b < 0) { b += TWO_PI; }
+	// eslint-disable-next-line no-param-reassign
 	while (a > TWO_PI) { a -= TWO_PI; }
+	// eslint-disable-next-line no-param-reassign
 	while (b > TWO_PI) { b -= TWO_PI; }
 	const b_a = b - a;
 	return (b_a >= 0)

@@ -24,6 +24,7 @@ export const makeFoldedVertexArrays = (gl, program, {
 		return [];
 	}
 	if (!faces_edges && edges_vertices && faces_vertices) {
+		// eslint-disable-next-line no-param-reassign
 		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
 	}
 	const {

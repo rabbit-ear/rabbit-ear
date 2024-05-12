@@ -98,14 +98,17 @@ const removeCollinearVertex = ({ edges_vertices, vertices_edges }, vertex) => {
 	const edges = vertices_edges[vertex].sort((a, b) => a - b);
 	const otherVertices = edges
 		.flatMap(e => edges_vertices[e])
-		.filter(v => v !== vertex)
+		.filter(v => v !== vertex);
 	/** @type {[number, number]} */
 	const newEdgeVertices = [otherVertices[0], otherVertices[1]];
+	// eslint-disable-next-line no-param-reassign
 	edges_vertices[edges[0]] = newEdgeVertices;
+	// eslint-disable-next-line no-param-reassign
 	edges_vertices[edges[1]] = undefined;
 	newEdgeVertices.forEach(v => {
 		const oldEdgeIndex = vertices_edges[v].indexOf(edges[1]);
 		if (oldEdgeIndex === -1) { return; }
+		// eslint-disable-next-line no-param-reassign
 		vertices_edges[v][oldEdgeIndex] = edges[0];
 	});
 	return edges[1];

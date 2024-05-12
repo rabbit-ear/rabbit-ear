@@ -18,7 +18,9 @@ export const initializeWebGL = (canvasElement, preferredVersion) => {
 	// set the size of the drawingBuffer to include retina display level pixels (if exist),
 	// the size can still change after, even with CSS, this only matters for getContext
 	const devicePixelRatio = Window().devicePixelRatio || 1;
+	// eslint-disable-next-line no-param-reassign
 	canvasElement.width = canvasElement.clientWidth * devicePixelRatio;
+	// eslint-disable-next-line no-param-reassign
 	canvasElement.height = canvasElement.clientHeight * devicePixelRatio;
 
 	// if there was a user preference

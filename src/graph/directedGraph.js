@@ -55,19 +55,3 @@ export const topologicalSort = (directedEdges) => {
 		.filter(([a, b]) => orderMap[a] > orderMap[b]);
 	return violations.length ? undefined : ordering;
 };
-
-/**
- * @description Given a list of directed edges, attempt to perform a
- * topological sort and return a list of directed edges which cause cycles.
- * If there are no cycles the result will be empty, if there are multiple
- * cycles, there will be one edge for each individual separate cycle.
- * @param {[number, number][]} directedEdges an array of directed edges
- * where each edge contains two vertex indices with the direction going
- * from index 0 towards 1
- * @returns {[number, number][]} a list of directed edges which cause a cycle.
- */
-export const topologicalSortCycles = (directedEdges) => {
-	const ordering = topologicalSortQuick(directedEdges);
-	const orderMap = invertFlatMap(ordering);
-	return directedEdges.filter(([a, b]) => orderMap[a] > orderMap[b]);
-};

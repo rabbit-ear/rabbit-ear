@@ -53,18 +53,12 @@ export const makeFacesNormal = ({ vertices_coords, faces_vertices }) => {
  */
 export const makeVerticesNormal = ({ vertices_coords, faces_vertices, faces_normal }) => {
 	if (!faces_normal) {
+		// eslint-disable-next-line no-param-reassign
 		faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
 	}
 
-	// add method that modifies the input parameter to save memory
-	const add3 = (a, b) => {
-		a[0] += b[0];
-		a[1] += b[1];
-		a[2] += b[2];
-	};
-
 	/** @returns {[number, number, number]} */
-	const mkzero = () => [0, 0, 0]
+	const mkzero = () => [0, 0, 0];
 
 	// for every vertex's face, add the vector to the vertex's vector
 	/** @type {[number, number, number][]} */
@@ -72,7 +66,12 @@ export const makeVerticesNormal = ({ vertices_coords, faces_vertices, faces_norm
 
 	faces_vertices
 		.forEach((vertices, f) => vertices
-			.forEach(v => add3(vertices_normals[v], faces_normal[f])));
+			// .forEach(v => add3(vertices_normals[v], faces_normal[f])));
+			.forEach(v => {
+				vertices_normals[v][0] += faces_normal[f][0];
+				vertices_normals[v][1] += faces_normal[f][1];
+				vertices_normals[v][2] += faces_normal[f][2];
+			}));
 
 	// normalize all summed vectors and return them
 	return vertices_normals.map(v => normalize3(v));

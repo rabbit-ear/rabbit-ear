@@ -117,7 +117,7 @@ export const findSymmetryLines = (graph, epsilon = EPSILON) => {
 
 	const groupsError = groupsClusterClusters
 		.map(group => group.filter(clusters => clusters.length < 2))
-		.map((noMatchList, i) => noMatchList.length / reflectionsUniqueLines[i].length)
+		.map((noMatchList, i) => noMatchList.length / reflectionsUniqueLines[i].length);
 
 	// return the data in sorted order, with the best matches for a
 	// reflection line in the beginning of the list.

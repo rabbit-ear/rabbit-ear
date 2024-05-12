@@ -107,7 +107,7 @@ export const determinant4 = (m) => {
 	const A0223 = m[8] * m[14] - m[10] * m[12];
 	const A0123 = m[8] * m[13] - m[9] * m[12];
 	return (
-			m[0] * (m[5] * A2323 - m[6] * A1323 + m[7] * A1223)
+		m[0] * (m[5] * A2323 - m[6] * A1323 + m[7] * A1223)
 		- m[1] * (m[4] * A2323 - m[6] * A0323 + m[7] * A0223)
 		+ m[2] * (m[4] * A1323 - m[5] * A0323 + m[7] * A0123)
 		- m[3] * (m[4] * A1223 - m[5] * A0223 + m[6] * A0123)
@@ -241,8 +241,8 @@ export const makeMatrix4Rotate = (angle, vector = [0, 0, 1], origin = [0, 0, 0])
 	const trans = makeMatrix4Translate(-pos[0], -pos[1], -pos[2]);
 	const trans_inv = makeMatrix4Translate(pos[0], pos[1], pos[2]);
 	return multiplyMatrices4(trans_inv, multiplyMatrices4([
-		t * x * x + c,     t * y * x + z * s, t * z * x - y * s, 0,
-		t * x * y - z * s, t * y * y + c,     t * z * y + x * s, 0,
+		t * x * x + c, t * y * x + z * s, t * z * x - y * s, 0,
+		t * x * y - z * s, t * y * y + c, t * z * y + x * s, 0,
 		t * x * z + y * s, t * y * z - x * s, t * z * z + c, 0,
 		0, 0, 0, 1], trans));
 };

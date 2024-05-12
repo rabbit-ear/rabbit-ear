@@ -213,8 +213,8 @@ export const makeMatrix3Rotate = (angle, vector = [0, 0, 1], origin = [0, 0, 0])
 	const trans = identity3x3.concat(-pos[0], -pos[1], -pos[2]);
 	const trans_inv = identity3x3.concat(pos[0], pos[1], pos[2]);
 	return multiplyMatrices3(trans_inv, multiplyMatrices3([
-		t * x * x + c,     t * y * x + z * s, t * z * x - y * s,
-		t * x * y - z * s, t * y * y + c,     t * z * y + x * s,
+		t * x * x + c, t * y * x + z * s, t * z * x - y * s,
+		t * x * y - z * s, t * y * y + c, t * z * y + x * s,
 		t * x * z + y * s, t * y * z - x * s, t * z * z + c,
 		0, 0, 0], trans));
 };

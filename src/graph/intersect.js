@@ -208,6 +208,7 @@ export const intersectLine = (
 	if (!faces_vertices) { return { vertices, edges, faces: [] }; }
 
 	if (!faces_edges) {
+		// eslint-disable-next-line no-param-reassign
 		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
 	}
 
@@ -395,6 +396,7 @@ export const filterCollinearFacesData = ({ edges_vertices }, { vertices, faces }
 				removeVertices[pair[0]] = true;
 				removeVertices[pair[1]] = true;
 			});
+		// eslint-disable-next-line no-param-reassign
 		faces[f].vertices = face.vertices.filter(el => !removeVertices[el.vertex]);
 	});
 };

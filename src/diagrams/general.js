@@ -6,23 +6,16 @@ import {
 	includeS,
 } from "../math/compare.js";
 import {
-	magnitude2,
 	normalize2,
 	dot2,
 	cross2,
 	scale2,
 	add2,
-	subtract2,
 	distance2,
 	midpoint2,
 	flip2,
-	resize2,
 	rotate90,
 } from "../math/vector.js";
-import {
-	makeMatrix2Reflect,
-	multiplyMatrix2Vector2,
-} from "../math/matrix2.js";
 import {
 	clipLineConvexPolygon,
 } from "../math/clip.js";
@@ -30,53 +23,6 @@ import {
 	intersectLineLine,
 	// intersectConvexPolygonLine,
 } from "../math/intersect.js";
-import {
-	boundingBox,
-} from "../math/polygon.js";
-
-/**
- * @description Given a segment representing an arrow endpoints,
- * and a polygon representing the enclosing space for the arrow,
- * create an arrow definition which includes the segment, as well as
- * some additional details like the size of the arrow head and
- * the direction of the bend in the path.
- * @param {[number, number][]} segment an array of two points, each an array of numbers
- * @param {[number, number][]} polygon an array of points, each an array of numbers
- * @returns {object} an arrow definition including: segment, head, bend
- */
-export const segmentToArrow = (segment, polygon, options = {}) => {
-	if (segment === undefined) { return undefined; }
-
-	// a good arrow should not be exactly on top of its target,
-	// it should be slightly behind it
-	// const segment = insetSegment(fullSegment, padding);
-
-	const vector = subtract2(segment[1], segment[0]);
-
-	// we need a good padding value, arrowheads should not be exactly
-	// on top of their targets, but spaced a little behind it.
-	const length = magnitude2(vector);
-
-	// a good arrow whose path bends should always bend up then back down
-	// like a ball thrown up and returning to Earth.
-	// "bend" will be positive or negative based on the left/right direction
-	const direction = dot2(vector, [1, 0]);
-
-	// base the arrow head on the size of the entire polygon shape
-	// instead of the length of the segment. This way, given the same
-	// diagram but different arrows, all arrowheads will be the same.
-	const span2D = (boundingBox(polygon)?.span || [1, 1]).slice(0, 2);
-	const vmin = Math.min(...span2D);
-	return {
-		segment,
-		head: {
-			width: vmin * 0.1,
-			height: vmin * 0.15,
-		},
-		bend: direction > 0 ? 0.3 : -0.3,
-		padding: length * 0.05,
-	};
-};
 
 /**
  * @description Given a polygon and a line, clip the line and return the
@@ -94,17 +40,6 @@ const getLineMidpointInPolygon = (polygon, line) => {
 };
 
 /**
- *
- */
-export const diagramReflectPoint = ({ vector, origin }, point) => (
-	multiplyMatrix2Vector2(makeMatrix2Reflect(vector, origin), point)
-);
-
-// export const insetSegment = (segment, padding = 0.05) => {
-// 	const mid = midpoint2(...segment);
-// };
-
-/**
  * @description Given a polygon and a line which passes through it,
  * create a segment perpendicular to the line which fits nicely
  * inside the polygon, but is also balanced in its length on either side
@@ -118,7 +53,7 @@ export const diagramReflectPoint = ({ vector, origin }, point) => (
  * @param {VecLine2} line a line in the form of a vector and origin
  * @param {[number, number]} [point] an optional point along the line
  * through which the perpendicular line will pass.
- * @returns {[number, number][]} a segment as an array of two points.
+ * @returns {[number, number][]|undefined} a segment as an array of two points.
  */
 export const perpendicularBalancedSegment = (polygon, line, point) => {
 	// if provided, use the point as the origin, otherwise use the line midpoint
@@ -131,7 +66,12 @@ export const perpendicularBalancedSegment = (polygon, line, point) => {
 
 	// compare the two lengths from the origin of our new line to both
 	// ends of the segment clipped in the polygon, return the shortest.
-	const shortest = clipLineConvexPolygon(polygon, { vector, origin })
+	const clip = clipLineConvexPolygon(polygon, { vector, origin });
+	if (!clip) {
+		return undefined;
+	}
+
+	const shortest = clip
 		.map(pt => distance2(origin, pt))
 		.sort((a, b) => a - b)
 		.shift();
@@ -214,13 +154,17 @@ export const betweenTwoIntersectingSegments = (lines, intersect, foldLine, bound
 
 	// intersect each of the four rays with the polygon, returning a list
 	// of four points, and we know the order of these points now.
-	const rayEndpoints = [a1, a2, b1, b2].map(ray => clipLineConvexPolygon(
+	const rayClips = [a1, a2, b1, b2].map(ray => clipLineConvexPolygon(
 		boundary,
 		ray,
 		includeS,
 		includeR,
-	).shift());
-	// ).shift().shift());
+	));
+
+	// just added
+	if (rayClips.includes(undefined)) { return; }
+
+	const rayEndpoints = rayClips.map(clips => clips.shift()); // ).shift().shift());
 
 	// we can now build two arrows between the four points, however,
 	// we still need to... do something

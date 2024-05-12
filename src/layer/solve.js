@@ -77,28 +77,34 @@ export const solveLayerOrders = ({
 		return { orders: {}, faces_winding: [] };
 	}
 	if (!faces_edges) {
+		// eslint-disable-next-line no-param-reassign
 		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
 	}
 	if (!edges_faces) {
+		// eslint-disable-next-line no-param-reassign
 		edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_vertices, faces_edges });
 	}
 
 	// these are needed for the 3D solver.
 	if (!faces_faces) {
+		// eslint-disable-next-line no-param-reassign
 		faces_faces = makeFacesFaces({ faces_vertices });
 	}
 	// edges_foldAngle needs to be present so we can ignore foldAngles
 	// which are not flat when doing taco/tortilla things. if we need to
 	// build it here, all of them are flat, but we need the array to exist
 	if (!edges_foldAngle && edges_assignment) {
+		// eslint-disable-next-line no-param-reassign
 		edges_foldAngle = makeEdgesFoldAngle({ edges_assignment });
 	}
 	if (!edges_assignment) {
+		// eslint-disable-next-line no-param-reassign
 		edges_assignment = makeEdgesAssignmentSimple({ edges_foldAngle });
 	}
 
 	// find an appropriate epsilon, but only if it is not specified
 	if (epsilon === undefined) {
+		// eslint-disable-next-line no-param-reassign
 		epsilon = makeEpsilon({ vertices_coords, edges_vertices });
 	}
 
@@ -145,14 +151,17 @@ export const solveLayerOrdersSingleBranches = ({
 		return { orders: {}, faces_winding: [] };
 	}
 	if (!faces_edges) {
+		// eslint-disable-next-line no-param-reassign
 		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
 	}
 	if (!edges_faces) {
+		// eslint-disable-next-line no-param-reassign
 		edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_vertices, faces_edges });
 	}
 
 	// find an appropriate epsilon, but only if it is not specified
 	if (epsilon === undefined) {
+		// eslint-disable-next-line no-param-reassign
 		epsilon = makeEpsilon({ vertices_coords, edges_vertices });
 	}
 
@@ -211,28 +220,34 @@ export const solveLayerOrders3D = ({
 		return { orders: {}, faces_winding: [] };
 	}
 	if (!faces_edges) {
+		// eslint-disable-next-line no-param-reassign
 		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
 	}
 	if (!edges_faces) {
+		// eslint-disable-next-line no-param-reassign
 		edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_vertices, faces_edges });
 	}
 
 	// these are needed for the 3D solver.
 	if (!faces_faces) {
+		// eslint-disable-next-line no-param-reassign
 		faces_faces = makeFacesFaces({ faces_vertices });
 	}
 	// edges_foldAngle needs to be present so we can ignore foldAngles
 	// which are not flat when doing taco/tortilla things. if we need to
 	// build it here, all of them are flat, but we need the array to exist
 	if (!edges_foldAngle && edges_assignment) {
+		// eslint-disable-next-line no-param-reassign
 		edges_foldAngle = makeEdgesFoldAngle({ edges_assignment });
 	}
 	if (!edges_assignment) {
+		// eslint-disable-next-line no-param-reassign
 		edges_assignment = makeEdgesAssignmentSimple({ edges_foldAngle });
 	}
 
 	// find an appropriate epsilon, but only if it is not specified
 	if (epsilon === undefined) {
+		// eslint-disable-next-line no-param-reassign
 		epsilon = makeEpsilon({ vertices_coords, edges_vertices });
 	}
 
