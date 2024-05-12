@@ -1,5 +1,5 @@
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear");
+import { expect, test } from "vitest";
+import ear from "../src/index.js";
 
 test("duplicate edge", () => {
 	const graph = ear.graph({

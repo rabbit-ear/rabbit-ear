@@ -1,30 +1,26 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../general/strings";
 
-// compare to "undefined", the string
-const isBrowser = typeof window !== S._undefined
-	&& typeof window.document !== S._undefined;
+const isBrowser = typeof window === "object"
+	&& typeof window.document === "object";
 
-const isNode = typeof process !== S._undefined
-	&& process.versions != null
-	&& process.versions.node != null;
+const isNodeOrBun = typeof process === "object"
+	&& typeof process.versions === "object"
+	&& (process.versions.node != null || process.versions.bun != null);
 
-const isWebWorker = typeof self === S._object
+const isDeno = typeof window === "object"
+	&& "Deno" in window
+	&& typeof window.Deno === "object";
+
+const isBackend = isNodeOrBun || isDeno;
+
+const isWebWorker = typeof self === "object"
 	&& self.constructor
 	&& self.constructor.name === "DedicatedWorkerGlobalScope";
 
 export {
 	isBrowser,
-	isNode,
+	isBackend,
 	isWebWorker,
 };
-
-// // for debugging, uncomment to log system on boot
-// const operating_systems = [
-//   isBrowser ? "browser" : undefined,
-//   isWebWorker ? "web-worker" : undefined,
-//   isNode ? "node" : undefined,
-// ].filter(a => a !== undefined).join(" ");
-// console.log(`RabbitEar [${operating_systems}]`);

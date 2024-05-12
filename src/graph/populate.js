@@ -3,42 +3,49 @@
  */
 import {
 	makeVerticesVertices,
+} from "./make/verticesVertices.js";
+import {
 	makeVerticesEdgesUnsorted,
-	makeVerticesEdges, // todo resolve this duplicate work
+	makeVerticesEdges,
+} from "./make/verticesEdges.js";
+import {
 	makeVerticesFaces,
-	// makeEdgesEdges,
+} from "./make/verticesFaces.js";
+import {
 	makeEdgesFacesUnsorted,
-	// makeEdgesFoldAngle,
-	// makeEdgesAssignment,
-	// makeEdgesVector,
+} from "./make/edgesFaces.js";
+import {
 	makeFacesFaces,
+} from "./make/facesFaces.js";
+import {
 	makeFacesEdgesFromVertices,
+} from "./make/facesEdges.js";
+import {
 	makeFacesVerticesFromEdges,
+} from "./make/facesVertices.js";
+import {
 	makePlanarFaces,
-} from "./make";
+} from "./make/faces.js";
 import {
 	edgeAssignmentToFoldAngle,
 	edgeFoldAngleToAssignment,
-} from "../fold/spec";
-/**
- * @description populate() has been one of the hardest methods to
- * nail down, not to write, moreso in what it should do, and what
- * function it serves in the greater library.
- * Currently, it is run once when a user imports their crease pattern
- * for the first time, preparing it for use with methods like
- * "splitFace" or "flatFold", which expect a well-populated graph.
- */
-//
-// big todo: populate assumes the graph is planar and rebuilds planar faces
-//
+} from "../fold/spec.js";
 
-// try best not to lose information
-const build_assignments_if_needed = (graph) => {
-	const len = graph.edges_vertices.length;
-	// we know that edges_vertices exists
+/**
+ * @description Ensure that both edges_assignment and edges_foldAngle both
+ * exist, if in the case only one exists, build the other.
+ * If neither exist, fill them both with "unassigned" and fold angle 0.
+ * @param {FOLD} graph a FOLD object, modified in place
+ */
+const buildAssignmentsIfNeeded = (graph) => {
+	if (!graph.edges_vertices) { return; }
+
 	if (!graph.edges_assignment) { graph.edges_assignment = []; }
 	if (!graph.edges_foldAngle) { graph.edges_foldAngle = []; }
-	// complete the shorter array to match the longer one
+
+	// ensure that both arrays have the same length. This would be a strange
+	// instance if they were not equal, but in the case that they are not, we
+	// don't want to overwrite any data, even if it partially exists.
 	if (graph.edges_assignment.length > graph.edges_foldAngle.length) {
 		for (let i = graph.edges_foldAngle.length; i < graph.edges_assignment.length; i += 1) {
 			graph.edges_foldAngle[i] = edgeAssignmentToFoldAngle(graph.edges_assignment[i]);
@@ -49,177 +56,144 @@ const build_assignments_if_needed = (graph) => {
 			graph.edges_assignment[i] = edgeFoldAngleToAssignment(graph.edges_foldAngle[i]);
 		}
 	}
-	// two arrays should be at the same length now. even if they are not complete
-	for (let i = graph.edges_assignment.length; i < len; i += 1) {
+
+	// the two arrays are now the same length. Now we need to make sure they
+	// are the same length as edges_vertices. If not, fill any remaining
+	// assignments with "unassigned" and fold angle 0.
+	for (let i = graph.edges_assignment.length; i < graph.edges_vertices.length; i += 1) {
 		graph.edges_assignment[i] = "U";
 		graph.edges_foldAngle[i] = 0;
 	}
 };
+
 /**
- * @param {object} a FOLD object
+ * @description Rebuild both faces_vertices and faces_edges by walking
+ * the planar faces in 2D, set them both onto the graph.
+ * @param {FOLD} graph a FOLD object, modified in place
+ */
+const rebuildFaces = (graph) => {
+	const { faces_vertices, faces_edges } = makePlanarFaces(graph);
+	graph.faces_vertices = faces_vertices;
+	graph.faces_edges = faces_edges;
+};
+
+/**
+ * @description Ensure that faces_vertices and faces_edges exist, and
+ * if possible ensure that both are filled with face data.
+ * "reface" will only cause a rebuild of faces if currently
+ * faces do not exist. If the user wants to force a rebuild of faces, they
+ * should call that method directly.
+ * @param {FOLD} graph a FOLD object, modified in place
  * @param {boolean} reface should be set to "true" to force the algorithm into
  * rebuilding the faces from scratch (walking edge to edge in the plane).
+ * @returns {object} information about which face components were rebuilt.
  */
-const build_faces_if_needed = (graph, reface) => {
-	// if faces_vertices does not exist, we need to build it.
-	// todo: if faces_edges exists but not vertices (unusual but possible),
-	// then build faces_vertices from faces_edges and call it done.
-	if (reface === undefined && !graph.faces_vertices && !graph.faces_edges) {
-		reface = true;
+const buildFacesIfNeeded = (graph, reface) => {
+	// in the main method, we need to react accordingly, whether or not certain
+	// component arrays were rebuilt (causing others to require be rebuild)
+	const didRebuild = {
+		faces_vertices: false,
+		faces_edges: false,
+	};
+
+	// check if a face exists, either array (and the array is not empty)
+	const facesExist = (graph.faces_vertices && graph.faces_vertices.length)
+		|| (graph.faces_edges && graph.faces_edges.length);
+
+	// if the user requests to rebuild the faces, only if no faces exist, do it
+	if (!facesExist && reface && graph.vertices_coords) {
+		rebuildFaces(graph);
+		didRebuild.faces_vertices = true;
+		didRebuild.faces_edges = true;
+		return didRebuild;
 	}
-	// build planar faces (no Z) if the user asks for it or if faces do not exist.
-	// todo: this is making a big assumption that the faces are even planar
-	// to begin with.
-	if (reface && graph.vertices_coords) {
-		const faces = makePlanarFaces(graph);
-		graph.faces_vertices = faces.map(face => face.vertices);
-		graph.faces_edges = faces.map(face => face.edges);
-		// graph.faces_sectors = faces.map(face => face.angles);
-		return;
-	}
-	// if both faces exist, and no request to be rebuilt, exit.
-	if (graph.faces_vertices && graph.faces_edges) { return; }
-	// between the two: faces_vertices and faces_edges,
-	// if only one exists, build the other.
-	if (graph.faces_vertices && !graph.faces_edges) {
-		graph.faces_edges = makeFacesEdgesFromVertices(graph);
-	} else if (graph.faces_edges && !graph.faces_vertices) {
-		graph.faces_vertices = makeFacesVerticesFromEdges(graph);
-	} else {
-		// neither array exists, set placeholder empty arrays.
+
+	// if neither exist, check if the user has requested to rebuild the faces
+	if (!graph.faces_vertices && !graph.faces_edges) {
+		// the user has not requested we rebuild faces, and we can't assume
+		// that the graph is a crease pattern, it could be a 2D flat folded model
+		// with overlapping faces, so, we cannot assume. make empty face arrays.
 		graph.faces_vertices = [];
 		graph.faces_edges = [];
+	} else if (graph.faces_vertices && !graph.faces_edges) {
+		graph.faces_edges = makeFacesEdgesFromVertices(graph);
+		didRebuild.faces_edges = true;
+	} else if (graph.faces_edges && !graph.faces_vertices) {
+		graph.faces_vertices = makeFacesVerticesFromEdges(graph);
+		didRebuild.faces_vertices = true;
 	}
+	return didRebuild;
 };
+
 /**
- * this function attempts to rebuild useful geometries in your graph.
- * right now let's say it's important to have:
- * - vertices_coords
- * - either edges_vertices or faces_vertices - todo: this isn't true yet.
- * - either edges_foldAngle or edges_assignment
- *
- * this WILL REWRITE components that aren't the primary source keys,
- * like vertices_vertices.
- *
- * if you do have edges_assignment instead of edges_foldAngle the origami
- * will be limited to flat-foldable.
- */
-/**
- * @description Populate all arrays in a FOLD graph. This includes building adjacency
- * components like vertices_vertices, making edges_assignments from foldAngles or
- * visa-versa, and building faces if they don't exist.
- * @param {FOLD} graph a FOLD graph
- * @param {boolean} [reface=false] optional boolean, request to rebuild all faces
+ * @description Take a FOLD graph, containing any number of component fields,
+ * and build and set as many missing component arrays as possible.
+ * This method is not destructive, rather, it simply builds component arrays
+ * if they do not already exist and if it's possible to be built without
+ * making any assumptions. If your graph contains errors, this method will not
+ * find them and will not correct them.
+ * Regarding faces, this method is capable of walking and building faces
+ * from scratch for FOLD objects which are creasePattern, not foldedForm,
+ * but, the user needs to explicitly request this.
+ * @param {FOLD} graph a FOLD object, modified in place
+ * @param {object} options object, with the ability to request that the
+ * faces be rebuilt by walking 2D planar faces, specify { "faces": true }.
  * @return {FOLD} graph the same input graph object
- * @linkcode Origami ./src/graph/populate.js 114
  */
-const populate = (graph, reface) => {
+export const populate = (graph, options = {}) => {
 	if (typeof graph !== "object") { return graph; }
 	if (!graph.edges_vertices) { return graph; }
-	graph.vertices_edges = makeVerticesEdgesUnsorted(graph);
-	graph.vertices_vertices = makeVerticesVertices(graph);
-	graph.vertices_edges = makeVerticesEdges(graph);
-	// todo consider adding vertices_sectors, these are used for
-	// planar graphs (crease patterns) for walking faces
-	// todo, what is the reason to have edges_vector?
-	// if (graph.vertices_coords) {
-	//   graph.edges_vector = makeEdgesVector(graph);
-	// }
-	// make sure "edges_foldAngle" and "edges_assignment" are done.
-	build_assignments_if_needed(graph);
-	// make sure "faces_vertices" and "faces_edges" are built.
-	build_faces_if_needed(graph, reface);
-	// depending on the presence of vertices_vertices, this will
-	// run the simple algorithm (no radial sorting) or the proper one.
-	graph.vertices_faces = makeVerticesFaces(graph);
-	graph.edges_faces = makeEdgesFacesUnsorted(graph);
-	graph.faces_faces = makeFacesFaces(graph);
+
+	// later in the method we need to react accordingly, whether or not certain
+	// component arrays were rebuilt (causing others to require be rebuild)
+	const didRebuild = {
+		vertices_vertices: false,
+		faces_vertices: false,
+		faces_edges: false,
+	};
+
+	// if vertices_vertices exists, rely on its winding order to determine
+	// vertices_edges and vertices_faces.
+	// otherwise, if vertices_vertices and/or vertices_edges are missing,
+	// vertices_edges and vertices_vertices are mutually dependent, so,
+	// we need to rebuild one even if it exists if the other does not.
+	if (graph.vertices_vertices && !graph.vertices_edges) {
+		graph.vertices_edges = makeVerticesEdges(graph);
+	} else if (!graph.vertices_edges || !graph.vertices_vertices) {
+		graph.vertices_edges = makeVerticesEdgesUnsorted(graph);
+		graph.vertices_vertices = makeVerticesVertices(graph);
+		graph.vertices_edges = makeVerticesEdges(graph);
+		didRebuild.vertices_vertices = true;
+	}
+
+	// make sure "edges_foldAngle" and "edges_assignment" exist
+	buildAssignmentsIfNeeded(graph);
+
+	// make sure "faces_vertices" and "faces_edges" exist. this also has the
+	// option of rebuilding planar faces in 2D, but only if the user has
+	// explicitly requested it using the options, as we can't assume that even
+	// a 2D graph has non-overlapping faces and will result in a valid re-facing.
+	const reface = typeof options === "object" ? options.faces : false;
+	Object.assign(didRebuild, buildFacesIfNeeded(graph, reface));
+
+	// makeVerticesFaces dependencies are vertices_vertices and faces_vertices
+	// rebuild if a depenency was rebuilt as well
+	if (!graph.vertices_faces
+		|| didRebuild.vertices_vertices
+		|| didRebuild.faces_vertices) {
+		graph.vertices_faces = makeVerticesFaces(graph);
+	}
+
+	// makeEdgesFacesUnsorted's dependencies are edges_vertices and faces_edges
+	// rebuild if a depenency was rebuilt as well
+	if (!graph.edges_faces || didRebuild.faces_edges) {
+		graph.edges_faces = makeEdgesFacesUnsorted(graph);
+	}
+
+	// makeFacesFaces's dependency is faces_vertices
+	// rebuild if a depenency was rebuilt as well
+	if (!graph.faces_faces || didRebuild.faces_vertices) {
+		graph.faces_faces = makeFacesFaces(graph);
+	}
 	return graph;
 };
-
-/**
- * old description:
- * populate() will assess each graph component that is missing and
- * attempt to create as many as possible.
- *
- * this WILL NOT rewrite components, if a key exists, it will leave it alone
- *
- * example: to make populate() rebuild faces_vertices, run ahead of time:
- *  - delete graph.faces_vertices
- * so that the query evalutes to == null (undefined)
- */
-
-// const populate = function (graph) {
-//   if (typeof graph !== "object") { return; }
-//   if (graph.vertices_vertices == null) {
-//     if (graph.vertices_coords && graph.edges_vertices) {
-//       FOLDConvert.edges_vertices_to_vertices_vertices_sorted(graph);
-//     } else if (graph.edges_vertices) {
-//       FOLDConvert.edges_vertices_to_vertices_vertices_unsorted(graph);
-//     }
-//   }
-//   if (graph.faces_vertices == null) {
-//     if (graph.vertices_coords && graph.vertices_vertices) {
-//       // todo, this can be rebuilt to remove vertices_coords dependency
-//       FOLDConvert.vertices_vertices_to_faces_vertices(graph);
-//     }
-//   }
-//   if (graph.faces_edges == null) {
-//     if (graph.faces_vertices) {
-//       FOLDConvert.faces_vertices_to_faces_edges(graph);
-//     }
-//   }
-//   if (graph.edges_faces == null) {
-//     const edges_faces = makeEdgesFaces(graph);
-//     if (edges_faces !== undefined) {
-//       graph.edges_faces = edges_faces;
-//     }
-//   }
-//   if (graph.vertices_faces == null) {
-//     const vertices_faces = makeVerticesFaces(graph);
-//     if (vertices_faces !== undefined) {
-//       graph.vertices_faces = vertices_faces;
-//     }
-//   }
-//   if (graph.edges_length == null) {
-//     const edges_length = makeEdgesLength(graph);
-//     if (edges_length !== undefined) {
-//       graph.edges_length = edges_length;
-//     }
-//   }
-//   if (graph.edges_foldAngle == null
-//     && graph.edges_assignment != null) {
-//     graph.edges_foldAngle = graph.edges_assignment
-//       .map(a => edgeAssignmentToFoldAngle(a));
-//   }
-//   if (graph.edges_assignment == null
-//     && graph.edges_foldAngle != null) {
-//     graph.edges_assignment = graph.edges_foldAngle.map((a) => {
-//       if (a === 0) { return "F"; }
-//       if (a < 0) { return "M"; }
-//       if (a > 0) { return "V"; }
-//       return "U";
-//     });
-//     // todo, this does not find borders, we need an algorithm to walk around
-//   }
-//   if (graph.faces_faces == null) {
-//     const faces_faces = makeFacesFaces(graph);
-//     if (faces_faces !== undefined) {
-//       graph.faces_faces = faces_faces;
-//     }
-//   }
-//   if (graph.vertices_edges == null) {
-//     const vertices_edges = makeVerticesEdgesUnsorted(graph);
-//     if (vertices_edges !== undefined) {
-//       graph.vertices_edges = vertices_edges;
-//     }
-//   }
-//   if (graph.edges_edges == null) {
-//     const edges_edges = makeEdgesEdges(graph);
-//     if (edges_edges !== undefined) {
-//       graph.edges_edges = edges_edges;
-//     }
-//   }
-// };
-
-export default populate;

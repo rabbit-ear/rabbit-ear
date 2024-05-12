@@ -3,13 +3,17 @@
 .git
 .gitignore
 .travis.yml
+
 coverage/
-rollup.config.js
+docs/
 src/
 tests/
-contribute.md
-changelog.md
 
-# builds of Rabbit Ear
-rabbit-ear.comments.js
-rabbit-ear.min.js
+build-shaders.py
+changelog.md
+contribute.md
+developers.md
+docs-style.css
+rollup.config.js
+tsconfig.json
+typedoc.config.json

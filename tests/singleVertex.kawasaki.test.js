@@ -1,12 +1,12 @@
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear");
+import { expect, test } from "vitest";
+import ear from "../src/index.js";
 
 const testArrays = (a, b) => {
 	a.forEach((_, i) => {
 		if (typeof a[i] === "number") {
 			expect(a[i]).toBeCloseTo(b[i]);
 		} else if (typeof a[i] === "object" && a[i].constructor === Array) {
-			expect(ear.math.fnEpsilonEqualVectors(a[i], b[i])).toBe(true);
+			expect(ear.math.epsilonEqualVectors(a[i], b[i])).toBe(true);
 		} else {
 			expect(a[i]).toBe(b[i]);
 		}
@@ -28,7 +28,7 @@ test("alternating deviation, equal pairs", () => {
 	testArrays(
 		[0, 0],
 		ear.singleVertex.alternatingSumDifference(
-			ear.math.counterClockwiseSectors2([1, 0], [0, 1], [-1, 0], [0, -1]),
+			ear.math.counterClockwiseSectors2([[1, 0], [0, 1], [-1, 0], [0, -1]]),
 		),
 	);
 });

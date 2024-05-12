@@ -1,162 +1,37 @@
+/* SVG (c) Kraft */
+import { setWindow } from './environment/window.js';
+import NS from './spec/namespace.js';
+import nodes_attributes from './spec/nodes_attributes.js';
+import nodes_children from './spec/nodes_children.js';
+import colors from './colors/index.js';
+import general from './general/index.js';
+import extensions from './constructor/extensions/index.js';
+import { constructors, svg } from './constructor/elements.js';
+
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "../general/strings";
-import DrawGroups from "./draw/index";
-// import fold_classes from "./classes";
-import linker from "./linker";
-import { addClassToClassList } from "./classes";
-// get the SVG library from its binding to the root of the library
-import root from "../root";
 
-const DEFAULT_STROKE_WIDTH = 1 / 100;
-const DEFAULT_CIRCLE_RADIUS = 1 / 50;
-/**
- * @description get a bounding box from a FOLD graph by inspecting its vertices.
- * @param {object} FOLD object with vertices_coords
- * @returns {number[] | undefined} bounding box as [x, y, width, height]
- *  or undefined if no vertices_coords exist.
- */
-const getBoundingRect = ({ vertices_coords }) => {
-	if (vertices_coords == null || vertices_coords.length === 0) {
-		return undefined;
-	}
-	const min = Array(2).fill(Infinity);
-	const max = Array(2).fill(-Infinity);
-	vertices_coords.forEach(v => {
-		if (v[0] < min[0]) { min[0] = v[0]; }
-		if (v[0] > max[0]) { max[0] = v[0]; }
-		if (v[1] < min[1]) { min[1] = v[1]; }
-		if (v[1] > max[1]) { max[1] = v[1]; }
-	});
-	const invalid = Number.isNaN(min[0])
-		|| Number.isNaN(min[1])
-		|| Number.isNaN(max[0])
-		|| Number.isNaN(max[1]);
-	return (invalid
-		? undefined
-		: [min[0], min[1], max[0] - min[0], max[1] - min[1]]);
+const library = {
+	NS,
+	nodes_attributes,
+	nodes_children,
+	extensions,
+	...colors,
+	...general,
+	...constructors,
+	window: undefined, // set below
 };
-const getViewBox = (graph) => {
-	const viewBox = getBoundingRect(graph);
-	return viewBox === undefined
-		? ""
-		: viewBox.join(" ");
-};
-/**
- * @description given a group assumed to contain only circle elements,
- * set the "r" attribute on all circles.
- */
-const setR = (group, radius) => {
-	for (let i = 0; i < group.childNodes.length; i += 1) {
-		group.childNodes[i].setAttributeNS(null, "r", radius);
-	}
-};
-/**
- * @description search up the parent-chain until we find an <svg>, or return undefined
- */
-const findSVGInParents = (element) => {
-	if ((element.nodeName || "").toUpperCase() === "SVG") { return element; }
-	return element.parentNode ? findSVGInParents(element.parentNode) : undefined;
-};
-/**
- * @description a subroutine of drawInto(). there are style properties which
- * are impossible to set universally, because they are dependent upon the input
- * FOLD object (imagine, FOLD within 1x1 square, and FOLD within 600x600).
- * this includes the viewBox, stroke width, and radius of circles.
- */
-const applyTopLevelOptions = (element, groups, graph, options) => {
-	const hasVertices = groups[3] && groups[3].childNodes.length;
-	if (!(options.strokeWidth || options.viewBox || hasVertices)) { return; }
-	const bounds = getBoundingRect(graph);
-	const vmax = bounds ? Math.max(bounds[2], bounds[3]) : 1;
-	const svgElement = findSVGInParents(element);
-	if (svgElement && options.viewBox) {
-		const viewBoxValue = bounds ? bounds.join(" ") : "0 0 1 1";
-		svgElement.setAttributeNS(null, "viewBox", viewBoxValue);
-	}
-	if (options.strokeWidth || options["stroke-width"]) {
-		const strokeWidth = options.strokeWidth
-			? options.strokeWidth
-			: options["stroke-width"];
-		const strokeWidthValue = typeof strokeWidth === "number"
-			? vmax * strokeWidth
-			: vmax * DEFAULT_STROKE_WIDTH;
-		element.setAttributeNS(null, "stroke-width", strokeWidthValue);
-	}
-	if (hasVertices) {
-		const userRadius = options.vertices && options.vertices.radius != null
-			? options.vertices.radius
-			: options.radius;
-		const radius = typeof userRadius === "string" ? parseFloat(userRadius) : userRadius;
-		const r = typeof radius === "number" && !Number.isNaN(radius)
-			? vmax * radius
-			: vmax * DEFAULT_CIRCLE_RADIUS;
-		setR(groups[3], r);
-	}
-};
-/**
- * @description Inspect the FOLD object for its classes, which will be
- * in "file_classes" and "frame_classes", and set these as classes on
- * the top level element.
- */
-const applyTopLevelClasses = (element, graph) => {
-	const newClasses = [
-		graph.file_classes || [],
-		graph.frame_classes || [],
-	].flat();
-	if (newClasses.length) {
-		addClassToClassList(element, ...newClasses);
-		// element.classList.add(...newClasses);
-	}
-};
-/**
- * @name drawInto
- * @memberof graph
- * @description renders a FOLD object into an SVG, ensuring visibility by
- * setting the viewBox and the stroke-width attributes on the SVG.
- * @param {SVGElement} element an already initialized SVG DOM element.
- * @param {FOLD} graph a FOLD object
- * @param {object} options an optional options object to style the rendering
- * @returns {SVGElement} the first SVG parameter object.
- * @linkcode Origami ./src/svg/index.js 122
- */
-const drawInto = (element, graph, options = {}) => {
-	const groups = DrawGroups(graph, options);
-	groups.filter(group => group.childNodes.length > 0)
-		.forEach(group => element.appendChild(group));
-	applyTopLevelOptions(element, groups, graph, options);
-	applyTopLevelClasses(element, graph);
-	// set custom getters on the element to grab the component groups
-	Object.keys(DrawGroups)
-		.filter(key => element[key] == null)
-		.forEach((key, i) => Object.defineProperty(element, key, { get: () => groups[i] }));
-	return element;
-};
-/**
- * @name svg
- * @memberof graph
- * @description renders a FOLD object as an SVG, ensuring visibility by
- * setting the viewBox and the stroke-width attributes on the SVG.
- * @param {object} graph a FOLD object
- * @param {object?} options optional options object to style components
- * @param {boolean} tell the draw method to resize the viewbox/stroke
- * @returns {SVGElement} SVG element, containing the rendering of the origami.
- * @linkcode Origami ./src/svg/index.js 145
- */
-const FOLDtoSVG = (graph, options) => drawInto(root.svg(), graph, options);
-/**
- * @description adding static-like methods to the main function, four for
- *  drawing the individual elements, and one drawInto for pre-initialized svgs.
- */
-Object.keys(DrawGroups).forEach(key => { FOLDtoSVG[key] = DrawGroups[key]; });
-FOLDtoSVG.drawInto = drawInto;
-FOLDtoSVG.getViewBox = getViewBox;
 
-// .use() to link library to Rabbit Ear, and optionally build without this.
-Object.defineProperty(FOLDtoSVG, "linker", {
+// the top level container object is also an <svg> constructor
+const SVG = Object.assign(svg, library);
+
+// the window object, from which the document is used to createElement.
+// if using a browser, no need to interact with this,
+// if using node.js, set this to the library @xmldom/xmldom.
+Object.defineProperty(SVG, "window", {
 	enumerable: false,
-	value: linker.bind(FOLDtoSVG),
+	set: setWindow,
 });
 
-export default FOLDtoSVG;
+export { SVG as default };

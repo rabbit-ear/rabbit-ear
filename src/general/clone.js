@@ -1,22 +1,21 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import * as S from "./strings";
+
 /**
- * @description deep copy an object, like JSON.parse(JSON.stringify())
- *
- * this clone function is decent, except for:
+ * @description This is a polyfill for "structuredClone"
+ * similar to running JSON.parse(JSON.stringify()).
+ * This method will deep copy an object, with a few caveats:
  *  - it doesn't detect recursive cycles
  *  - weird behavior around Proxys
  * @author https://jsperf.com/deep-copy-vs-json-stringify-json-parse/5
  * @param {object} o
  * @returns {object} a deep copy of the input
- * @linkcode Origami ./src/general/clone.js 14
  */
-const clone = function (o) {
+const clonePolyfill = function (o) {
 	let newO;
 	let i;
-	if (typeof o !== S._object) {
+	if (typeof o !== "object") {
 		return o;
 	}
 	if (!o) {
@@ -25,7 +24,7 @@ const clone = function (o) {
 	if (Object.prototype.toString.apply(o) === "[object Array]") {
 		newO = [];
 		for (i = 0; i < o.length; i += 1) {
-			newO[i] = clone(o[i]);
+			newO[i] = clonePolyfill(o[i]);
 		}
 		return newO;
 	}
@@ -33,10 +32,18 @@ const clone = function (o) {
 	for (i in o) {
 		if (o.hasOwnProperty(i)) {
 			// this is where a self-similar reference causes an infinite loop
-			newO[i] = clone(o[i]);
+			newO[i] = clonePolyfill(o[i]);
 		}
 	}
 	return newO;
 };
 
-export default clone;
+/**
+ * @description Export "structuredClone" if it exists,
+ * otherwise export the polyfill method.
+ * @param {object} object
+ * @returns {object} a deep copy of the input object
+ */
+export const clone = (typeof structuredClone === "function"
+	? structuredClone
+	: clonePolyfill);

@@ -1,0 +1,51 @@
+{
+	"file_spec": 1.1,
+	"file_title": "non-flat paper",
+	"file_author": "Kraft",
+	"file_classes": ["singleModel"],
+	"frame_attributes": ["3D"],
+	"frame_classes": ["foldedForm"],
+	"vertices_coords": [
+		[0, 0, 0],
+		[1, 0, 0],
+		[0, 1, 0],
+		[0, 0, 1],
+		[0.5, 0.5, 0]
+	],
+	"edges_vertices": [
+		[1, 4],
+		[4, 2],
+		[2, 3],
+		[3, 1],
+		[0, 1],
+		[0, 2],
+		[0, 3],
+		[0, 4]
+	],
+	"edges_assignment": [
+		"B","B","B","B","M","M","M","V"
+	],
+	"faces_vertices": [
+		[0, 4, 1],
+		[0, 2, 4],
+		[0, 3, 2],
+		[0, 1, 3]
+	],
+	"faceOrders": [
+		[0, 1, 1],
+		[2, 1, -1],
+		[3, 2, -1],
+		[0, 3, -1]
+	],
+	"file_frames": [{
+		"frame_parent": 0,
+		"frame_inherit": true,
+		"vertices_coords": [
+			[0, 0, 0],
+			[1, 0, 0],
+			[1, 0, 0],
+			[0, 0, 1],
+			[0.5, 0, 0.5]
+		]
+	}]
+}

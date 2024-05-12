@@ -1,5 +1,5 @@
-const { test, expect } = require("@jest/globals");
-const ear = require("../rabbit-ear");
+import { expect, test } from "vitest";
+import ear from "../src/index.js";
 
 const arraysMatch = (a, b) => a.forEach((_, i) => expect(a[i]).toBe(b[i]));
 

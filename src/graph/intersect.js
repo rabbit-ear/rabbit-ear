@@ -1,203 +1,402 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
 import {
-	makeEdgesVector,
-	makeEdgesCoords,
-	makeEdgesBoundingBox,
-} from "./make";
-import { getEdgesEdgesOverlapingSpans } from "./span";
+	EPSILON,
+} from "../math/constant.js";
+import {
+	exclude,
+	includeL,
+	includeS,
+} from "../math/compare.js";
+import {
+	magSquared,
+	dot2,
+	cross2,
+	subtract2,
+	resize2,
+} from "../math/vector.js";
+import {
+	pointsToLine2,
+} from "../math/convert.js";
+import {
+	intersectLineLine,
+} from "../math/intersect.js";
+import {
+	overlapConvexPolygonPoint,
+} from "../math/overlap.js";
+import {
+	clusterSortedGeneric,
+} from "../general/cluster.js";
+import {
+	makeFacesEdgesFromVertices,
+} from "./make/facesEdges.js";
 
 /**
- * @description Find all edges in a graph which lie parallel along a line (infinite line).
- * @param {FOLD} graph a FOLD object
- * @param {number[]} vector a line defined by a vector crossing a point
- * @param {number[]} point a line defined by a vector crossing a point
- * @returns {boolean[]} length matching number of edges, true if parallel and overlapping
- * @linkcode Origami ./src/graph/intersect.js 18
+ * @description Intersect a line/ray/segment with a FOLD graph but only
+ * consider the graph's vertices.
+ * @param {FOLD} graph a fold object in creasePattern or foldedForm
+ * @param {VecLine2} line a line/ray/segment in vector origin form
+ * @param {Function} lineDomain the function which characterizes the line
+ * into a line, ray, or segment.
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {(number|undefined)[]} an array matching the length of vertices,
+ * in the case of an intersection, the number is the parameter along the line's
+ * vector, if there is no intersection the value is undefined.
  */
-export const makeEdgesLineParallelOverlap = ({
-	vertices_coords, edges_vertices,
-}, vector, point, epsilon = math.core.EPSILON) => {
-	const normalized = math.core.normalize2(vector);
-	const edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
-	const edges_vector = edges_vertices
+export const intersectLineVertices = (
+	{ vertices_coords },
+	{ vector, origin },
+	lineDomain = includeL,
+	epsilon = EPSILON,
+) => {
+	const lineMagSq = magSquared(vector);
+	const lineMag = Math.sqrt(lineMagSq);
+	if (lineMag < epsilon) {
+		return Array(vertices_coords.length).fill(undefined);
+	}
+	return vertices_coords
+		.map(coord => subtract2(coord, origin))
+		.map(vec => {
+			const parameter = dot2(vec, vector) / lineMagSq;
+			return Math.abs(cross2(vec, vector)) < epsilon
+				&& lineDomain(parameter, epsilon / lineMag)
+				? parameter
+				: undefined;
+		});
+};
+
+/**
+ * @description Intersect a line/ray/segment with a FOLD graph but only
+ * consider the graph's vertices and edges.
+ * Intersections are endpoint-exclusive, and will not include collinear edges.
+ * Vertex intersection information is available under the "vertices" key,
+ * and collinear edges can be found by checking if both vertices are overlapped.
+ * @param {FOLD} graph a fold object in creasePattern or foldedForm
+ * @param {VecLine2} line a line/ray/segment in vector origin form
+ * @param {Function} lineDomain the function which characterizes "line"
+ * parameter into a line, ray, or segment.
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {{ vertices: number[], edges: LineLineEvent[] }} an object
+ * summarizing the intersections with edges and vertices:
+ * - vertices: for every vertex, a number or undefined. If there is an
+ *   intersection with the line, the number is the parameter along the line's
+ *   vector, if there is no intersection the value is undefined.
+ * - edges: a list of intersections, undefined if no intersection or collinear,
+ *   or an intersection object which describes:
+ *   - a: {number} the input line's parameter of the intersection
+ *   - b: {number} the edge's parameter of the intersection
+ *   - point: {number[]} the intersection point
+ */
+export const intersectLineVerticesEdges = (
+	{ vertices_coords, edges_vertices },
+	{ vector, origin },
+	lineDomain = includeL,
+	epsilon = EPSILON,
+) => {
+	if (!vertices_coords) { return { vertices: [], edges: [] }; }
+
+	// for every vertex, does that vertex lie along the line.
+	const vertices = intersectLineVertices(
+		{ vertices_coords },
+		{ vector, origin },
+		lineDomain,
+		epsilon,
+	);
+
+	if (!edges_vertices) { return { vertices, edges: [] }; }
+
+	// for every edge, a list of its vertices that lie along the line (0, 1, or 2)
+	// if an edge has 1-2 overlapping vertices, we can skip the intersection call
+	// if an edge has no overlapping vertices, we must run the edge-intersection.
+	const edgesVerticesOverlap = edges_vertices
+		.map(ev => ev
+			.map(v => (vertices[v] !== undefined ? v : undefined))
+			.filter(a => a !== undefined));
+
+	// if the edge contains no vertices which overlap the line,
+	// perform a line-segment intersection, otherwise do nothing.
+	// it's possible the intersection returns no result, which looks like
+	// an object with all undefined values, if so, replace these objects
+	// with a single undefined.
+	// Additionally, add a { vertex: undefined } key/value to all intersections.
+	// const edgesNoOverlapIntersection = edges_vertices
+	const edges = edges_vertices
 		.map(ev => ev.map(v => vertices_coords[v]))
-		.map(edge => math.core.subtract2(edge[1], edge[0]));
-	// first, filter out edges which are not parallel
-	const overlap = edges_vector
-		.map(vec => math.core.parallel2(vec, vector, epsilon));
-	// second, filter out edges which do not lie on top of the line
-	for (let e = 0; e < edges_vertices.length; e += 1) {
-		if (!overlap[e]) { continue; }
-		if (math.core.fnEpsilonEqualVectors(edges_origin[e], point)) {
-			overlap[e] = true;
-			continue;
-		}
-		const vec = math.core.normalize2(math.core.subtract2(edges_origin[e], point));
-		const dot = Math.abs(math.core.dot2(vec, normalized));
-		overlap[e] = Math.abs(1.0 - dot) < epsilon;
-	}
-	return overlap;
+		.map(([s0, s1], e) => (edgesVerticesOverlap[e].length === 0
+			? intersectLineLine(
+				{ vector, origin },
+				pointsToLine2(s0, s1),
+				lineDomain,
+				includeS,
+			)
+			: undefined))
+		.map(res => (res === undefined || !res.point ? undefined : res));
+
+	// if our line crosses the edge at one vertex, we still want to include the
+	// intersection information, but we can construct it ourselves without
+	// running the intersection algorithm. this should save us a little time.
+	// const edges = edgesVerticesOverlap
+	// 	.map((verts, e) => (verts.length === 1
+	// 		? ({
+	// 			a: (dot2(vector, subtract2(vertices_coords[verts[0]], origin))
+	// 				/ magSquared(vector)),
+	// 			b: edges_vertices[e][0] === verts[0] ? 0 : 1,
+	// 			point: [...vertices_coords[verts[0]]],
+	// 			vertex: verts[0],
+	// 		})
+	// 		: edgesNoOverlapIntersection[e]));
+
+	return { vertices, edges };
 };
+
 /**
- * @description Find all edges in a graph which lie parallel along a segment, the
- * endpoints of the segments and the edges are inclusive.
- * @param {object} a FOLD graph
- * @param {number[]} point1, the first point of the segment
- * @param {number[]} point2, the second point of the segment
- * @returns {number[]} array length matching number of edges containing a point
- * if there is an intersection, and undefined if no intersection.
- * @linkcode Origami ./src/graph/intersect.js 52
- */
-export const makeEdgesSegmentIntersection = ({
-	vertices_coords, edges_vertices, edges_coords,
-}, point1, point2, epsilon = math.core.EPSILON) => {
-	if (!edges_coords) {
-		edges_coords = makeEdgesCoords({ vertices_coords, edges_vertices });
-	}
-	const segment_box = math.core.boundingBox([point1, point2], epsilon);
-	const segment_vector = math.core.subtract2(point2, point1);
-	// convert each edge into a bounding box, do bounding-box intersection
-	// with the segment, filter these results, then run actual intersection
-	// algorithm on this subset.
-	return makeEdgesBoundingBox({ vertices_coords, edges_vertices, edges_coords }, epsilon)
-		.map(box => math.core.overlapBoundingBoxes(segment_box, box))
-		.map((overlap, i) => (overlap ? (math.core.intersectLineLine(
-			segment_vector,
-			point1,
-			math.core.subtract2(edges_coords[i][1], edges_coords[i][0]),
-			edges_coords[i][0],
-			math.core.includeS,
-			math.core.includeS,
-			epsilon,
-		)) : undefined));
-};
-/**
- * @description This method compares every edge against every edge (n^2) to see if the
- * segments exclusively intersect each other (touching endpoints doesn't count)
- * @param {FOLD} graph a FOLD graph. only requires { edges_vector, edges_origin }
- * if they don't exist this will build them from { vertices_coords, edges_vertices }
- * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {number[][][]} NxN matrix comparing indices, undefined in the case of
- * no intersection, a point object in array form if yes, and this array is stored
- * in 2 PLACES! both [i][j] and [j][i], however it is stored by reference,
- * it is the same js object.
- *     0  1  2  3
- * 0 [  , x,  ,  ]
- * 1 [ x,  ,  , x]
- * 2 [  ,  ,  ,  ]
- * 3 [  , x,  ,  ]
- * @linkcode Origami ./src/graph/intersect.js 92
- */
-export const makeEdgesEdgesIntersection = function ({
-	vertices_coords, edges_vertices, edges_vector, edges_origin,
-}, epsilon = math.core.EPSILON) {
-	if (!edges_vector) {
-		edges_vector = makeEdgesVector({ vertices_coords, edges_vertices });
-	}
-	if (!edges_origin) {
-		edges_origin = edges_vertices.map(ev => vertices_coords[ev[0]]);
-	}
-	const edges_intersections = edges_vector.map(() => []);
-	const span = getEdgesEdgesOverlapingSpans({ vertices_coords, edges_vertices }, epsilon);
-	for (let i = 0; i < edges_vector.length - 1; i += 1) {
-		for (let j = i + 1; j < edges_vector.length; j += 1) {
-			if (span[i][j] !== true) {
-				// this setter is unnecessary but otherwise the result is filled with
-				// both undefined and holes. this makes it consistent
-				edges_intersections[i][j] = undefined;
-				continue;
-			}
-			edges_intersections[i][j] = math.core.intersectLineLine(
-				edges_vector[i],
-				edges_origin[i],
-				edges_vector[j],
-				edges_origin[j],
-				math.core.excludeS,
-				math.core.excludeS,
-				epsilon,
-			);
-			edges_intersections[j][i] = edges_intersections[i][j];
-		}
-	}
-	return edges_intersections;
-};
-/**
- * @description intersect a convex face with a line and return the location
- * of the intersections as components of the graph. this is an EXCLUSIVE
- * intersection. line collinear to the edge counts as no intersection.
- * there are 5 cases:
- * - no intersection (undefined)
- * - intersect one vertex (undefined)
- * - intersect two vertices (valid, or undefined if neighbors)
- * - intersect one vertex and one edge (valid)
- * - intersect two edges (valid)
+ * @description Intersect a line/ray/segment with a FOLD graph, and return
+ * intersect information with vertices, edges, and faces.
+ * - Vertex intersection is padded with an epsilon, inclusive to this region.
+ * - Edge intersection is endpoint-exclusive, if there is a vertex intersection
+ *   look for it in the "vertices" array. Also, edges parallel with the line
+ *   are excluded, find these collinear edges by checking "vertices" array.
+ * - Face intersections very simply include all vertex and edge intersections
+ *   which are included in the face. This can cause some issues, for example,
+ *   two vertices which are neighbors are simply a collinear edge,
+ *   "filterCollinearFacesData" will handle these, but if you are dealing with
+ *   non-convex polygons you might have a lot of work parsing this data.
  * @param {FOLD} graph a FOLD object
- * @param {number} face the index of the face
- * @param {number[]} vector the vector component describing the line
- * @param {number[]} origin a point that lies along the line
+ * @param {VecLine2} line a line/ray/segment in vector origin form
+ * @param {Function} lineDomain the function which characterizes "line"
+ * parameter into a line, ray, or segment.
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {object|undefined} "vertices" and "edges" keys, indices of the
- * components which intersect the line. or undefined if no intersection
- * @linkcode Origami ./src/graph/intersect.js 144
+ * @returns {{
+ *   vertices: number[],
+ *   edges: LineLineEvent[],
+ *   faces: (FaceEdgeEvent | FaceVertexEvent)[][],
+ * }} an object summarizing the intersections with vertices, edges, and faces:
+ * - vertices: for every vertex, true or false, does the vertex overlap the line
+ * - edges: a list of intersections, undefined if no intersection or collinear,
+ *   or an intersection object which describes:
+ *   - a: {number} the input line's parameter of the intersection
+ *   - b: {number} the edge's parameter of the intersection
+ *   - point: {number[]} the intersection point
+ * - faces: for every intersected face, an array of intersection objects,
+ *   objects similar to but slightly different from those in the "edges" array.
+ *   Basically there are two types of intersection: "vertex" and "edge":
+ *   - a: {number} the input line's parameter of the intersection
+ *   - b: {number|undefined} the edge's parameter of the intersection, or
+ *     undefined if intersected with a vertex
+ *   - point: {number[]} the intersection point
+ *   - vertex: {number|undefined} if the intersection crosses a vertex
+ *   - edge: {number|undefined} if the intersection crosses an edge
  */
-export const intersectConvexFaceLine = ({
-	vertices_coords, edges_vertices, faces_vertices, faces_edges,
-}, face, vector, point, epsilon = math.core.EPSILON) => {
-	// give us back the indices in the faces_vertices[face] array
-	// we can count on these being sorted (important later)
-	const face_vertices_indices = faces_vertices[face]
-		.map(v => vertices_coords[v])
-		.map(coord => math.core.overlapLinePoint(vector, point, coord, () => true, epsilon))
-		.map((overlap, i) => (overlap ? i : undefined))
-		.filter(i => i !== undefined);
-	// o-----o---o  we have to test against cases like this, where more than two
-	// |         |  vertices lie along one line.
-	// o---------o
-	const vertices = face_vertices_indices.map(i => faces_vertices[face][i]);
-	// concat a duplication of the array where the second array's vertices'
-	// indices' are all increased by the faces_vertices[face].length.
-	// ask every neighbor pair if they are 1 away from each other, if so, the line
-	// lies along an outside edge of the convex poly, return "no intersection".
-	// the concat is needed to detect neighbors across the end-beginning loop.
-	const vertices_are_neighbors = face_vertices_indices
-		.concat(face_vertices_indices.map(i => i + faces_vertices[face].length))
-		.map((n, i, arr) => arr[i + 1] - n === 1)
-		.reduce((a, b) => a || b, false);
-	// if vertices are neighbors
-	// because convex polygon, if collinear vertices lie along an edge,
-	// it must be an outside edge. this case returns no intersection.
-	if (vertices_are_neighbors) { return undefined; }
-	if (vertices.length > 1) { return { vertices, edges: [] }; }
-	// run the line-segment intersection on every side of the face polygon
-	const edges = faces_edges[face]
-		.map(edge => edges_vertices[edge]
-			.map(v => vertices_coords[v]))
-		.map(seg => math.core.intersectLineLine(
-			vector,
-			point,
-			math.core.subtract(seg[1], seg[0]),
-			seg[0],
-			math.core.includeL,
-			math.core.excludeS,
-			epsilon,
-		)).map((coords, face_edge_index) => ({
-			coords,
-			edge: faces_edges[face][face_edge_index],
-		}))
-		// remove edges with no intersection
-		.filter(el => el.coords !== undefined)
-		// remove edges which share a vertex with a previously found vertex.
-		// these edges are because the intersection is near a vertex but also
-		// intersects the edge very close to the end.
-		.filter(el => !(vertices
-			.map(v => edges_vertices[el.edge].includes(v))
-			.reduce((a, b) => a || b, false)));
-	// only return the case with 2 intersections. for example, only 1 vertex
-	// intersection implies outside the polygon, collinear with one vertex.
-	return (edges.length + vertices.length === 2
-		? { vertices, edges }
-		: undefined);
+export const intersectLine = (
+	{ vertices_coords, edges_vertices, faces_vertices, faces_edges },
+	{ vector, origin },
+	lineDomain = includeL,
+	epsilon = EPSILON,
+) => {
+	// intersect the line with every edge. the intersection should be inclusive
+	// with respect to the segment endpoints. this will cause duplicate points
+	// for every face when a line crosses exactly at its vertex, but this is
+	// necessary because we need to know this point, so we will filter later.
+	const { vertices, edges } = intersectLineVerticesEdges(
+		{ vertices_coords, edges_vertices },
+		{ vector, origin },
+		lineDomain,
+		epsilon,
+	);
+
+	if (!faces_vertices) { return { vertices, edges, faces: [] }; }
+
+	if (!faces_edges) {
+		// eslint-disable-next-line no-param-reassign
+		faces_edges = makeFacesEdgesFromVertices({ edges_vertices, faces_vertices });
+	}
+
+	// for every face, get every edge of that face's intersection with our line,
+	// filter out any edges which had no intersection.
+	// it's possible for faces to have 0, 1, 2, 3... any number of intersections.
+	const facesEdgeIntersections = faces_edges
+		.map(fe => fe
+			.map(edge => (edges[edge]
+				? { ...edges[edge], edge }
+				: undefined))
+			.filter(a => a !== undefined));
+	const facesVertexIntersections = faces_vertices
+		.map(fv => fv
+			.map(vertex => (vertices[vertex] !== undefined
+				? { a: vertices[vertex], vertex }
+				: undefined))
+			.filter(a => a !== undefined));
+
+	const facesIntersections = faces_vertices.map((_, v) => [
+		...facesVertexIntersections[v],
+		...facesEdgeIntersections[v],
+	]);
+
+	// this epsilon function will compare the object's "a" property
+	// which is the intersections's "a" parameter (line parameter).
+	const epsilonEqual = (p, q) => Math.abs(p.a - q.a) < epsilon * 2;
+
+	// For every face, sort and cluster the face's intersection events using
+	// our input line's parameter. This results in, for every face,
+	// its intersection events are clustered inside of sub arrays.
+	// Finally, filter out any invalid intersections from the face which
+	// includes two vertices that form a collinear edge
+	const faces = facesIntersections
+		.map(intersections => intersections.sort((p, q) => p.a - q.a))
+		.map(intersections => clusterSortedGeneric(intersections, epsilonEqual)
+			.map(cluster => cluster.map(index => intersections[index])))
+		.map(clusters => clusters
+			.map(cluster => cluster[0]));
+
+	return { vertices, edges, faces };
+};
+
+/**
+ * @description Intersect a line/ray/segment with a FOLD graph and
+ * check a list of input points to see which faces each point lies inside,
+ * returning the intersect information with vertices, edges, and faces.
+ * @param {FOLD} graph a FOLD object
+ * @param {VecLine2} line a line/ray/segment in vector origin form
+ * @param {Function} lineDomain the function which characterizes "line"
+ * parameter into a line, ray, or segment.
+ * @param {[number, number][]} [interiorPoints=[]] in the case of a ray or segment,
+ * include the endpoint(s) and they will be included if they appear in a face.
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {{
+ *   vertices: number[],
+ *   edges: LineLineEvent[],
+ *   faces: {
+ *     vertices: FaceVertexEvent[],
+ *     edges: FaceEdgeEvent[],
+ *     points: FacePointEvent[],
+ *   }[],
+ * }} an object summarizing the intersections with vertices, edges, and faces:
+ * - vertices: for every vertex, true or false, does the vertex overlap the line
+ * - edges: a list of intersections, undefined if no intersection or collinear,
+ *   or an intersection object which describes:
+ *   - a: {number} the input line's parameter of the intersection
+ *   - b: {number} the edge's parameter of the intersection
+ *   - point: {number[]} the intersection point
+ *   - vertex: {number|undefined} in the case of an intersection which crosses
+ *     a vertex, indicate which vertex, otherwise, mark it as undefined.
+ * - faces: for every intersected face, a list of intersection objects
+ *   filtered into three categories: "vertices", "edges", "points" where
+ *   each category holds a list of objects with intersection information:
+ *   - vertices: { a, point, vertex }
+ *   - edges: { a, b, point, edge }
+ *   - points: { t, point }
+ *   where the data in each object is:
+ *   - point: {number[]} the intersection point
+ *   - a: {number} the input line's parameter of the intersection
+ *   - b: {number} the edge's parameter of the intersection
+ *   - t: {number[]} the point-in-polygon's overlap parameters
+ *   - vertex: {number} if the intersection crosses a vertex
+ *   - edge: {number} if the intersection crosses an edge
+ */
+export const intersectLineAndPoints = (
+	{ vertices_coords, edges_vertices, faces_vertices, faces_edges },
+	{ vector, origin },
+	lineDomain = includeL,
+	interiorPoints = [],
+	epsilon = EPSILON,
+) => {
+	// intersect the line with every edge. the intersection should be inclusive
+	// with respect to the segment endpoints. this will cause duplicate points
+	// for every face when a line crosses exactly at its vertex, but this is
+	// necessary because we need to know this point, so we will filter later.
+	const { vertices, edges, faces } = intersectLine(
+		{ vertices_coords, edges_vertices, faces_vertices, faces_edges },
+		{ vector, origin },
+		lineDomain,
+		epsilon,
+	);
+
+	if (!vertices_coords || !faces_vertices) {
+		return { vertices, edges, faces: [] };
+	}
+
+	// If there are ray or segment points, we have to query every single face,
+	// does a point lie inside of the face, and if so, include it in this list.
+	// The result is an object containing a "point" {number[]} and "t" {number[]}
+	// this "t" parameter can be used later to trilaterate the position again.
+	const vertices_coords2 = vertices_coords.map(resize2);
+	/** @type {{ point: [number, number], overlap: boolean, t: number[] }[][]} */
+	const facesInteriorPoints = !interiorPoints.length
+		? faces.map(() => [])
+		: faces.map((_, face) => {
+			const polygon = faces_vertices[face].map(v => vertices_coords2[v]);
+			const pointsOverlap = interiorPoints.map(point => ({
+				...overlapConvexPolygonPoint(polygon, point, exclude, epsilon),
+				point,
+			}));
+			return pointsOverlap.filter(el => el.overlap);
+		});
+
+	// Every face in this list will contain a list of intersection events
+	// that occur inside this face. The events are one of three categories:
+	// - edges: intersections event that crosses over an edge
+	// - vertices: intersections that cross exactly over a vertex
+	// - point: an object describing a point lying interior to the face
+	const newFacesData = faces.map((intersections, f) => ({
+		edges: intersections
+			.map(el => ("edge" in el && "a" in el && "b" in el && "point" in el ? el : undefined))
+			.filter(a => a !== undefined),
+		vertices: intersections
+			.map(el => ("vertex" in el && "a" in el ? el : undefined))
+			.filter(a => a !== undefined),
+		points: facesInteriorPoints[f],
+	}));
+
+	return { vertices, edges, faces: newFacesData };
+};
+
+/**
+ * @description This is a helper method to accompany the intersection
+ * methods. Having already computed vertices/edges/faces intersections
+ * (via. intersectLineAndPoints), pass the result in here, and this method
+ * will filter out any collinear edges from the faces, edges are not stored
+ * but vertices are, so it will filter out pairs of vertices which
+ * form a collinear edge.
+ * @param {FOLD} graph a FOLD object
+ * @param {{
+ *   vertices: number[],
+ *   edges: LineLineEvent[],
+ *   faces: {
+ *     vertices: FaceVertexEvent[],
+ *     edges: FaceEdgeEvent[],
+ *     points: FacePointEvent[],
+ *   }[],
+ * }} the result of intersectLineAndPoints, modified in place
+ */
+export const filterCollinearFacesData = ({ edges_vertices }, { vertices, faces }) => {
+	// For the upcoming filtering, we need a list of collinear edges, but in
+	// the form of vertices, so, pairs of vertices which form a collinear edge.
+	const collinearVertices = [];
+	edges_vertices
+		.map(verts => (vertices[verts[0]] !== undefined
+			&& vertices[verts[1]] !== undefined))
+		.map((collinear, edge) => (collinear ? edge : undefined))
+		.filter(a => a !== undefined)
+		.map(edge => edges_vertices[edge])
+		.forEach(verts => collinearVertices.push(verts));
+
+	const facesVertices = faces.map(face => face.vertices.map(({ vertex }) => vertex));
+	const facesVerticesHash = [];
+	facesVertices.forEach((_, f) => { facesVerticesHash[f] = {}; });
+	facesVertices
+		.forEach((verts, f) => verts
+			.forEach(v => { facesVerticesHash[f][v] = true; }));
+
+	faces.forEach((face, f) => {
+		const removeVertices = {};
+		collinearVertices
+			.filter(pair => facesVerticesHash[f][pair[0]] && facesVerticesHash[f][pair[1]])
+			.forEach(pair => {
+				removeVertices[pair[0]] = true;
+				removeVertices[pair[1]] = true;
+			});
+		// eslint-disable-next-line no-param-reassign
+		faces[f].vertices = face.vertices.filter(el => !removeVertices[el.vertex]);
+	});
 };

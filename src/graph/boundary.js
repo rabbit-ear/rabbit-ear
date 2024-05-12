@@ -1,107 +1,298 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import math from "../math";
-import { uniqueIntegers } from "../general/arrays";
+import {
+	boundingBox as BoundingBox,
+} from "../math/polygon.js";
+import {
+	assignmentIsBoundary,
+} from "../fold/spec.js";
+import {
+	uniqueElements,
+} from "../general/array.js";
+import {
+	disjointGraphs,
+} from "./disjoint.js";
+import {
+	invertFlatToArrayMap,
+} from "./maps.js";
 import {
 	makeVerticesEdgesUnsorted,
-	makeVerticesVertices,
-	makeVerticesToEdgeBidirectional,
-} from "./make";
+} from "./make/verticesEdges.js";
+import {
+	makeVerticesVertices2D,
+	makeVerticesVerticesUnsorted,
+} from "./make/verticesVertices.js";
+import {
+	makeVerticesToEdge,
+} from "./make/lookup.js";
+import {
+	connectedComponents,
+} from "./connectedComponents.js";
 
-export const getBoundingBox = ({ vertices_coords }, padding) => math.core
-	.boundingBox(vertices_coords, padding);
 /**
- * @description For every vertex return a true if the vertex lies along a boundary
+ * @description Make an axis-aligned bounding box that encloses the vertices of
+ * a FOLD object. the optional padding is used to make the bounding box
+ * inclusive / exclusive by adding padding on all sides, or inset in the case
+ * of negative number. (positive=inclusive boundary, negative=exclusive boundary)
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [padding] an optional padding around the vertices
+ * to be included in the bounding box.
+ * @returns {Box?} dimensions stored as "span" "min" and "max".
+ * "undefined" if no vertices exist in the graph.
+ */
+export const boundingBox = ({ vertices_coords }, padding) => (
+	BoundingBox(vertices_coords, padding)
+);
+
+/**
+ * @description A vertex is a boundary vertex if it is a member of a boundary
  * edge, as defined by edges_assignment. If edges_assignment is not present,
  * or does not contain boundary edges, this will return an empty array.
- * @param {FOLD} graph a FOLD graph
+ * If you need *sorted* vertices, use the boundary() or boundaries() method.
+ * @param {FOLD} graph a FOLD object
  * @returns {number[]} unsorted list of vertex indices which lie along the boundary.
- * @linkcode Origami ./src/graph/boundary.js 20
  */
-export const getBoundaryVertices = ({ edges_vertices, edges_assignment }) => (
-	uniqueIntegers(edges_vertices
-		.filter((_, i) => edges_assignment[i] === "B" || edges_assignment[i] === "b")
+export const boundaryVertices = ({ edges_vertices, edges_assignment = [] }) => (
+	uniqueElements(edges_vertices
+		.filter((_, i) => assignmentIsBoundary[edges_assignment[i]])
 		.flat()));
-// export const getBoundaryVertices = ({ edges_vertices, edges_assignment }) => {
-// 	// assign vertices to a hash table to make sure they are unique.
-// 	const vertices = {};
-// 	edges_vertices.forEach((v, i) => {
-// 		const boundary = edges_assignment[i] === "B" || edges_assignment[i] === "b";
-// 		if (!boundary) { return; }
-// 		vertices[v[0]] = true;
-// 		vertices[v[1]] = true;
-// 	});
-// 	return Object.keys(vertices).map(str => parseInt(str));
-// };
 
-const emptyBoundaryObject = () => ({ vertices: [], edges: [] });
 /**
- * @description Get the boundary of a FOLD graph in terms of both vertices and edges.
- * This works by walking the boundary edges as defined by edges_assignment ("B" or "b").
- * If edges_assignment doesn't exist, or contains errors, this will not work, and you
- * will need the more robust algorithm getPlanarBoundary() which walks the graph, but
- * only works in 2D.
- * @param {FOLD} graph a FOLD graph
- * @returns {object} with "vertices" and "edges" with arrays of indices.
- * @linkcode Origami ./src/graph/boundary.js 47
+ * @description return value for "boundary" method.
  */
-export const getBoundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
-	if (edges_assignment === undefined) { return emptyBoundaryObject(); }
+const emptyBoundaryObject = () => ({ vertices: [], edges: [] });
+
+/**
+ * @description Use this method if edges are already marked with a "boundary"
+ * assignment, and this will get the boundary of a FOLD graph in terms of
+ * both vertices and edges. Use this method when you know there is only one
+ * connected boundary in the graph. If there are more than one,
+ * use the "boundaries" method.
+ * @param {FOLD} graph a FOLD object
+ * @returns {{
+ *   vertices: number[],
+ *   edges: number[],
+ * }} with "vertices" and "edges", each arrays of indices.
+ */
+export const boundary = ({ vertices_edges, edges_vertices, edges_assignment }) => {
+	if (!edges_assignment || !edges_vertices) { return emptyBoundaryObject(); }
 	if (!vertices_edges) {
 		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
 	}
-	const edges_vertices_b = edges_assignment
-		.map(a => a === "B" || a === "b");
-	const edge_walk = [];
-	const vertex_walk = [];
-	let edgeIndex = -1;
-	for (let i = 0; i < edges_vertices_b.length; i += 1) {
-		if (edges_vertices_b[i]) { edgeIndex = i; break; }
-	}
-	if (edgeIndex === -1) { return emptyBoundaryObject(); }
-	edges_vertices_b[edgeIndex] = false;
-	edge_walk.push(edgeIndex);
-	vertex_walk.push(edges_vertices[edgeIndex][0]);
+	// true or false if an edge is a boundary edge, additionally,
+	// turn a true into a false once we use the edge
+	const edgesBoundary = edges_assignment.map(a => a === "B" || a === "b");
+
+	// inverse of "edgesBoundary", every time we visit a vertex, mark it true.
+	const usedVertices = {};
+
+	// the resulting boundary is stored in these two arrays
+	const vertices = [];
+	const edges = [];
+
+	// get the first available edge index that is a boundary
+	let edgeIndex = edgesBoundary
+		.map((isBoundary, e) => (isBoundary ? e : undefined))
+		.filter(a => a !== undefined)
+		.shift();
+	if (edgeIndex === undefined) { return emptyBoundaryObject(); }
+
+	// add the first edge and remove it from the available edge list
+	edgesBoundary[edgeIndex] = false;
+	edges.push(edgeIndex);
+
+	// add the edge's first vertex to the result, mark it used, set the second
+	// vertex to the "nextVertex" which we will use to walk around the boundary
+	vertices.push(edges_vertices[edgeIndex][0]);
+	usedVertices[edges_vertices[edgeIndex][0]] = true;
 	let nextVertex = edges_vertices[edgeIndex][1];
-	while (vertex_walk[0] !== nextVertex) {
-		vertex_walk.push(nextVertex);
+
+	// loop as long as "nextVertex" is not in the used vertices list.
+	while (!usedVertices[nextVertex]) {
+		// add nextVertex to our solutions list, mark it as used
+		vertices.push(nextVertex);
+		usedVertices[nextVertex] = true;
+
+		// find the next edge index by consulting the nextVertex's adjacent edges,
+		// filtering out the first one that has not yet been visited.
 		edgeIndex = vertices_edges[nextVertex]
-			.filter(v => edges_vertices_b[v])
+			.filter(v => edgesBoundary[v])
 			.shift();
+
+		// the boundary is not a nice, neat cycle.
 		if (edgeIndex === undefined) { return emptyBoundaryObject(); }
+
+		// advance nextVertex, look at our current edge and select the
+		// other vertex that isn't the current "nextVertex".
 		if (edges_vertices[edgeIndex][0] === nextVertex) {
 			[, nextVertex] = edges_vertices[edgeIndex];
 		} else {
 			[nextVertex] = edges_vertices[edgeIndex];
 		}
-		edges_vertices_b[edgeIndex] = false;
-		edge_walk.push(edgeIndex);
+
+		// add the next edge to our solution, mark it as used
+		edges.push(edgeIndex);
+		edgesBoundary[edgeIndex] = false;
 	}
-	return {
-		vertices: vertex_walk,
-		edges: edge_walk,
-	};
+	return { vertices, edges };
 };
+
 /**
- * @description Get the boundary as two arrays of vertices and edges
+ * @description Use this method if edges are already marked with a "boundary"
+ * assignment, and this will get the boundaries of a FOLD graph in terms of
+ * both vertices and edges. This method will safely find all boundaries,
+ * in case of a graph that has two disjoint sets.
+ * @param {FOLD} graph a FOLD object
+ * @returns {{
+ *   vertices: number[],
+ *   edges: number[],
+ * }[]} an array of boundary solutions, where each boundary
+ * is an object with "vertices" and "edges", each arrays of indices.
+ */
+export const boundaries = ({ vertices_edges, edges_vertices, edges_assignment }) => {
+	if (!edges_assignment || !edges_vertices) {
+		return [emptyBoundaryObject()];
+	}
+	if (!vertices_edges) {
+		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
+	}
+
+	// create a copy of edges_vertices that only contains boundary edges, this
+	// array will have holes, no indices change they will match the input graph.
+	const edges_verticesBoundary = [...edges_vertices];
+
+	// delete the non-boundary edges
+	edges_assignment.map(a => a === "B" || a === "b")
+		.map((isBoundary, e) => (!isBoundary ? e : undefined))
+		.filter(e => e !== undefined)
+		.forEach(e => delete edges_verticesBoundary[e]);
+
+	// a copy of vertices_edges, but only includes boundary edges
+	const vertices_edgesBoundary = makeVerticesEdgesUnsorted({
+		edges_vertices: edges_verticesBoundary,
+	});
+
+	// an adjacent vertices_vertices list, but only include boundary vertices
+	const verticesVertices = makeVerticesVerticesUnsorted({
+		vertices_edges: vertices_edgesBoundary,
+		edges_vertices: edges_verticesBoundary,
+	});
+
+	// using the boundary-only vertices_vertices, make a connected components,
+	// each vertex (index) will contain a group number that it is a part of (value)
+	const connectedVertices = connectedComponents(verticesVertices);
+
+	// using the connected components, create a list of groups where, each group
+	// is a list of vertices, then, for each group, take just one vertex.
+	const groupsVertex = invertFlatToArrayMap(connectedVertices)
+		.map(vertices => vertices[0]);
+
+	// given a start vertex and the list of verticesVertices, walk through
+	// the adjacent vertex list, modifying the verticesVertices object as we go
+	// by removing visited vertices, until we reach a verticesVertices with no
+	// available vertices to travel to. return the list of vertices walked.
+	const walkVerticesVertices = (startVertex) => {
+		let prevVertex;
+		let currVertex = startVertex;
+		let nextVertex;
+		const result = [];
+		const filterFunc = (v) => v !== prevVertex;
+		while (true) {
+			// in an ideal situation, the current verticesVertices array will have
+			// the vertex from which we just came, and the one to head to next.
+			// remove the vertex from which we just came, and set the next vertex.
+			verticesVertices[currVertex] = verticesVertices[currVertex]
+				.filter(filterFunc);
+			nextVertex = verticesVertices[currVertex].shift();
+
+			// if the array was empty, there is nowhere else to go. we're done.
+			if (nextVertex === undefined) { return result; }
+
+			// add the current vertex to the result list, then increment the walk.
+			result.push(currVertex);
+			prevVertex = currVertex;
+			currVertex = nextVertex;
+		}
+	};
+
+	// for each group of connected vertices, using the first vertex from
+	// the group, walk the connected vertices and get back a list of vertices.
+	const boundariesVertices = groupsVertex
+		.map(vertex => walkVerticesVertices(vertex));
+
+	// backwards lookup, which edge is made of a pair of vertices.
+	// we only need to use the boundary edges, should be a little faster.
+	const edgeMap = makeVerticesToEdge({
+		edges_vertices: edges_verticesBoundary,
+	});
+
+	// group vertices into pairs, find the edge that connects each pair.
+	const boundariesEdges = boundariesVertices
+		.map(vertices => vertices
+			.map((v, i, arr) => [v, arr[(i + 1) % arr.length]])
+			.map(pair => edgeMap[pair.join(" ")]));
+
+	return boundariesVertices.map((vertices, i) => ({
+		vertices,
+		edges: boundariesEdges[i],
+	}));
+};
+
+/**
+ * @description Get a FOLD object's boundary as a list of points. Use this
+ * method in the case where there might be more than one boundary cycle.
+ * @param {FOLD} graph a FOLD object
+ * @returns {([number, number]|[number, number, number])[][]} array of polygons
+ */
+export const boundaryPolygons = ({
+	vertices_coords, vertices_edges, edges_vertices, edges_assignment,
+}) => (
+	boundaries({ vertices_edges, edges_vertices, edges_assignment })
+		.map(({ vertices }) => vertices.map(v => vertices_coords[v]))
+);
+
+/**
+ * @description Get a FOLD object's boundary as a list of points. Use this
+ * method if you are certain that there is only one boundary.
+ * @param {FOLD} graph a FOLD object
+ * @returns {([number, number]|[number, number, number])[]} a polygon
+ */
+export const boundaryPolygon = ({
+	vertices_coords, vertices_edges, edges_vertices, edges_assignment,
+}) => (
+	boundary({ vertices_edges, edges_vertices, edges_assignment })
+		.vertices
+		.map(v => vertices_coords[v])
+);
+
+/**
+ * @description Use this method when you know there is only one connected
+ * boundary in the graph. If there are more than one, use "planarBoundaries".
+ * When a graph does not have boundary assignment information,
+ * this method is used to uncover the boundary, so long as the graph is planar.
+ * Get the boundary as two arrays of vertices and edges
  * by walking the boundary edges in 2D and uncovering the concave hull.
  * Does not consult edges_assignment, but does require vertices_coords.
  * For repairing crease patterns, this will uncover boundary edges_assignments.
- * @param {FOLD} graph a FOLD graph
+ * @param {FOLD} graph a FOLD object
  * (vertices_coords, vertices_vertices, edges_vertices)
  * (vertices edges only required in case vertices_vertices needs to be built)
- * @returns {object} "vertices" and "edges" with arrays of indices.
+ * @returns {{
+ *   vertices: number[],
+ *   edges: number[],
+ * }} "vertices" and "edges" with arrays of indices.
  * @usage call populate() before to ensure this works.
- * @linkcode Origami ./src/graph/boundary.js 96
  */
-export const getPlanarBoundary = ({
+export const planarBoundary = ({
 	vertices_coords, vertices_edges, vertices_vertices, edges_vertices,
 }) => {
 	if (!vertices_vertices) {
-		vertices_vertices = makeVerticesVertices({ vertices_coords, vertices_edges, edges_vertices });
+		vertices_vertices = makeVerticesVertices2D({
+			vertices_coords, vertices_edges, edges_vertices,
+		});
 	}
-	const edge_map = makeVerticesToEdgeBidirectional({ edges_vertices });
+	const edge_map = makeVerticesToEdge({ edges_vertices });
 	const edge_walk = [];
 	const vertex_walk = [];
 	const walk = {
@@ -122,6 +313,7 @@ export const getPlanarBoundary = ({
 	vertex_walk.push(first_vertex_i);
 	const first_vc = vertices_coords[first_vertex_i];
 	const first_neighbors = vertices_vertices[first_vertex_i];
+	if (!first_neighbors) { return walk; }
 	// sort adjacent vertices by next most clockwise vertex;
 	const counter_clock_first_i = first_neighbors
 		.map(i => vertices_coords[i])
@@ -147,8 +339,11 @@ export const getPlanarBoundary = ({
 	// prev_vertex, this_vertex, next_vertex
 	let prev_vertex_i = first_vertex_i;
 	let this_vertex_i = second_vertex_i;
-	let protection = 0;
-	while (protection < 10000) {
+	// because this is an infinite loop, and it relies on vertices_vertices
+	// being well formed (if it was user-made, we cannot guarantee), we will
+	// break the loop if we walk past the same pair of vertices (in the same dir)
+	const visitedVertexPairs = { [`${prev_vertex_i} ${this_vertex_i}`]: true };
+	while (true) {
 		const next_neighbors = vertices_vertices[this_vertex_i];
 		const from_neighbor_i = next_neighbors.indexOf(prev_vertex_i);
 		const next_neighbor_i = (from_neighbor_i + 1) % next_neighbors.length;
@@ -158,15 +353,50 @@ export const getPlanarBoundary = ({
 			: `${next_vertex_i} ${this_vertex_i}`;
 		const next_edge_i = edge_map[next_edge_lookup];
 		// exit loop condition
-		if (next_edge_i === edge_walk[0]) {
+		if (visitedVertexPairs[`${this_vertex_i} ${next_vertex_i}`]) {
+			// if the first and upcoming edge do not match, this means we somehow
+			// walked around the boundary and ended up somewhere in the middle,
+			// which would put us in a never ending cycle, so we need to break
+			// out anyway, but at least warn the user the result is poorly formed.
+			// todo: we can get rid of this message if we modify the structure
+			// of the return object so that it traverses the circular part only,
+			// or, includes a there-and-back traversal of the branch(es).
+			if (next_edge_i !== edge_walk[0]) { console.warn("bad boundary"); }
 			return walk;
 		}
+		visitedVertexPairs[`${this_vertex_i} ${next_vertex_i}`] = true;
 		vertex_walk.push(this_vertex_i);
 		edge_walk.push(next_edge_i);
 		prev_vertex_i = this_vertex_i;
 		this_vertex_i = next_vertex_i;
-		protection += 1;
 	}
-	console.warn("calculate boundary potentially entered infinite loop");
-	return walk;
+};
+
+/**
+ * @description When a graph does not have boundary assignment information,
+ * this method is used to uncover the boundaries, so long as the graph is planar.
+ * This works for disjoint graphs, the return value is an array of results.
+ * Each boundary result is two arrays of vertices and edges, discovered
+ * by walking the boundary edges in 2D and uncovering the concave hull.
+ * Does not consult edges_assignment, but does require vertices_coords.
+ * @param {FOLD} graph a FOLD object
+ * (vertices_coords, vertices_vertices, edges_vertices)
+ * (vertices edges only required in case vertices_vertices needs to be built)
+ * @returns {{
+ *   vertices: number[],
+ *   edges: number[],
+ * }[]} array of objects with "vertices" and "edges" with arrays of indices.
+ * @usage call populate() before to ensure this works.
+ */
+export const planarBoundaries = ({
+	vertices_coords, vertices_edges, vertices_vertices, edges_vertices,
+}) => {
+	if (!vertices_vertices) {
+		vertices_vertices = makeVerticesVertices2D({
+			vertices_coords, vertices_edges, edges_vertices,
+		});
+	}
+	return disjointGraphs({
+		vertices_coords, vertices_vertices, edges_vertices,
+	}).map(planarBoundary);
 };

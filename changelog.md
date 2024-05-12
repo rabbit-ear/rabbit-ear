@@ -1,3 +1,89 @@
+# 0.9.33 alpha
+
+`pleat()` when given parallel lines will now correct for the case when the lines' vectors point in the opposite directions.
+
+many of the intersection methods have been refactored and have small or dramatic speedups.
+
+new method: `getEdgesRectOverlap()`
+
+new method: `findSymmetryLines()` and `findSymmetryLine()` using the lines in the graph to uncover a line of symmetry.
+
+new method: `getEdgesLine()` and its subroutine `clusterParallelVectors()` which performs a similar function as `clusterScalars()`.
+
+new overlap methods:
+
+```javascript
+ear.graph.getFacesLineOverlap()
+ear.graph.getFacesRayOverlap()
+ear.graph.getFacesSegmentOverlap()
+```
+
+new method `ear.graph.getFramesByClassName()`
+
+new method `ear.graph.getEdgeBetweenVertices()`
+
+ear.graph.makePlanarFaces now returns an object already in FOLD form, instead of the data being inverted into an array of objects
+
+All axiom methods return an *array* of lines. Before, some would and others would not. The system is now consistent.
+
+replace `getGraphKeysWithPrefix` with `filterKeysWithPrefix`, maintaining the functionality of `getGraphKeysWithPrefix` where it will add the `_` character to match against. same with Suffix methods.
+
+new method: `subgraph` and `subgraphWithFaces`, where *subgraphWithEdges* and *subgraphWithVertices* could be written in similar form.
+
+Methods renamed:
+
+- `{graph/cp/origami}.copy` -> `{graph/cp/origami}.clone`
+- `fragment` -> `planarize`
+- `getBoundingBox` -> `boundingBox`
+- `getBoundaryVertices` -> `boundaryVertices`
+- `getBoundary` -> `boundary`
+- `getPlanarBoundary` -> `planarBoundary`
+- `makeFacesFacesOverlap` -> `getFacesFaces2DOverlap`
+- `makeFacesCenter` -> `makeFacesCentroid2D`
+- `makeFacesCenterQuick` -> `makeFacesConvexCenter`
+- `getDuplicateEdges` -> `duplicateEdges`
+- `getCircularEdges` -> `circularEdges`
+- `getVerticesClusters` -> `verticesClusters`
+- `getDuplicateVertices` -> `duplicateVertices`
+- `getEdgeIsolatedVertices` -> `edgeIsolatedVertices`
+- `getFaceIsolatedVertices` -> `faceIsolatedVertices`
+- `getIsolatedVertices` -> `isolatedVertices`
+- `getCoplanarFacesGroups` -> `coplanarFacesGroups`
+- `getOverlappingFacesGroups` -> `overlappingFacesGroups`
+- `makeTrianglePairs` -> `chooseTwoPairs`
+- `clusterArrayValues` -> `clusterScalars`
+- `getDisjointedVertices` -> `disjointVerticesSets`
+
+`makeEdgesAssignment` has been renamed to `makeEdgesAssignmentSimple` and `makeEdgesAssignment` now also assigns "B" boundary edges by checking edges_faces for # of incident faces.
+
+new WebGL implementation. see: [readme.md](https://github.com/robbykraft/Origami/tree/master/src/webgl) and [foldfile.com](https://foldfile.com)
+
+Various methods will now throw Errors instead of console.error or console.warn. Not all console.warn have been removed however. The distinction is that if the function is still able to generate a solution, it will console.warn. If the function generated something which contains errors or misleading information, it throws an error.
+
+New subcategory `ear.webgl` containing at least: `createProgram`, `initialize`, `foldedForm`, `creasePattern`, `rebuildViewport`, `makeProjectionMatrix`, `makeModelMatrix`, `drawProgram`, `deallocProgram`, with many more methods specific to drawing different styles with different shaders.
+
+new Matrix4 type. new Quaternion type. new projection matrices.
+
+new method `ear.graph.nearest`, which was already in the `graph()` object as a prototype method. now exists in the top level.
+
+all matrix scale methods takes an array of values instead of one number, allowing non-uniform axis scaling.
+
+`ear.graph.getBoundingBox` will return "undefined" if the graph does not contain any vertices_coords. previously this would throw an error.
+
+new `nudgeVerticesWithFacesLayer`, `nudgeVerticesWithFaceOrders` for nudging vertices in an exploded graph based on layer order.
+
+`src/layer/topological.js` contains a new topological sort method. currently not being exported.
+
+new `.convert` with the first (of many, hopefully) file conversions: `.obj` to `.fold`, which includes computing edges_foldAngle and giving them a "M" "V" assignment.
+
+new methods `getCoplanarFacesGroups`,  `getOverlappingFacesGroups` which will find all groups of faces which share the same plane in 3D space (`getCoplanarFacesGroups`), and then in the case of `getOverlappingFacesGroups` actually compute whether or not they overlap.
+
+new method `selfRelationalUniqueIndexPairs`, given any array of self-referential data (vertices_vertices, faces_faces, etc), create a list of unique pairwise combinations of related indices.
+
+rewrite of `getVerticesClusters`, implemented a line sweep and the runtime has been massively improved.
+
+refactor fold/keys and fold/spec, simplify methods that get exposed in the final build.
+
 # 0.9.32 alpha
 
 new layer solver implementation at ear.layer.solver(), huge performance improvement. solver returns data bound to a prototype which includes methods to process and analyze the data. methods include
