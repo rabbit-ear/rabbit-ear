@@ -54,11 +54,11 @@
 	],
 	"repository": {
 		"type": "git",
-		"url": "git://github.com/mayakraft/Origami.git"
+		"url": "git://github.com/rabbit-ear/rabbit-ear.git"
 	},
 	"homepage": "https://rabbitear.org",
 	"bugs": {
-		"url": "https://github.com/mayakraft/Origami/issues"
+		"url": "https://github.com/rabbit-ear/rabbit-ear/issues"
 	},
 	"devDependencies": {
 		"@rollup/plugin-terser": "^0.4.3",
