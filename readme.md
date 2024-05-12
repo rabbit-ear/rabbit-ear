@@ -23,7 +23,7 @@ https://rabbit-ear.github.io/rabbit-ear/rabbit-ear.js
 for ES 2015 import/export and \<script type="module"\>
 
 ```
-https://rabbit-ear.github.io/rabbit-ear/module/index.js
+https://rabbit-ear.github.io/rabbit-ear/src/index.js
 ```
 
 ### NPM
