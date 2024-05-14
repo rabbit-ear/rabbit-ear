@@ -4,6 +4,41 @@ import ear from "../src/index.js";
 
 const FOLD_ANGLE = 90;
 
+// test("foldGraph, flip over origami", () => {
+// 	const FOLD = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
+// 	const fold = JSON.parse(FOLD);
+// 	const graph = ear.graph.getFramesByClassName(fold, "creasePattern")[0];
+// 	const { vertices_coords } = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+
+// 	// a line that runs the entire length of the folded form. diagonally
+// 	// along one of the collinear edges along one of the flaps,
+// 	// through the other flap
+// 	const line = { vector: [0, 1], origin: [2, 0] };
+// 	const result = ear.graph.foldLine(
+// 		graph,
+// 		line,
+// 		"V",
+// 		undefined,
+// 		vertices_coords,
+// 	);
+
+// 	// const result = {
+// 	// 	...graph,
+// 	// 	// vertices_coords: ear.graph.makeVerticesCoordsFlatFolded(),
+// 	// };
+
+// 	fs.writeFileSync(
+// 		"./tests/tmp/foldLine-flip-over-before.fold",
+// 		JSON.stringify(graph),
+// 		"utf8",
+// 	);
+// 	fs.writeFileSync(
+// 		"./tests/tmp/foldLine-flip-over-after.fold",
+// 		JSON.stringify(folded),
+// 		"utf8",
+// 	);
+// });
+
 test("foldGraph, segment, along a collinear edge", () => {
 	const graph = ear.graph.squareFish();
 	const vertices_coordsFolded = ear.graph.makeVerticesCoordsFlatFolded(graph);

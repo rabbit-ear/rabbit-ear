@@ -1,10 +1,14 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { EPSILON } from "./constant.js";
+import {
+	EPSILON
+} from "./constant.js";
 
 /**
  * @description perform a cube root but preserve the sign of the input
+ * @param {number} n
+ * @returns {number}
  */
 const cubeRootSigned = (n) => (n < 0
 	? -((-n) ** (1 / 3))
@@ -15,11 +19,11 @@ const cubeRootSigned = (n) => (n < 0
  * @description This polynomial solver will solve anything polynomial up
  * to a degree 3 (cubic, via Cardano's formula). Polynomial is inputted via an
  * array of its coefficients, which includes the constant, in order from
- * highest exponent down to the constant. Do not skip any 0 coefficients.
- * To solve a quadratic: supply [a, b, c], where a is the x^2 coeff.
- * To solve a cubic: supply [a, b, c, d], where a is the x^3 coeff.
- * @param {number[]} coefficients a list of coefficients to the polynomial,
- * including the constant (at the end).
+ * lowest to highest. Index 0 is the constant, index 1 is for x, index 2 is
+ * for x^2, index 3 is for x^3. As many items as exists in the polynomial.
+ * To solve a quadratic: supply [c, b, a], where a is the x^2 coeff.
+ * To solve a cubic: supply [d, c, b, a], where a is the x^3 coeff.
+ * @param {number[]} coefficients a list of coefficients to the polynomial
  * @returns {[]|[number]|[number,number]|[number,number,number]}
  * a solution array with either zero, one, two, or three numbers.
  */

@@ -55,6 +55,72 @@ const GROUP_STYLE = {
  * @description this method will check for layer order, face windings,
  * and apply a style to each face accordingly, adds them to the group,
  * and applies style attributes to the group itself too.
+ * @param {FOLDExtended} graph a FOLD object
+ * @param {Element[]} svg_faces a list of polygon elements
+ * @param {SVGElement} group the container for the faces
+ * @param {object} options
+ */
+// const finalize_faces3D = (graph, svg_faces, group, options = {}) => {
+// 	const isFolded = isFoldedForm(graph);
+
+// 	// capable of determining order from faceOrders (spec) or faces_layer
+// 	const orderIsCertain = !!(graph.faceOrders || graph.faces_layer);
+// 	const faces_winding = makeFacesWinding(graph);
+
+// 	// set the style of each individual face, depending on the
+// 	// face's visible side (front/back) and foldedForm vs. crease pattern
+// 	faces_winding
+// 		.map(w => (w ? facesSideNames[0] : facesSideNames[1]))
+// 		.forEach((className, i) => {
+// 			// counter-clockwise faces are "face up", their front facing the camera
+// 			// clockwise faces means "flipped", their back is facing the camera.
+// 			// set these class names, and apply the style as attributes on each face.
+// 			addClass(svg_faces[i], className);
+
+// 			// Apply a data attribute ("data-") to an element, enabling the user
+// 			// to be able to get this data using the .dataset selector.
+// 			// https://developer.mozilla.org/en-US/docs/Learn/HTML/Howto/Use_data_attributes
+// 			svg_faces[i].setAttribute("data-side", className);
+
+// 			// cp / folded style, which is based on known or unknown face order
+// 			const foldedFaceStyle = orderIsCertain
+// 				? FACE_STYLE.foldedForm.ordered[className]
+// 				: FACE_STYLE.foldedForm.unordered[className];
+// 			const faceStyle = isFolded
+// 				? foldedFaceStyle
+// 				: FACE_STYLE.creasePattern[className];
+
+// 			// set the face style (front/back in the context of CP or foldedForm)
+// 			setKeysAndValues(svg_faces[i], faceStyle);
+
+// 			// set any custom user style that was provided in the options object
+// 			setKeysAndValues(svg_faces[i], options[className]);
+// 		});
+
+// 	// get a list of face indices, 0...N-1, or in the case of a layer order
+// 	// existing, give us these indices in layer-sorted order.
+// 	// using this order, append the faces to the parent group.
+// 	linearize2DFaces(graph).forEach(f => group.appendChild(svg_faces[f]));
+
+// 	console.log("here", linearize2DFaces(graph));
+
+// 	// set style attributes of the group
+// 	const groupStyleFolded = orderIsCertain
+// 		? GROUP_STYLE.foldedForm.ordered
+// 		: GROUP_STYLE.foldedForm.unordered;
+// 	setKeysAndValues(group, isFolded ? groupStyleFolded : GROUP_STYLE.creasePattern);
+
+// 	return group;
+// };
+
+/**
+ * @description this method will check for layer order, face windings,
+ * and apply a style to each face accordingly, adds them to the group,
+ * and applies style attributes to the group itself too.
+ * @param {FOLDExtended} graph a FOLD object
+ * @param {Element[]} svg_faces a list of polygon elements
+ * @param {SVGElement} group the container for the faces
+ * @param {object} options
  */
 const finalize_faces = (graph, svg_faces, group, options = {}) => {
 	const isFolded = isFoldedForm(graph);
@@ -110,7 +176,7 @@ const finalize_faces = (graph, svg_faces, group, options = {}) => {
 /**
  * @description build SVG faces using faces_vertices data. this is
  * slightly faster than the other method which uses faces_edges.
- * @returns {SVGElement[]} an SVG <g> group element containing all
+ * @returns {SVGElement} an SVG <g> group element containing all
  * of the <polygon> faces as children.
  */
 export const facesVerticesPolygon = (graph, options) => {
@@ -124,7 +190,7 @@ export const facesVerticesPolygon = (graph, options) => {
 /**
  * @description build SVG faces using faces_edges data. this is
  * slightly slower than the other method which uses faces_vertices.
- * @returns {SVGElement[]} an SVG <g> group element containing all
+ * @returns {SVGElement} an SVG <g> group element containing all
  * of the <polygon> faces as children.
  */
 export const facesEdgesPolygon = function (graph, options) {

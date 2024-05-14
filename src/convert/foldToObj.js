@@ -1,6 +1,9 @@
 /**
  * Rabbit Ear (c) Kraft
  */
+import {
+	resize3,
+} from "../math/vector.js";
 
 /**
  * @description if they exist, get any title, author, or description
@@ -40,6 +43,10 @@ const getTitleAuthorDescription = (graph) => [
  * const birdBase = ear.graph.bird();
  * const objFile = foldToObj(birdBase);
  * fs.writeFileSync("./bird-base.obj", objFile);
+ * @example
+ * // with triangulated faces
+ * const { result } = ear.graph.triangulate(fold);
+ * const objFile = foldToObj(result);
  */
 export const foldToObj = (file) => {
 	/** @type {FOLD} */
@@ -50,6 +57,7 @@ export const foldToObj = (file) => {
 
 	// a list of vertices in the form of "v _ _ _" where _ are floats
 	const vertices = (graph.vertices_coords || [])
+		.map(resize3)
 		.map(coords => coords.join(" "))
 		.map(str => `v ${str}`)
 		.join("\n");

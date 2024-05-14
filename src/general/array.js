@@ -133,7 +133,7 @@ export const splitCircularArray = (array, indices) => {
 
 /**
  * @description convert a list of items {any} into a list of pairs
- * where each item is uniqely matched with another item (non-ordered)
+ * where each item is uniquely matched with another item (non-ordered)
  * the number of pairs is (length * (length-1)) / 2
  * @param {any[]} array an array containing any values
  * @returns {[any, any][]} an array of arrays, type matching the
@@ -164,6 +164,7 @@ export const setDifferenceSortedNumbers = (a, b) => {
 	const result = [];
 	let ai = 0;
 	let bi = 0;
+	if (!b.length) { return a.slice(); }
 	while (ai < a.length && bi < b.length) {
 		if (a[ai] === b[bi]) {
 			ai += 1;
@@ -191,6 +192,7 @@ export const setDifferenceSortedEpsilonNumbers = (a, b, epsilon = EPSILON) => {
 	const result = [];
 	let ai = 0;
 	let bi = 0;
+	if (!b.length) { return a.slice(); }
 	while (ai < a.length && bi < b.length) {
 		if (epsilonEqual(a[ai], b[bi], epsilon)) {
 			ai += 1;

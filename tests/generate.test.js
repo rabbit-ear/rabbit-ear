@@ -5,7 +5,7 @@ import ear from "../src/index.js";
 test("test can remain empty", () => {});
 
 // test("write folded vertices", () => {
-// 	const foldfile = fs.readFileSync("./tests/files/fold/layers-cycle-nonconvex.fold", "utf-8");
+// 	const foldfile = fs.readFileSync("./tests/files/fold/crane-3d.fold", "utf-8");
 // 	const fold = JSON.parse(foldfile);
 // 	// const graph = ear.graph.flattenFrame(fold, 1);
 // 	const folded = ear.graph.makeVerticesCoordsFolded(fold, [0]);
