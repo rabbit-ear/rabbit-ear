@@ -19,8 +19,16 @@ import {
 export const projectPointOnPlane = (point, vector = [1, 0, 0], origin = [0, 0, 0]) => {
 	const point3 = resize3(point);
 	const originToPoint = subtract3(point3, resize3(origin));
+
+	// ensure the plane's normal is normalized for the upcoming dot product
 	const normalized = normalize3(resize3(vector));
+
+	// this will be the magnitude of the projection of originToPoint
+	// onto the plane's normal line
 	const magnitude = dot3(normalized, originToPoint);
+
+	// this vector is the projection ofo the point onto the plane's normal line
+	// subtract this vector from the point to move the point onto the plane
 	const planeToPoint = scale3(normalized, magnitude);
 	return subtract3(point3, planeToPoint);
 };

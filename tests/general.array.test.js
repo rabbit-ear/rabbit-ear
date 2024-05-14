@@ -31,8 +31,40 @@ test("uniqueElements", () => {
 		.toBe(JSON.stringify([{ id: 1 }, { id: 2 }, { id: 3 }, { id: 1 }]));
 });
 
-test("nonUniqueElements", () => {
+test("nonUniqueElements - Array with no unique elements", () => {
+	const array = [1, 2, 2, 3, 3, 3, 4, 4, 4, 4];
+	const result = ear.general.nonUniqueElements(array);
+	expect(result).toEqual([2, 2, 3, 3, 3, 4, 4, 4, 4]);
+});
 
+test("nonUniqueElements - Array with all unique elements", () => {
+	const array = [1, 2, 3, 4, 5];
+	const result = ear.general.nonUniqueElements(array);
+	expect(result).toEqual([]);
+});
+
+test("nonUniqueElements - Array with some unique elements", () => {
+	const array = [1, 2, 2, 3, 4, 4, 5];
+	const result = ear.general.nonUniqueElements(array);
+	expect(result).toEqual([2, 2, 4, 4]);
+});
+
+test("nonUniqueElements - Array with strings", () => {
+	const array = ["apple", "banana", "banana", "cherry", "date", "date", "date"];
+	const result = ear.general.nonUniqueElements(array);
+	expect(result).toEqual(["banana", "banana", "date", "date", "date"]);
+});
+
+test("nonUniqueElements - Empty array", () => {
+	const array = [];
+	const result = ear.general.nonUniqueElements(array);
+	expect(result).toEqual([]);
+});
+
+test("nonUniqueElements - Array with one element", () => {
+	const array = [1];
+	const result = ear.general.nonUniqueElements(array);
+	expect(result).toEqual([]);
 });
 
 test("uniqueSortedNumbers", () => {
@@ -41,8 +73,82 @@ test("uniqueSortedNumbers", () => {
 	expect(result.length).toBeLessThan(array.length);
 });
 
-test("epsilonUniqueSortedNumbers", () => {
+test("uniqueSortedNumbers - Array with no duplicates", () => {
+	const array = [1, 2, 3, 4, 5];
+	const result = ear.general.uniqueSortedNumbers(array);
+	expect(result).toEqual([1, 2, 3, 4, 5]);
+});
 
+test("uniqueSortedNumbers - Array with duplicates", () => {
+	const array = [1, 2, 2, 3, 3, 3, 4, 4, 4, 4];
+	const result = ear.general.uniqueSortedNumbers(array);
+	expect(result).toEqual([1, 2, 3, 4]);
+});
+
+test("uniqueSortedNumbers - Array with negative numbers", () => {
+	const array = [-5, -4, -3, -3, -2, -2, -1];
+	const result = ear.general.uniqueSortedNumbers(array);
+	expect(result).toEqual([-5, -4, -3, -2, -1]);
+});
+
+test("uniqueSortedNumbers - Array with floating point numbers", () => {
+	const array = [1.5, 2.3, 2.3, 3.7, 3.7, 3.7];
+	const result = ear.general.uniqueSortedNumbers(array);
+	expect(result).toEqual([1.5, 2.3, 3.7]);
+});
+
+test("uniqueSortedNumbers - Empty array", () => {
+	const array = [];
+	const result = ear.general.uniqueSortedNumbers(array);
+	expect(result).toEqual([]);
+});
+
+test("uniqueSortedNumbers - Array with one element", () => {
+	const array = [1];
+	const result = ear.general.uniqueSortedNumbers(array);
+	expect(result).toEqual([1]);
+});
+
+test("epsilonUniqueSortedNumbers - Array with no elements within epsilon", () => {
+	const array = [1, 2, 3, 4, 5];
+	const epsilon = 0.5;
+	const result = ear.general.epsilonUniqueSortedNumbers(array, epsilon);
+	expect(result).toEqual([1, 2, 3, 4, 5]);
+});
+
+test("epsilonUniqueSortedNumbers - Array with elements within epsilon", () => {
+	const array = [1, 1.2, 1.5, 2, 2.3, 3, 3.4, 3.5, 4, 4.7, 5];
+	const epsilon = 0.5;
+	const result = ear.general.epsilonUniqueSortedNumbers(array, epsilon);
+	expect(result).toEqual([1, 2, 3, 4, 4.7]);
+});
+
+test("epsilonUniqueSortedNumbers - Array with negative numbers within epsilon", () => {
+	const array = [-1, -0.7, -0.5, 0, 0.2, 0.5, 1];
+	const epsilon = 0.3;
+	const result = ear.general.epsilonUniqueSortedNumbers(array, epsilon);
+	expect(result).toEqual([-1, -0.7, 0, 0.5, 1]);
+});
+
+test("epsilonUniqueSortedNumbers - Array with floating point numbers within epsilon", () => {
+	const array = [1.5, 1.7, 1.8, 2, 2.2, 2.4];
+	const epsilon = 0.2;
+	const result = ear.general.epsilonUniqueSortedNumbers(array, epsilon);
+	expect(result).toEqual([1.5, 2.2]);
+});
+
+test("epsilonUniqueSortedNumbers - Empty array", () => {
+	const array = [];
+	const epsilon = 0.1;
+	const result = ear.general.epsilonUniqueSortedNumbers(array, epsilon);
+	expect(result).toEqual([]);
+});
+
+test("epsilonUniqueSortedNumbers - Array with one element", () => {
+	const array = [1];
+	const epsilon = 0.1;
+	const result = ear.general.epsilonUniqueSortedNumbers(array, epsilon);
+	expect(result).toEqual([1]);
 });
 
 test("array intersection", () => {
@@ -112,16 +218,161 @@ test("rotateCircularArray", () => {
 		.toMatchObject([5, 0, 1, , , 4]);
 });
 
-test("chooseTwoPairs", () => {
-
+test("chooseTwoPairs - Array with even number of items", () => {
+	const array = ["A", "B", "C", "D"];
+	const result = ear.general.chooseTwoPairs(array);
+	expect(result).toEqual([
+		["A", "B"],
+		["A", "C"],
+		["A", "D"],
+		["B", "C"],
+		["B", "D"],
+		["C", "D"]
+	]);
 });
 
-test("setDifferenceSortedNumbers", () => {
-
+test("chooseTwoPairs - Array with odd number of items", () => {
+	const array = ["X", "Y", "Z"];
+	const result = ear.general.chooseTwoPairs(array);
+	expect(result).toEqual([
+		["X", "Y"],
+		["X", "Z"],
+		["Y", "Z"]
+	]);
 });
 
-test("setDifferenceSortedEpsilonNumbers", () => {
+test("chooseTwoPairs - Array with one item", () => {
+	const array = ["Hello"];
+	const result = ear.general.chooseTwoPairs(array);
+	expect(result).toEqual([]);
+});
 
+test("chooseTwoPairs - Array with no items", () => {
+	const array = [];
+	const result = ear.general.chooseTwoPairs(array);
+	expect(result).toEqual([]);
+});
+
+test("setDifferenceSortedNumbers - Arrays with common elements", () => {
+	const a = [1, 2, 3, 4, 5];
+	const b = [3, 4, 5, 6, 7];
+	const result = ear.general.setDifferenceSortedNumbers(a, b);
+	expect(result).toEqual([1, 2]);
+});
+
+test("setDifferenceSortedNumbers - Arrays with no common elements", () => {
+	const a = [1, 2, 3, 4, 5];
+	const b = [6, 7, 8, 9, 10];
+	const result = ear.general.setDifferenceSortedNumbers(a, b);
+	expect(result).toEqual([1, 2, 3, 4, 5]);
+});
+
+test("setDifferenceSortedNumbers - Arrays with common elements within epsilon", () => {
+	const a = [1.1, 2.2, 3.3, 4.4, 5.5];
+	const b = [3.31, 4.41, 5.51, 6.61, 7.71];
+	const result = ear.general.setDifferenceSortedNumbers(a, b);
+	expect(result).toEqual([1.1, 2.2, 3.3, 4.4, 5.5]);
+});
+
+test("setDifferenceSortedNumbers - Empty array a", () => {
+	const a = [];
+	const b = [1, 2, 3, 4, 5];
+	const result = ear.general.setDifferenceSortedNumbers(a, b);
+	expect(result).toEqual([]);
+});
+
+test("setDifferenceSortedNumbers - Empty array b", () => {
+	const a = [1, 2, 3, 4, 5];
+	const b = [];
+	const result = ear.general.setDifferenceSortedNumbers(a, b);
+	expect(result).toEqual([1, 2, 3, 4, 5]);
+});
+
+test("setDifferenceSortedNumbers - Array with one element", () => {
+	const a = [1];
+	const b = [];
+	const result = ear.general.setDifferenceSortedNumbers(a, b);
+	expect(result).toEqual([1]);
+});
+
+test("setDifferenceSortedNumbers - Arrays with negative numbers", () => {
+	const a = [-5, -4, -3, -2, -1];
+	const b = [-3, -2, -1, 0, 1];
+	const result = ear.general.setDifferenceSortedNumbers(a, b);
+	expect(result).toEqual([-5, -4]);
+});
+
+test("setDifferenceSortedEpsilonNumbers - Arrays with common elements", () => {
+	const a = [1, 2, 3, 4, 5];
+	const b = [3, 4, 5, 6, 7];
+	const result = ear.general.setDifferenceSortedEpsilonNumbers(a, b);
+	expect(result).toEqual([1, 2]);
+});
+
+test("setDifferenceSortedEpsilonNumbers - Arrays with no common elements", () => {
+	const a = [1, 2, 3, 4, 5];
+	const b = [6, 7, 8, 9, 10];
+	const result = ear.general.setDifferenceSortedEpsilonNumbers(a, b);
+	expect(result).toEqual([1, 2, 3, 4, 5]);
+});
+
+test("setDifferenceSortedEpsilonNumbers - Arrays with common elements within epsilon", () => {
+	const a = [1.1, 2.2, 3.3, 4.4, 5.5];
+	const b = [3.31, 4.41, 5.51, 6.61, 7.71];
+	const result = ear.general.setDifferenceSortedEpsilonNumbers(a, b, 0.1);
+	expect(result).toEqual([1.1, 2.2]);
+});
+
+test("setDifferenceSortedEpsilonNumbers - Empty array a", () => {
+	const a = [];
+	const b = [1, 2, 3, 4, 5];
+	const result = ear.general.setDifferenceSortedEpsilonNumbers(a, b);
+	expect(result).toEqual([]);
+});
+
+test("setDifferenceSortedEpsilonNumbers - Empty array b", () => {
+	const a = [1, 2, 3, 4, 5];
+	const b = [];
+	const result = ear.general.setDifferenceSortedEpsilonNumbers(a, b);
+	expect(result).toEqual([1, 2, 3, 4, 5]);
+});
+
+test("setDifferenceSortedEpsilonNumbers - Array with one element", () => {
+	const a = [1];
+	const b = [];
+	const result = ear.general.setDifferenceSortedEpsilonNumbers(a, b);
+	expect(result).toEqual([1]);
+});
+
+test("setDifferenceSortedEpsilonNumbers - Arrays with negative numbers", () => {
+	const a = [-5, -4, -3, -2, -1];
+	const b = [-3, -2, -1, 0, 1];
+	const result = ear.general.setDifferenceSortedEpsilonNumbers(a, b);
+	expect(result).toEqual([-5, -4]);
+});
+
+test("setDifferenceSortedEpsilonNumbers - Arrays with common elements within epsilon", () => {
+	const a = [1.1, 2.2, 3.3, 4.4, 5.5];
+	const b = [3.31, 4.41, 5.51, 6.61, 7.71];
+	const epsilon = 0.5;
+	const result = ear.general.setDifferenceSortedEpsilonNumbers(a, b, epsilon);
+	expect(result).toEqual([1.1, 2.2]);
+});
+
+test("setDifferenceSortedEpsilonNumbers - Arrays with common elements near each other within epsilon", () => {
+	const a = [1, 2, 3, 4, 5];
+	const b = [2.1, 3.1, 4.1, 5.1, 6.1];
+	const epsilon = 0.2;
+	const result = ear.general.setDifferenceSortedEpsilonNumbers(a, b, epsilon);
+	expect(result).toEqual([1]);
+});
+
+test("setDifferenceSortedEpsilonNumbers - Arrays with common elements near each other but outside epsilon", () => {
+	const a = [1, 2, 3, 4, 5];
+	const b = [2.1, 3.1, 4.1, 5.1, 6.1];
+	const epsilon = 0.05;
+	const result = ear.general.setDifferenceSortedEpsilonNumbers(a, b, epsilon);
+	expect(result).toEqual([1, 2, 3, 4, 5]);
 });
 
 test("arrayMinimumIndex", () => {

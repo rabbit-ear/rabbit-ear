@@ -25,14 +25,18 @@ sources = [{
 # export const FILENAME = `FILECONTENTS`;
 # where FILENAME is the file's name but made into a valid javascript variable
 def makeNamedExport(file, path):
-	f = open(join(path, file))
-	# convert the file into a valid JS variable name
-	variablename = re.sub("[-\.]", "_", file)
-	# compress multiple consecutive newlines into just one
-	contents = re.sub("[\n]{2,}", "\n", f.read())
-	string = "export const " + variablename + " = `" + contents + "`;"
-	f.close()
-	return string
+	# sometimes .DS_Store will try to get involved
+	try:
+		f = open(join(path, file))
+		# convert the file into a valid JS variable name
+		variablename = re.sub("[-\.]", "_", file)
+		# compress multiple consecutive newlines into just one
+		contents = re.sub("[\n]{2,}", "\n", f.read())
+		string = "export const " + variablename + " = `" + contents + "`;"
+		f.close()
+		return string
+	except:
+		return ""
 
 # run makeNamedExport on all files in a directory and
 # join them into one large newline-separated string

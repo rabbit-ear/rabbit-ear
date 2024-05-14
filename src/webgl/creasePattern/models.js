@@ -19,7 +19,9 @@ import {
 	cp_300_vert,
 	cp_300_frag,
 	thick_edges_100_vert,
+	thick_edges_100_frag,
 	thick_edges_300_vert,
+	thick_edges_300_frag,
 } from "./shaders.js";
 
 /**
@@ -46,7 +48,7 @@ export const cpFacesV1 = (gl, graph = {}, options = undefined) => {
  * @returns {WebGLModel}
  */
 export const cpEdgesV1 = (gl, graph = {}, options = undefined) => {
-	const program = createProgram(gl, thick_edges_100_vert, cp_100_frag);
+	const program = createProgram(gl, thick_edges_100_vert, thick_edges_100_frag);
 	return {
 		program,
 		vertexArrays: makeCPEdgesVertexArrays(gl, program, graph, options),
@@ -80,7 +82,7 @@ export const cpFacesV2 = (gl, graph = {}, options = undefined) => {
  * @returns {WebGLModel}
  */
 export const cpEdgesV2 = (gl, graph = {}, options = undefined) => {
-	const program = createProgram(gl, thick_edges_300_vert, cp_300_frag);
+	const program = createProgram(gl, thick_edges_300_vert, thick_edges_300_frag);
 	return {
 		program,
 		vertexArrays: makeCPEdgesVertexArrays(gl, program, graph, options),

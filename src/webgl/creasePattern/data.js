@@ -14,10 +14,13 @@ const make2D = (coords) => coords
 		.map(i => coord[i] || 0));
 
 /**
+ * @param {FOLD} graph a FOLD object
+ * @param {object} options
  * @returns {{
  *   vertices_coords: any,
  *   vertices_color: any,
  *   verticesEdgesVector: any,
+ *   vertices_foldAngle: any,
  *   vertices_vector: any,
  * }}
  */
@@ -46,6 +49,9 @@ export const makeCPEdgesVertexData = (graph, options) => {
 			assignment_color.U,
 			assignment_color.U,
 		]);
+	const vertices_foldAngle = graph.edges_foldAngle
+		? graph.edges_foldAngle.flatMap(a => [a, a, a, a])
+		: graph.edges_vertices.flatMap(() => [0, 0, 0, 0]);
 	const verticesEdgesVector = edgesVector
 		.flatMap(el => [el, el, el, el]);
 	const vertices_vector = graph.edges_vertices
@@ -53,6 +59,7 @@ export const makeCPEdgesVertexData = (graph, options) => {
 	return {
 		vertices_coords,
 		vertices_color,
+		vertices_foldAngle,
 		verticesEdgesVector,
 		vertices_vector,
 	};

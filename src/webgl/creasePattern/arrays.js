@@ -24,6 +24,7 @@ export const makeCPEdgesVertexArrays = (gl, program, graph, options) => {
 	const {
 		vertices_coords,
 		vertices_color,
+		vertices_foldAngle,
 		verticesEdgesVector,
 		vertices_vector,
 	} = makeCPEdgesVertexData(graph, options);
@@ -40,7 +41,7 @@ export const makeCPEdgesVertexArrays = (gl, program, graph, options) => {
 		location: gl.getAttribLocation(program, "v_color"),
 		buffer: gl.createBuffer(),
 		type: gl.FLOAT,
-		length: vertices_color.length ? vertices_color[0].length : 2,
+		length: vertices_color.length ? vertices_color[0].length : 2, // should this be 3?
 		data: new Float32Array(vertices_color.flat()),
 	}, {
 		location: gl.getAttribLocation(program, "edge_vector"),
@@ -48,6 +49,12 @@ export const makeCPEdgesVertexArrays = (gl, program, graph, options) => {
 		type: gl.FLOAT,
 		length: verticesEdgesVector.length ? verticesEdgesVector[0].length : 2,
 		data: new Float32Array(verticesEdgesVector.flat()),
+	}, {
+		location: gl.getAttribLocation(program, "edge_foldAngle"),
+		buffer: gl.createBuffer(),
+		type: gl.FLOAT,
+		length: 1,
+		data: new Float32Array(vertices_foldAngle.flat()),
 	}, {
 		location: gl.getAttribLocation(program, "vertex_vector"),
 		buffer: gl.createBuffer(),

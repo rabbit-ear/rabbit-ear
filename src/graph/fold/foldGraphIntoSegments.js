@@ -110,8 +110,13 @@ export const foldGraphIntoSegments = ({
 	faces.forEach((arr, f) => { if (arr.length !== 2) { delete faces[f]; } });
 
 	/**
-	 * @param {({ edge: number, a: number, b: number, point: [number, number], vertex?: never }
-	 *   | { a: number, vertex: number, b?: never, edge?: never })} el
+	 * @param {({
+	 *   edge: number,
+	 *   a: number,
+	 *   b: number,
+	 *   point: [number, number],
+	 *   vertex?: never
+	 *   } | { a: number, vertex: number, b?: never, edge?: never })} el
 	 * @returns {[number, number]} a point in 2D
 	 */
 	const remapPoint = ({ vertex, edge, b }) => (vertex !== undefined
