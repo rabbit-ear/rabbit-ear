@@ -39,8 +39,8 @@ import {
 	invertVertical,
 } from "./general/options.js";
 import {
-	planarizeGraph,
-} from "./general/planarize.js";
+	planarize,
+} from "../graph/planarize/planarize.js";
 import {
 	invisibleParent,
 } from "./general/dom.js";
@@ -305,7 +305,7 @@ export const svgToFold = (file, options) => {
 	if (options && options.invertVertical && graph.vertices_coords) {
 		invertVertical(graph.vertices_coords);
 	}
-	const planarGraph = planarizeGraph(graph, epsilon);
+	const planarGraph = planarize(graph, epsilon);
 	// by default the parser will change numbers like 15.000000000001 into 15.
 	// to turn this off, options.fast = true
 	const fixNumber = options && options.fast ? passthrough : cleanNumber;

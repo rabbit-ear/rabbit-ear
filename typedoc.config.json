@@ -1,6 +1,7 @@
 {
 	"entryPoints": ["./src"],
 	"out": "docs",
+	// "json": "docs/documentation.json",
 	"name": "Rabbit Ear",
 	"includeVersion": true,
 	"entryPointStrategy": "expand",

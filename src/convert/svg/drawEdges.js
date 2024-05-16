@@ -326,6 +326,9 @@ export const edgesLines = (graph, options = {}) => {
  * the same style, so, we draw them all as SVG path objects. Otherwise if there
  * exists edges with non flat fold angles, simply draw all of them as lines,
  * ensuring that some can have the style associated with fold angle (opacity).
+ * @param {FOLD} graph
+ * @param {object} options
+ * @returns {SVGElement} an SVG <g> group element
  */
 export const drawEdges = (graph, options) => (
 	edgesFoldAngleAreAllFlat(graph)

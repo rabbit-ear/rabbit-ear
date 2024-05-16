@@ -17,6 +17,8 @@ import * as flatFold from "./fold/flatFold.js";
 import * as foldGraph from "./fold/foldGraph.js";
 import * as foldGraphIntoSegments from "./fold/foldGraphIntoSegments.js";
 import * as foldGraphIntoSubgraph from "./fold/foldGraphIntoSubgraph.js";
+import * as reverseFold from "./fold/reverseFold.js";
+import * as squashFold from "./fold/squashFold.js";
 import * as splitEdge from "./split/splitEdge.js";
 import * as splitFace from "./split/splitFace.js";
 import * as splitLine from "./split/splitLine.js";
@@ -45,7 +47,6 @@ import * as normalize from "./normalize.js";
 import * as normals from "./normals.js";
 import * as orders from "./orders.js";
 import * as overlap from "./overlap.js";
-// import * as planarize from "./planarize.js";
 import * as intersectAllEdges from "./planarize/intersectAllEdges.js";
 import * as planarize from "./planarize/planarize.js";
 import * as planarizeCollinearEdges from "./planarize/planarizeCollinearEdges.js";
@@ -90,6 +91,8 @@ const graphMethods = {
 	...foldGraph,
 	...foldGraphIntoSegments,
 	...foldGraphIntoSubgraph,
+	...reverseFold,
+	...squashFold,
 	...verticesClusters,
 	...verticesCollinear,
 	...verticesDuplicate,

@@ -176,6 +176,8 @@ const finalize_faces = (graph, svg_faces, group, options = {}) => {
 /**
  * @description build SVG faces using faces_vertices data. this is
  * slightly faster than the other method which uses faces_edges.
+ * @param {FOLD} graph
+ * @param {object} options
  * @returns {SVGElement} an SVG <g> group element containing all
  * of the <polygon> faces as children.
  */
@@ -183,13 +185,15 @@ export const facesVerticesPolygon = (graph, options) => {
 	const svg_faces = graph.faces_vertices
 		.map(fv => fv.map(v => [0, 1].map(i => graph.vertices_coords[v][i])))
 		.map(face => SVG.polygon(face));
-	svg_faces.forEach((face, i) => face.setAttributeNS(null, "index", i));
+	svg_faces.forEach((face, i) => face.setAttributeNS(null, "index", `${i}`));
 	return finalize_faces(graph, svg_faces, SVG.g(), options);
 };
 
 /**
  * @description build SVG faces using faces_edges data. this is
  * slightly slower than the other method which uses faces_vertices.
+ * @param {FOLD} graph
+ * @param {object} options
  * @returns {SVGElement} an SVG <g> group element containing all
  * of the <polygon> faces as children.
  */
@@ -202,7 +206,7 @@ export const facesEdgesPolygon = function (graph, options) {
 				return (vi[1] === next[0] || vi[1] === next[1] ? vi[0] : vi[1]);
 			}).map(v => [0, 1].map(i => graph.vertices_coords[v][i])))
 		.map(face => SVG.polygon(face));
-	svg_faces.forEach((face, i) => face.setAttributeNS(null, "index", i));
+	svg_faces.forEach((face, i) => face.setAttributeNS(null, "index", `${i}`));
 	return finalize_faces(graph, svg_faces, SVG.g(), options);
 };
 
@@ -210,6 +214,10 @@ export const facesEdgesPolygon = function (graph, options) {
  * @description Convert the faces of a FOLD graph into SVG polygon elements.
  * Return the result as a group element <g> with all faces (if they exist)
  * as childNodes in the group.
+ * @param {FOLD} graph
+ * @param {object} options
+ * @returns {SVGElement} an SVG <g> group element containing all
+ * of the <polygon> faces as children.
  */
 export const drawFaces = (graph, options) => {
 	if (graph && graph.vertices_coords && graph.faces_vertices) {

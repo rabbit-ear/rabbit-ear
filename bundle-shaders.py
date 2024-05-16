@@ -19,6 +19,9 @@ sources = [{
 }, {
 	"read": "src/webgl/foldedForm/shaders/",
 	"write": "src/webgl/foldedForm/shaders.js"
+}, {
+	"read": "src/webgl/touches/shaders/",
+	"write": "src/webgl/touches/shaders.js"
 }]
 
 # convert a raw text file into a javascript string which follows this format:

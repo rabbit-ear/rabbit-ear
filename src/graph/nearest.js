@@ -23,8 +23,8 @@ import {
 	makeFacesCenterQuick,
 } from "./make/faces.js";
 import {
-	faceContainingPoint,
-} from "./faces/facePoint.js";
+	getFaceUnderPoint,
+} from "./overlap.js";
 
 /**
  * @description Iterate through all vertices in a graph and find the one nearest to a
@@ -89,7 +89,7 @@ export const nearestEdge = ({ vertices_coords, edges_vertices }, point) => {
  * @todo make this work if edges_faces is not defined (not hard)
  */
 export const nearestFace = (graph, point) => {
-	const face = faceContainingPoint(graph, point);
+	const face = getFaceUnderPoint(graph, point);
 	if (face !== undefined) { return face; }
 	if (graph.edges_faces) {
 		const edge = nearestEdge(graph, point);

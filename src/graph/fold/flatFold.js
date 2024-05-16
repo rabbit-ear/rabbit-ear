@@ -5,8 +5,12 @@ import Messages from "../../environment/messages.js";
 import {
 	EPSILON,
 } from "../../math/constant.js";
-import { overlapLinePoint } from "../../math/overlap.js";
-import { intersectLineLine } from "../../math/intersect.js";
+import {
+	overlapLinePoint,
+} from "../../math/overlap.js";
+import {
+	intersectLineLine,
+} from "../../math/intersect.js";
 import {
 } from "../../math/vector.js";
 import {
@@ -54,8 +58,8 @@ import {
 	makeVerticesEdgesUnsorted,
 } from "../make/verticesEdges.js";
 import {
-	faceContainingPoint,
-} from "../faces/facePoint.js";
+	getFaceUnderPoint,
+} from "../overlap.js";
 import {
 	makeFacesWindingFromMatrix2,
 } from "../faces/winding.js";
@@ -729,7 +733,7 @@ export const flatFold = (
 	if (!graph.faces_matrix2) {
 		graph.faces_matrix2 = makeFacesMatrix2(
 			graph,
-			[faceContainingPoint(graph, origin, vector)],
+			[getFaceUnderPoint(graph, origin, vector)],
 		);
 	}
 	graph.faces_winding = makeFacesWindingFromMatrix2(graph.faces_matrix2);

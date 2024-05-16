@@ -5,10 +5,10 @@ import ear from "../src/index.js";
 test("test can remain empty", () => {});
 
 // test("write folded vertices", () => {
-// 	const foldfile = fs.readFileSync("./tests/files/fold/crane-3d.fold", "utf-8");
+// 	const foldfile = fs.readFileSync("./tests/files/fold/windmill.fold", "utf-8");
 // 	const fold = JSON.parse(foldfile);
 // 	// const graph = ear.graph.flattenFrame(fold, 1);
-// 	const folded = ear.graph.makeVerticesCoordsFolded(fold, [0]);
+// 	const folded = ear.graph.makeVerticesCoordsFolded(fold, [6]);
 // 	// const folded = ear.graph.makeVerticesCoordsFlatFolded(fold);
 // 	const foldedVertices = folded.map(p => p.map(n => ear.general.cleanNumber(n, 12)));
 // 	fs.writeFileSync(
@@ -17,27 +17,25 @@ test("test can remain empty", () => {});
 // 	);
 // });
 
+// test("write faceOrders", () => {
+// 	const FOLD = fs.readFileSync("./tests/files/fold/windmill.fold", "utf-8");
+// 	const graph = JSON.parse(FOLD);
+// 	const foldedFrame = ear.graph.getFramesByClassName(graph, "foldedForm")[0];
+// 	const faceOrders = ear.layer.layer3D(foldedFrame).faceOrders();
+// 	fs.writeFileSync(`./tests/tmp/faceOrders.json`, JSON.stringify(faceOrders));
+// });
+
 // test("write layer solution to file", () => {
 // 	const foldfile = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
 // 	const fold = JSON.parse(foldfile);
 // 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
 // 	const solution = ear.layer.solveLayerOrders(folded);
-
 // 	// optional: delete faces_winding
 // 	delete solution.faces_winding;
-
 // 	fs.writeFileSync(
 // 		`./tests/tmp/layer-solution.json`,
 // 		JSON.stringify(solution, null, 2),
 // 	);
-// });
-
-// test("write faceOrders", () => {
-// 	const FOLD = fs.readFileSync("./tests/files/fold/square-twist.fold", "utf-8");
-// 	const graph = JSON.parse(FOLD);
-// 	const foldedFrame = ear.graph.getFramesByClassName(graph, "foldedForm")[0];
-// 	const faceOrders = ear.layer.layer3D(foldedFrame).faceOrders();
-// 	fs.writeFileSync(`./tests/tmp/faceOrders.fold`, JSON.stringify(faceOrders));
 // });
 
 // test("generate a graph with random edges", () => {

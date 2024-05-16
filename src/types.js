@@ -49,7 +49,7 @@
  */
 
 /**
- * @typedef FOLDInternalFrame
+ * @typedef FOLDChildFrame
  * @type {FOLDFrame & {
  *   frame_parent?: number,
  *   frame_inherit?: boolean,
@@ -61,22 +61,22 @@
 /**
  * @typedef FOLDFileMetadata
  * @type {{
- *   file_frames?: FOLDInternalFrame[],
  *   file_spec?: number,
  *   file_creator?: string,
  *   file_author?: string,
  *   file_title?: string,
  *   file_description?: string,
  *   file_classes?: string[],
+ *   file_frames?: FOLDChildFrame[],
  * }}
- * @property {FOLDInternalFrame[]} [file_frames] array of embedded FOLD frames,
- * good for representing a linear sequence like diagram steps for example.
  * @property {number} [file_spec] metadata
  * @property {string} [file_creator] metadata
  * @property {string} [file_author] metadata
  * @property {string} [file_title] metadata
  * @property {string} [file_description] metadata
  * @property {string[]} [file_classes] metadata
+ * @property {FOLDChildFrame[]} [file_frames] array of embedded FOLD frames,
+ * good for representing a linear sequence like diagram steps for example.
  */
 
 /**
@@ -101,7 +101,7 @@
 
 /**
  * @typedef FOLD
- * @type {FOLDFileMetadata & FOLDFrame & FOLDOutOfSpec}
+ * @type {FOLDFileMetadata & FOLDFrame}
  * @description A Javascript object encoding of a FOLD file
  * which adheres to the FOLD file format specification.
  * @example

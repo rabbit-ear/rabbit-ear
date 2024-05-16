@@ -24,7 +24,7 @@ type FOLDInternalFrame = FOLDFrame & {
     frame_parent?: number;
     frame_inherit?: boolean;
 };
-type FOLDFileMetadata = {
+type FOLD = FOLDFrame & {
     file_frames?: FOLDInternalFrame[];
     file_spec?: number;
     file_creator?: string;
@@ -33,7 +33,7 @@ type FOLDFileMetadata = {
     file_description?: string;
     file_classes?: string[];
 };
-type FOLDOutOfSpec = {
+type FOLDExtended = FOLD & {
     faces_center?: ([number, number] | [number, number, number])[];
     faces_normal?: ([number, number] | [number, number, number])[];
     edges_vector?: ([number, number] | [number, number, number])[];
@@ -42,8 +42,6 @@ type FOLDOutOfSpec = {
     faces_layer?: number[];
     vertices_sectors?: number[][];
 };
-type FOLD = FOLDFileMetadata & FOLDFrame;
-type FOLDExtended = FOLD & FOLDOutOfSpec;
 type VecLine2 = {
     vector: [number, number];
     origin: [number, number];

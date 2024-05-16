@@ -25,8 +25,8 @@ import {
 	makeFacesWinding,
 } from "../faces/winding.js";
 import {
-	faceContainingPoint,
-} from "../faces/facePoint.js";
+	getFaceUnderPoint,
+} from "../overlap.js";
 import {
 	intersectLine,
 } from "../intersect.js";
@@ -63,7 +63,7 @@ export const foldGraphIntoSegments = ({
 
 	// the face under the point's crease will get the assignment in the method
 	// input parameter, and all other creases will be valley/mountain accordingly
-	const startFace = faceContainingPoint(
+	const startFace = getFaceUnderPoint(
 		{ vertices_coords, faces_vertices },
 		origin,
 		vector,

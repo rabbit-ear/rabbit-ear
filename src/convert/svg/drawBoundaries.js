@@ -19,6 +19,11 @@ const BOUNDARY_CP = {
 	fill: "white",
 };
 
+/**
+ * @param {FOLD} graph
+ * @param {object} options
+ * @returns {SVGElement} an SVG <g> group element
+ */
 export const drawBoundaries = (graph, options = {}) => {
 	const g = SVG.g();
 	if (!graph) { return g; }

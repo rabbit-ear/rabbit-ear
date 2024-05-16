@@ -4,7 +4,8 @@
 import { assignmentIsBoundary } from "../fold/spec.js";
 
 /**
- *
+ * @param {string[]} edges_assignment
+ * @returns {number[]} indices of the edges with undefined assignments
  */
 const getUnassignedIndices = (edges_assignment) => edges_assignment
 	.map((_, i) => i)

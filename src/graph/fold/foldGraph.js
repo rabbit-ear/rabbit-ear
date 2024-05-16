@@ -26,8 +26,8 @@ import {
 	makeVerticesCoordsFolded,
 } from "../vertices/folded.js";
 import {
-	faceContainingPoint,
-} from "../faces/facePoint.js";
+	getFaceUnderPoint,
+} from "../overlap.js";
 import {
 	makeFacesWinding,
 } from "../faces/winding.js";
@@ -55,7 +55,7 @@ import {
  *   edges?: {
  *     new: number[],
  *     map: (number|number[])[],
- *     reassigned: number[],
+ *     reassign: number[],
  *   },
  *   faces?: {
  *     new: number[],
@@ -111,7 +111,7 @@ export const foldGraph = (
 	}
 
 	if (vertices_coordsFolded === undefined) {
-		const rootFace = faceContainingPoint(graph, origin, vector);
+		const rootFace = getFaceUnderPoint(graph, origin, vector);
 		vertices_coordsFolded = makeVerticesCoordsFolded(graph, [rootFace]);
 	}
 
@@ -256,11 +256,18 @@ export const foldGraph = (
 		newFaces,
 	);
 
+	// "reassign" contains a subset of existing collinear edges to the fold line.
+	// Let's say you would like to modify the graph after a fold to convert a
+	// valley into a reverse fold, not all collinear lines need reassigning,
+	// for example, a valley crease creating a flap of two faces which only
+	// happens to lie collinear to this fold line, but is entirely independent
+	// of this fold, it should be ignored. So, consult "new" and "reassign" for
+	// a list of edges which are involved in this fold.
 	return {
 		edges: {
 			map: splitGraphResult.edges.map,
 			new: splitGraphResult.edges.new,
-			reassigned: edgesReassigned,
+			reassign: edgesReassigned,
 		},
 		faces: {
 			map: splitGraphResult.faces.map,

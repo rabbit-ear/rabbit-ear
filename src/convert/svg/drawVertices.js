@@ -7,6 +7,9 @@ import { setKeysAndValues } from "../general/svg.js";
 /**
  * @description Convert the vertices of a FOLD graph into SVG circle elements.
  * Return the result as a group element <g> containing the circles.
+ * @param {FOLD} graph
+ * @param {object} options
+ * @returns {SVGElement} an SVG <g> group element
  */
 export const drawVertices = (graph, options = {}) => {
 	const g = SVG.g();

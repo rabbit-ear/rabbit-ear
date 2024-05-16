@@ -3,8 +3,8 @@
  */
 import RabbitEarWindow from "../environment/window.js";
 import {
-	planarizeGraph,
-} from "./general/planarize.js";
+	planarize,
+} from "../graph/planarize/planarize.js";
 import {
 	findEpsilonInObject,
 	invertVertical,
@@ -221,7 +221,7 @@ export const opxToFold = (file, options) => {
 	}
 	// analysis on vertices_coords to find an appropriate epsilon
 	const epsilon = findEpsilonInObject(graph, options);
-	const planarGraph = planarizeGraph(graph, epsilon);
+	const planarGraph = planarize(graph, epsilon);
 
 	return {
 		...file_metadata,

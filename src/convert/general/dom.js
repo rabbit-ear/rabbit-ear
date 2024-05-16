@@ -1,5 +1,15 @@
+/**
+ * Rabbit Ear (c) Kraft
+ */
 import window from "../../environment/window.js";
 
+/**
+ * @description to call getComputedStyle for an SVG, the SVG has to be a
+ * member of the DOM, if it is not, use this function to create an
+ * invisible parent element on the window to satisfy this requirement.
+ * @param {Element} child
+ * @returns {Element} the parent of the child
+ */
 export const invisibleParent = (child) => {
 	if (!window().document.body) { return undefined; }
 
