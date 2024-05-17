@@ -1,4 +1,7 @@
 {
+	"file_spec": 1.2,
+	"file_creator": "Rabbit Ear",
+	"file_author": "Kraft",
 	"file_description": "frame 0 is valid, frame 1 violates Maekawa, frame 2 violates Kawasaki, frame 3 violates Maekawa and Kawasaki, frame 4 violates neither but violates shortest sector assignment",
 	"frame_classes": ["creasePattern"],
 	"vertices_coords":[[0,0],[0.7071067811865477,0],[1,0],[0,1],[0,0.7071067811865476],[0.5,0.5],[1,1],[0.5,1],[1,0.5]],

@@ -1,4 +1,7 @@
 {
+	"file_spec": 1.2,
+	"file_creator": "Rabbit Ear",
+	"file_author": "Kraft",
 	"file_description": "edges_ arrays mismatch in length",
 	"vertices_coords": [[0, 0], [1, 0], [1, 1], [0, 1]],
 	"edges_vertices": [[0, 1], [1, 2], [2, 3], [3, 0]],

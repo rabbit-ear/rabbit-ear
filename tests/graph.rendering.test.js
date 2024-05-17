@@ -43,7 +43,7 @@ test("prepareForRendering, square-twist", () => {
 	expect(fold).toMatchObject(backup);
 
 	expect(result.edges_assignment).toMatchObject([
-		"V", "B", "J", "J", "J", "J", "J", "V", "V", "V", "V", "J", "J", "V", "J", "J", "B", "J", "J", "B", "J", "J", "B", "V", "V", "V", "J", "J", "V", "J", "J", "B", "J", "J", "B", "J", "J", "B", "V", "V", "V", "J", "J", "V", "J", "J", "B", "J", "J", "B", "J", "J", "B", "V", "J", "B", "J", "J", "B", "V", "J", "B", "J", "J", "M", "M", "M", "J", "J", "J", "J", "M", "M", "J", "J", "J", "B", "M", "M", "B", "J", "J", "B", "J", "J", "J", "M", "M", "J", "J", "J", "B", "M", "M", "B", "J", "J", "B", "J", "J", "J", "M", "M", "J", "J", "J", "B", "M", "M", "B", "J", "J", "B", "J", "M", "B", "J", "J", "B", "J",
+		"J", "B", "J", "J", "M", "M", "M", "J", "J", "J", "J", "M", "M", "J", "J", "J", "B", "M", "M", "B", "J", "J", "B", "J", "J", "J", "M", "M", "J", "J", "J", "B", "M", "M", "B", "J", "J", "B", "J", "J", "J", "M", "M", "J", "J", "J", "B", "M", "M", "B", "J", "J", "B", "J", "M", "B", "J", "J", "B", "J", "V", "B", "J", "J", "J", "J", "J", "V", "V", "V", "V", "J", "J", "V", "J", "J", "B", "J", "J", "B", "J", "J", "B", "V", "V", "V", "J", "J", "V", "J", "J", "B", "J", "J", "B", "J", "J", "B", "V", "V", "V", "J", "J", "V", "J", "J", "B", "J", "J", "B", "J", "J", "B", "V", "J", "B", "J", "J", "B", "V",
 	])
 	expect(result.vertices_coords).toHaveLength(120);
 	expect(result.edges_vertices).toHaveLength(120);

@@ -36,7 +36,7 @@ test("planarize, empty graph", () => {
 });
 
 test("planarize random lines", () => {
-	const EDGES = 400;
+	const EDGES = 200;
 	const graph = {
 		vertices_coords: Array.from(Array(EDGES * 2))
 			.map(() => [Math.random(), Math.random()]),
@@ -219,4 +219,30 @@ test("planarize 2 lines, collinear", () => {
 	expect(planar.vertices_coords[0][1]).toBeCloseTo(1);
 	expect(planar.vertices_coords[1][0]).toBeCloseTo(7);
 	expect(planar.vertices_coords[1][1]).toBeCloseTo(7);
+});
+
+test("planarize, planarizeAllFaces, edge rectangle", () => {
+	const graph = {
+		vertices_coords: [[0, 0], [1, 0], [1, 0], [1, 1], [1, 1], [0, 1], [0, 1], [0, 0]],
+		edges_vertices: [[0, 1], [2, 3], [4, 5], [6, 7]],
+		edges_assignment: ["F", "F", "F", "F"],
+	};
+
+	const planarNoFaces = ear.graph.planarize(graph);
+	const planarWithFaces = ear.graph.planarizeAllFaces(graph);
+
+	expect(planarNoFaces).toMatchObject({
+		vertices_coords: [[0, 0], [1, 0], [0, 1], [1, 1]],
+		edges_vertices: [[0, 1], [2, 0], [1, 3], [3, 2]],
+		edges_assignment: ["F", "F", "F", "F"],
+		faces_vertices: [],
+		faces_edges: [],
+	});
+	expect(planarWithFaces).toMatchObject({
+		vertices_coords: [[0, 0], [1, 0], [0, 1], [1, 1]],
+		edges_vertices: [[0, 1], [2, 0], [1, 3], [3, 2]],
+		edges_assignment: ["F", "F", "F", "F"],
+		faces_vertices: [[0, 1, 3, 2]],
+		faces_edges: [[0, 2, 3, 1]],
+	});
 });

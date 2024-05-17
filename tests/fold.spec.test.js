@@ -272,7 +272,7 @@ test("getFileMetadata", () => {
 	expect(Object.keys(metadata).length).toBe(5);
 	expect(metadata.file_author).toBe("Kraft");
 	expect(metadata.file_creator).toBe("Rabbit Ear");
-	expect(metadata.file_spec).toBe(1.1);
+	expect(metadata.file_spec).toBe(1.2);
 	expect(metadata.file_title).toBe("crane");
 	expect(metadata.file_classes[0]).toBe("singleModel");
 });

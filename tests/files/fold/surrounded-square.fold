@@ -1,7 +1,8 @@
 {
 	"file_spec": 1.2,
-	"file_title": "inset square with nice graph numbering",
+	"file_creator": "Rabbit Ear",
 	"file_author": "Kraft",
+	"file_title": "inset square with nice graph numbering",
 	"frame_classes": ["creasePattern"],
 	"vertices_coords":[
 		[0,0],

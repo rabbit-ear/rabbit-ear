@@ -95,10 +95,10 @@ test("planarize, non-planar square fish base", () => {
 	);
 });
 
-test("planarize, non-planar 50 random lines", () => {
+test("planarizeAllFaces, non-planar 50 random lines", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/non-planar-50-chaotic.fold", "utf-8");
 	const graph = JSON.parse(FOLD);
-	const { result } = ear.graph.planarizeVerbose(graph);
+	const result = ear.graph.planarizeAllFaces(graph);
 
 	expect(result.vertices_coords).toHaveLength(396);
 	expect(result.edges_vertices).toHaveLength(642);
@@ -110,10 +110,10 @@ test("planarize, non-planar 50 random lines", () => {
 	);
 });
 
-test("planarize, non-planar 100 random lines", () => {
+test("planarizeAllFaces, non-planar 100 random lines", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/non-planar-100-chaotic.fold", "utf-8");
 	const graph = JSON.parse(FOLD);
-	const { result } = ear.graph.planarizeVerbose(graph, 1e-4);
+	const result = ear.graph.planarizeAllFaces(graph, 1e-4);
 
 	expect(result.vertices_coords).toHaveLength(1224);
 	expect(result.edges_vertices).toHaveLength(2151);
@@ -125,7 +125,7 @@ test("planarize, non-planar 100 random lines", () => {
 	);
 });
 
-test("planarize, kraft bird base", () => {
+test("planarizeVerbose, kraft bird base", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/kraft-bird-base.fold", "utf-8");
 	const graph = JSON.parse(FOLD);
 	const { result, changes } = ear.graph.planarizeVerbose(graph);
@@ -144,7 +144,7 @@ test("planarize, kraft bird base", () => {
 	);
 });
 
-test("planarize, crane already planar", () => {
+test("planarizeVerbose, crane already planar", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
 	const graph = JSON.parse(FOLD);
 	const { result, changes } = ear.graph.planarizeVerbose(graph);
@@ -163,7 +163,7 @@ test("planarize, crane already planar", () => {
 	);
 });
 
-test("planarize, foldedForm, windmill", () => {
+test("planarizeVerbose, foldedForm, windmill", () => {
 	const FOLD = fs.readFileSync("./tests/files/fold/windmill.fold", "utf-8");
 	const fold = JSON.parse(FOLD);
 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];

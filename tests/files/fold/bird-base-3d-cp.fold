@@ -1,8 +1,8 @@
 {
-	"file_spec": 1.1,
-	"file_title": "bird base 3D",
-	"file_author": "Kraft",
+	"file_spec": 1.2,
 	"file_creator": "Rabbit Ear",
+	"file_author": "Kraft",
+	"file_title": "bird base 3D",
 	"file_classes": ["singleModel"],
 	"frame_classes": ["creasePattern"],
 	"frame_attributes": ["2D"],

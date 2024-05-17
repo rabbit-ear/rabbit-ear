@@ -1,4 +1,7 @@
 {
+	"file_spec": 1.2,
+	"file_creator": "Rabbit Ear",
+	"file_author": "Kraft",
 	"file_description":"an edge sits inside a square, unassociated with any face",
 	"frame_classes":["creasePattern"],
 	"vertices_coords":[[0,0],[1,0],[0,1],[0.25,0.85],[0.75,0.15],[1,1]],
