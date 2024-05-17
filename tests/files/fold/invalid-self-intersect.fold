@@ -1,6 +1,7 @@
 {
-	"file_spec": 1.1,
+	"file_spec": 1.2,
 	"file_creator": "Rabbit Ear",
+	"file_author": "Kraft",
 	"frame_classes":["creasePattern"],
 	"vertices_coords":[
 		[0,0],[0.5,0],[1,0],[0,1],[0,0.5],[0.5,0.5],[1,1],[0.5,1],[1,0.5],[0.29289321881345254,1],[1,0.2928932188134521]

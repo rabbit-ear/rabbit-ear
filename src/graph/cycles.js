@@ -76,7 +76,8 @@ const correctFaceWinding = (planar, faces_winding, flatBackmap) => (
  * any cycles of orders between faces so that no cycles exist. The resulting
  * graph will be very different in its graph structure, but appear correct
  * from both front and back.
- * @param {FOLD} graph a FOLD object in foldedForm, can contain holes.
+ * @param {FOLD} graph a FOLD object in foldedForm, can contain holes,
+ * vertices_coords should be in 2D.
  * @returns {FOLD} a (heavily modified) version of the graph but one which
  * appears the same in renderings.
  */
@@ -92,9 +93,20 @@ export const fixCycles = (graph) => {
 		planar.edges_assignment = planar.edges_vertices.map(() => "U");
 	}
 
+	// faceOrdersToDirectedEdges normally chooses a rootFace on its own,
+	// but we need to know if the root face's winding is flipped or not,
+	// at the very end of this method, this will determine the order between
+	// the "front" and "back" planes, which side of each other they should lie.
+	const rootFace = graph.faceOrders && graph.faceOrders.length
+		? graph.faceOrders[0][0]
+		: undefined;
+
 	// this should happen on the input graph, not the planar graph.
 	const faces_normal = makeFacesNormal(graph);
-	const directedFacesOld = faceOrdersToDirectedEdges({ ...graph, faces_normal });
+	const directedFacesOld = faceOrdersToDirectedEdges(
+		{ ...graph, faces_normal },
+		rootFace,
+	);
 	const faces_winding = makeFacesWinding(graph);
 
 	// todo: need to optimize this block
@@ -131,11 +143,15 @@ export const fixCycles = (graph) => {
 	// pairs of copies of the same face (index difference by +length) where one set
 	// is always placed in front of the other. "in front of" means something relative
 	// to the g face ([f, g, order]) depending on its winding, so, order accordingly.
+	// Additionally, "in front of" is relative to one axis, the axis which was chosen
+	// by the root face (it's okay if "rootFace" is undefined).
+	const faceOrdersPairs = front.faces_vertices
+		.map((_, f) => [front.faces_vertices.length + f, f]);
 	/** @type {[number, number, number][]} */
-	const faceOrders = front.faces_vertices
-		.map((_, f) => (faces_winding[faceMapFront[f]]
-			? [front.faces_vertices.length + f, f, -1]
-			: [front.faces_vertices.length + f, f, 1]))
+	const faceOrders = faceOrdersPairs
+		.map(([a, b], f) => faces_winding[faceMapFront[f]]
+			? (faces_winding[rootFace] ? [a, b, 1] : [a, b, -1])
+			: (faces_winding[rootFace] ? [a, b, -1] : [a, b, 1]));
 
 	// console.log(front.faces_vertices, back.faces_vertices);
 	// join two graphs into one, the result is stored into "front" graph.

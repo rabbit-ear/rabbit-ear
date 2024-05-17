@@ -1,4 +1,7 @@
 {
+	"file_spec": 1.2,
+	"file_creator": "Rabbit Ear",
+	"file_author": "Kraft",
 	"vertices_coords": [[0,0],[1,0],[0,2],[0,1],[-1,2],[1,1],[-1,1]],
 	"edges_vertices": [[0,1],[2,3],[3,0],[4,3],[3,1],[1,5],[4,6],[5,3],[3,6],[2,4]],
 	"edges_assignment": ["B","B","B","M","V","B","B","B","B","B"],

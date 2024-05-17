@@ -1,8 +1,8 @@
 {
 	"file_spec": 1.2,
-	"file_title": "Mooser's Train",
-	"file_author": "Kraft",
 	"file_creator": "Rabbit Ear",
+	"file_author": "Kraft",
+	"file_title": "Mooser's Train",
 	"file_classes": ["singleModel"],
 	"file_description": "Emmanuel Mooser, modified by William Gardner",
 	"frame_classes": ["foldedForm"],

@@ -1,6 +1,7 @@
 {
-	"file_spec": 1.1,
+	"file_spec": 1.2,
 	"file_creator": "Rabbit Ear",
+	"file_author": "Kraft",
 	"file_classes": ["singleModel"],
 	"file_description": "invalid because 90deg valley should be 90deg mountain, otherwise valid.",
 	"frame_classes": ["creasePattern"],

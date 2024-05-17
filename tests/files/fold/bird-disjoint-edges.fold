@@ -1,6 +1,9 @@
 {
-	"file_description":"all edges are isolated. all vertices have only 1 adjacent vertex. no faces.",
-	"frame_classes":["creasePattern"],
+	"file_spec": 1.2,
+	"file_creator": "Rabbit Ear",
+	"file_author": "Kraft",
+	"file_description": "all edges are isolated. all vertices have only 1 adjacent vertex. no faces.",
+	"frame_classes": ["creasePattern"],
 	"vertices_coords":[
 		[0,0],
 		[0.5,0],

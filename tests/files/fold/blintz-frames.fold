@@ -1,7 +1,8 @@
 {
-	"file_spec": 1.1,
-	"file_title": "blintz base",
+	"file_spec": 1.2,
+	"file_creator": "Rabbit Ear",
 	"file_author": "Kraft",
+	"file_title": "blintz base",
 	"file_classes": ["singleModel", "animation"],
 	"frame_attributes": ["2D"],
 	"frame_classes": ["creasePattern"],

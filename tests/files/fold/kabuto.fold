@@ -1,8 +1,8 @@
 {
 	"file_spec": 1.2,
-	"file_title": "Kabuto",
-	"file_author": "Kraft",
 	"file_creator": "Rabbit Ear",
+	"file_author": "Kraft",
+	"file_title": "Kabuto",
 	"file_classes": ["singleModel"],
 	"file_description": "all flap layerings",
 	"frame_classes": ["foldedForm"],

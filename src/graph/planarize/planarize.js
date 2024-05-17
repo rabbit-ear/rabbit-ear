@@ -26,6 +26,7 @@ import {
 import {
 	makeFacesMap,
 } from "./makeFacesMap.js";
+import { remove } from "../remove.js";
 
 /**
  * @description We need edges to planarize, if a graph is missing
@@ -57,13 +58,14 @@ const makeSureEdgesExist = (graph) => {
  */
 const removeHoles = (graph, facesNextmap) => {
 	const backmap = invertArrayMap(facesNextmap);
-	graph.faces_vertices
+	const removeIndices = graph.faces_vertices
 		.map((_, i) => i)
-		.filter(i => backmap[i] === undefined)
-		.forEach(f => {
-			delete graph.faces_vertices[f];
-			delete graph.faces_edges[f];
-		});
+		.filter(i => backmap[i] === undefined);
+	return remove(graph, "faces", removeIndices);
+		// .forEach(f => {
+		// 	// delete graph.faces_vertices[f];
+		// 	// delete graph.faces_edges[f];
+		// });
 };
 
 /**
@@ -78,7 +80,8 @@ const removeHoles = (graph, facesNextmap) => {
  *     vertices: { map: number[][] },
  *     edges: { map: number[][] },
  *   }
- * }}
+ * }} a planar graph only containing vertex and edge data, along with
+ * an object describing changes to the graph.
  */
 export const planarizeEdgesVerbose = (graph, epsilon = EPSILON) => {
 	// first step: resolve all collinear and overlapping edges,
@@ -131,7 +134,7 @@ export const planarizeEdgesVerbose = (graph, epsilon = EPSILON) => {
  * resolve all crossing edges, but do nothing with face information.
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {FOLD}
+ * @returns {FOLD} a planar graph only containing vertex and edge data
  */
 export const planarizeEdges = ({
 	vertices_coords,
@@ -171,7 +174,8 @@ export const planarizeEdges = ({
  *     edges: { map: number[][] },
  *     faces: { map: number[][] },
  *   }
- * }}
+ * }} a planar graph containing vertices, edges, and faces except holes,
+ * along with an object describing changes to the graph.
  */
 export const planarizeVerbose = (graph, epsilon = EPSILON) => {
 	const graphWithEdges = makeSureEdgesExist(graph);
@@ -190,12 +194,17 @@ export const planarizeVerbose = (graph, epsilon = EPSILON) => {
 	result.faces_vertices = faces_vertices;
 	result.faces_edges = faces_edges;
 
-	const faceMap = makeFacesMap(graphWithEdges, result, {
+	const faceMapBeforeHoles = makeFacesMap(graphWithEdges, result, {
 		vertices: { map: vertexNextMap },
 		edges: { map: edgeNextMap },
 	});
 
-	removeHoles(result, faceMap);
+	// holes are faces which were made where no face existed previously.
+	// this method will remove all holes.
+	// in the case of a graph which had zero holes previously, this will cause
+	// all faces that were just build to be removed.
+	const removeMap = removeHoles(result, faceMapBeforeHoles);
+	const faceMap = mergeNextmaps(faceMapBeforeHoles, removeMap);
 
 	return {
 		result,
@@ -213,7 +222,8 @@ export const planarizeVerbose = (graph, epsilon = EPSILON) => {
  * resolve all crossing edges, rebuild faces, and remove holes.
  * @param {FOLD} graph a FOLD object
  * @param {number} [epsilon=1e-6] an optional epsilon
- * @returns {FOLD} a planar graph
+ * @returns {FOLD} a planar graph containing vertices, edges,
+ * and faces except holes.
  */
 export const planarize = (graph, epsilon = EPSILON) => {
 	// unfortunately, for removeHoles to work, we need to create the face map,
@@ -221,5 +231,27 @@ export const planarize = (graph, epsilon = EPSILON) => {
 	// and capture all change data. so this method does not save any time,
 	// it only simplifies the type of the return object,
 	const { result } = planarizeVerbose(graph, epsilon);
+	return result;
+};
+
+/**
+ * @description Planarize a graph into the 2D XY plane forming a valid
+ * planar graph. This will neatly resolve any overlapping collinear edges,
+ * resolve all crossing edges, and rebuild faces WITHOUT removing any holes,
+ * all faces which were discovered will be kept.
+ * @param {FOLD} graph a FOLD object
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {FOLD} a planar graph containing vertices, edges, and all faces,
+ * no holes are removed.
+ */
+export const planarizeAllFaces = (graph, epsilon = EPSILON) => {
+	const graphWithEdges = makeSureEdgesExist(graph);
+	const result = planarizeEdges(graphWithEdges, epsilon);
+	const {
+		faces_vertices,
+		faces_edges,
+	} = makePlanarFaces(result);
+	result.faces_vertices = faces_vertices;
+	result.faces_edges = faces_edges;
 	return result;
 };

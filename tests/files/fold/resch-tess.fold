@@ -1,6 +1,7 @@
 {
-	"file_spec": 1.1,
+	"file_spec": 1.2,
 	"file_creator": "Rabbit Ear",
+	"file_author": "Kraft",
 	"vertices_coords": [
 		[0, 0.25],
 		[0, 0.5],
