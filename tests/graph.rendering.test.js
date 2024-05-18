@@ -51,7 +51,7 @@ test("prepareForRendering, square-twist", () => {
 });
 
 test("prepareForRendering, no-faces-3d", () => {
-	const FOLD = fs.readFileSync("./tests/files/fold/no-faces-3d.fold", "utf-8");
+	const FOLD = fs.readFileSync("./tests/files/fold/no-faces.fold", "utf-8");
 	const fold = JSON.parse(FOLD);
 	const backup = structuredClone(fold);
 	const result = ear.graph.prepareForRendering(fold);
