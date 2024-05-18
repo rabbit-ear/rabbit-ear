@@ -22,7 +22,10 @@ import {
 	connectedComponents,
 } from "./connectedComponents.js";
 import {
-	makeFacesFaces,
+	makeFacesEdgesFromVertices,
+} from "./make/facesEdges.js";
+import {
+	makeFacesFacesFromEdges,
 } from "./make/facesFaces.js";
 import {
 	makeFacesCenter2DQuick,
@@ -32,13 +35,13 @@ import {
 } from "./fold/foldGraph.js";
 
 /**
- * @description Divide a folded graph with a line and return lists of connected
- * faces (flaps). The result is returned as two sets representing either side
- * of the line, inside each set is a list of connected faces arrays.
- * Currently, flat folded crease patterns only (2D)
- * @param {FOLD} graph a FOLD object
+ * @description Get a list of separatable flaps in a folded origami model
+ * by specifying a dividing line. The return value is two sets, one for
+ * either side of the line, each set contains a list of connected sets of
+ * faces, inside each inner array are all faces in a separatable flap.
+ * @param {FOLD} graph a FOLD object with vertices in crease pattern form
  * @param {VecLine2} line
- * @param {[number, number][]} [vertices_coordsFolded]
+ * @param {[number, number][]} [vertices_coordsFolded] flat vertices only.
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {[ number[][], number[][] ]} left and right sides, each side
  * contains a list of lists of faces, groups of connected sets of faces (flaps).
@@ -49,12 +52,30 @@ export const getFlaps = ({
 	const graph = clone({ vertices_coords, edges_vertices, faces_vertices });
 	const {
 		vertices,
-		faces: { map }
+		edges: { collinear },
+		faces: { map },
 	} = foldLine(graph, line, { assignment: "F", vertices_coordsFolded }, epsilon);
 	const backmap = invertArrayToFlatMap(map);
 
 	const folded = { ...graph, vertices_coords: vertices.folded };
-	const faces_faces = makeFacesFaces(graph);
+
+	// we need to separate faces_faces where two faces in a pair both lie
+	// on the same side of the fold line, and are joined along an edge collinear
+	// to the fold line. faces_faces will join them, but, we want to consider
+	// these two to be separated, at least along this edge.
+	// this can be done by simply removing this edge from this copy of the graph
+	// before building the faces_faces array.
+	collinear.forEach(edge => delete graph.edges_vertices[edge]);
+
+	// this copy of faces_edges will create undefineds, but filter them out
+	// do not use this faces_edges outside of this context.
+	const faces_edges = makeFacesEdgesFromVertices(graph)
+		.map(edges => edges.filter(a => a !== undefined));
+
+	// this copy of faces_faces does not include pairs of faces which are joined
+	// by an edge that lies collinear along the fold line.
+	const faces_faces = makeFacesFacesFromEdges({ faces_edges });
+
 	const faces_center = makeFacesCenter2DQuick(folded);
 	const faces_side = faces_center
 		.map(point => subtract2(point, line.origin))
@@ -72,8 +93,6 @@ export const getFlaps = ({
 		.map(({ faces_faces }) => connectedComponents(faces_faces))
 		.map(invertFlatToArrayMap);
 
-	// console.log("map", map);
-	// console.log("backmap", backmap);
 	const [sideA, sideB] = sidesConnectedFaces
 		.map(connectedFaces => connectedFaces
 			.map(faces => faces

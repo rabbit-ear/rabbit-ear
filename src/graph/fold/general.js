@@ -38,7 +38,8 @@ export const recalculatePointAlongEdge = (points, parameter) => {
  * @param {object} assignment info about assignment
  * @param {boolean[]} faces_winding the winding direction for each face
  * @param {{ vertices?: { intersect: number[] } }} splitGraphResult
- * @returns {number[]} a list of edge indices which were reassigned
+ * @returns {{ collinear: number[], reassigned: number[] }} a list
+ * of edge indices which were reassigned
  */
 export const reassignCollinearEdges = (
 	{ edges_vertices, edges_faces, edges_assignment, edges_foldAngle },
@@ -46,9 +47,6 @@ export const reassignCollinearEdges = (
 	faces_winding,
 	splitGraphResult,
 ) => {
-	// no assignments to reassign. quit
-	if (!edges_assignment && !edges_foldAngle) { return []; }
-
 	// using the overlapped vertices, make a list of edges collinear to the line
 	// these (old) indices will match with the graph from its original state.
 	const verticesCollinear = splitGraphResult.vertices.intersect
@@ -59,6 +57,11 @@ export const reassignCollinearEdges = (
 		.map(verts => verticesCollinear[verts[0]] && verticesCollinear[verts[1]])
 		.map((collinear, e) => (collinear ? e : undefined))
 		.filter(a => a !== undefined);
+
+	// no assignments to reassign. quit
+	if (!edges_assignment && !edges_foldAngle) {
+		return { collinear: collinearEdges, reassigned: [] };
+	}
 
 	// This upcoming section can be done without edges_assignments.
 	// Now, from the list of collinear edges, we need to filter out the ones to
@@ -82,7 +85,10 @@ export const reassignCollinearEdges = (
 	});
 
 	// list of edge indices which were reassigned
-	return reassignableCollinearEdges.map(({ edge }) => edge);
+	return {
+		collinear: collinearEdges,
+		reassigned: reassignableCollinearEdges.map(({ edge }) => edge),
+	};
 };
 
 /**

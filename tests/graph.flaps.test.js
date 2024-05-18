@@ -2,17 +2,22 @@ import fs from "fs";
 import { expect, test } from "vitest";
 import ear from "../src/index.js";
 
-test("flaps, waterbomb", () => {
+test("flaps, waterbomb, through faces", () => {
 	const graph = ear.graph.waterbomb();
 	const vertices_coordsFolded = ear.graph.makeVerticesCoordsFlatFolded(graph);
-	const folded = {
-		...graph,
-		vertices_coords: vertices_coordsFolded,
-	};
-	// console.log(JSON.stringify(folded));
 	const line = { vector: [0, 1], origin: [0.25, 0] };
-	const result = ear.graph.getFlaps(graph, line, vertices_coordsFolded);
-	console.log(JSON.stringify(result));
+	const [sideA, sideB] = ear.graph.getFlaps(graph, line, vertices_coordsFolded);
+	expect(sideA).toMatchObject([[0, 7], [5, 6]]);
+	expect(sideB).toMatchObject([[1, 2, 3, 4, 0, 5, 6, 7]]);
+});
+
+test("flaps, waterbomb, collinear through middle", () => {
+	const graph = ear.graph.waterbomb();
+	const vertices_coordsFolded = ear.graph.makeVerticesCoordsFlatFolded(graph);
+	const line = { vector: [0, 1], origin: [0.5, 0] };
+	const [sideA, sideB] = ear.graph.getFlaps(graph, line, vertices_coordsFolded);
+	expect(sideA).toMatchObject([[0, 7], [5, 6]]);
+	expect(sideB).toMatchObject([[1, 2], [3, 4]]);
 });
 
 test("crane flaps, cut through middle of wing", () => {
@@ -49,7 +54,10 @@ test("crane flaps, collinear with joining edge of wing", () => {
 		folded.vertices_coords[40],
 	);
 	const result = ear.graph.getFlaps(graph, line, folded.vertices_coords);
-	// console.log(result);
+	// this is the crane wing. this method in particular tests the ability
+	// to separate faces when the divide line runs collinear to the edge
+	// which joins the flap to the body of the rest of the origami.
+	expect(result[0][0]).toMatchObject([1, 6, 7, 47, 48, 49, 50]);
 });
 
 /*

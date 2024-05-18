@@ -43,6 +43,28 @@ export const makeFacesFaces = ({ faces_vertices }) => {
 			.flatMap(faces => faces.filter(f2 => f1 !== f2).shift()));
 };
 
+
+/**
+ * @description faces_faces is an array of edge-adjacent face indices for each face.
+ * @param {FOLD} graph a FOLD object, with faces_edges
+ * @returns {(number | null | undefined)[][]} each index relates to a face,
+ * each entry is an array of numbers, each number is an index
+ * of an edge-adjacent face to this face.
+ */
+export const makeFacesFacesFromEdges = ({ faces_edges }) => {
+	/** @type {{[key: number]: number[] }} */
+	const edgesMap = {};
+	// fill edgesMap with keys for all edges, values empty array
+	// this assumes that faces do not visit the same edge twice
+	faces_edges.forEach(edges => edges.forEach(edge => { edgesMap[edge] = []; }));
+	faces_edges.forEach((edges, f) => edges.forEach(edge => edgesMap[edge].push(f)));
+	return faces_edges
+		.map((edges, f) => edges
+			.map(edge => edgesMap[edge]
+				.filter(face => face !== f)
+				.shift()));
+};
+
 // export const makeFacesFacesManifold = ({ faces_vertices }) => {
 // 	// create a map that relates these space-separated vertex pair strings
 // 	// to an array of faces which contain this edge (vertex-pair).

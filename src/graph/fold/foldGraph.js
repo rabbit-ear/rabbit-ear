@@ -58,6 +58,7 @@ import {
  *   edges?: {
  *     new: number[],
  *     map: (number|number[])[],
+ *     collinear: number[],
  *     reassign: number[],
  *   },
  *   faces?: {
@@ -243,7 +244,7 @@ export const foldGraph = (
 	// flat edges which lie collinear to the fold line must be folded,
 	// these edges were missed in the edge construction and assignment inside
 	// "splitFace", because these edges already existed.
-	const edgesReassigned = reassignCollinearEdges(
+	const { collinear, reassigned } = reassignCollinearEdges(
 		graph,
 		{ assignment, foldAngle, oppositeAssignment, oppositeFoldAngle },
 		faces_winding,
@@ -256,7 +257,7 @@ export const foldGraph = (
 		{ vector, origin },
 		foldAngle,
 		faces_winding,
-		[...splitGraphResult.edges.new, ...edgesReassigned],
+		[...splitGraphResult.edges.new, ...reassigned],
 		newFaces,
 	);
 
@@ -274,7 +275,8 @@ export const foldGraph = (
 		edges: {
 			map: splitGraphResult.edges.map,
 			new: splitGraphResult.edges.new,
-			reassign: edgesReassigned,
+			collinear,
+			reassign: reassigned,
 		},
 		faces: {
 			map: splitGraphResult.faces.map,
