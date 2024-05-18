@@ -19,7 +19,7 @@
 		"build": "npm run clean && rollup -c && npm run types && npm run docs",
 		"clean": "node tests/clean.js",
 		"docs": "typedoc --options typedoc.config.json",
-		"test": "vitest",
+		"test": "mkdir -p ./tests/tmp && vitest",
 		"types": "tsc"
 	},
 	"files": [
