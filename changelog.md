@@ -4,6 +4,7 @@
 - Cycle rendering sometimes improperly ordered the "front" and "back" sides, this was discovered to be when the chosen rootFace was flipped (false winding). This is now fixed.
 - `faceContainingPoint` and `facesContainingPoint` are renamed to `getFaceUnderPoint` and `getFacesUnderPoint` respectively, moved from src/graph/faces/facePoint.js to src/graph/overlap.js. This is to match with the name of the new function `getEdgesUnderPoint` (where "contains" would have been a bit of a stretch).
 - new planarize method `planarizeAllFaces()` which builds all faces as usual, but does not remove any holds. Use this when you are creating a graph from scratch, where no faces existed prior.
+- foldGraph (foldLine, foldRay, foldSegment) returns a copy of the new folded vertices.
 
 # 0.9.4
 

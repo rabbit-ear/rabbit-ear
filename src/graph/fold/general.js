@@ -46,6 +46,9 @@ export const reassignCollinearEdges = (
 	faces_winding,
 	splitGraphResult,
 ) => {
+	// no assignments to reassign. quit
+	if (!edges_assignment && !edges_foldAngle) { return []; }
+
 	// using the overlapped vertices, make a list of edges collinear to the line
 	// these (old) indices will match with the graph from its original state.
 	const verticesCollinear = splitGraphResult.vertices.intersect

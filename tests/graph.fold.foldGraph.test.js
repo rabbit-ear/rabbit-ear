@@ -54,7 +54,7 @@ test("foldGraph, segment, along a collinear edge", () => {
 		vector: [-0.24264068711928527, 0.5857864376269053],
 		origin: [0.7071067811865475, -0.2928932188134526],
 	};
-	const includePoints = [
+	const points = [
 		[0.7071067811865475, -0.2928932188134526],
 		[0.4644660940672622, 0.2928932188134527],
 	];
@@ -62,10 +62,7 @@ test("foldGraph, segment, along a collinear edge", () => {
 		graph,
 		line,
 		ear.math.includeS,
-		includePoints,
-		"V",
-		undefined,
-		vertices_coordsFolded,
+		{ points, assignment: "V", vertices_coordsFolded },
 	);
 
 	const newFlatEdgeCount = graph.edges_assignment
@@ -102,10 +99,7 @@ test("foldGraph, sparse graph", () => {
 		graph,
 		{ vector: [0, 1], origin: [0.75, 0.5] },
 		ear.math.includeL,
-		[],
-		"V",
-		undefined,
-		vertices_coordsFolded,
+		{ assignment: "V", vertices_coordsFolded },
 	);
 	// console.log("result", result);
 	fs.writeFileSync(
@@ -123,10 +117,7 @@ test("foldGraph, sparse graph, segment", () => {
 		graph,
 		{ vector: [0, 1], origin: [0.75, 0.45] },
 		ear.math.includeS,
-		[[0.75, 0.45], [0.75, 1.45]],
-		"V",
-		undefined,
-		vertices_coordsFolded,
+		{ points: [[0.75, 0.45], [0.75, 1.45]], assignment: "V",  vertices_coordsFolded },
 	);
 	// console.log("result", result);
 	fs.writeFileSync(
@@ -145,10 +136,7 @@ test("foldGraph, populated graph", () => {
 		graph,
 		{ vector: [0, 1], origin: [0.75, 0.5] },
 		ear.math.includeL,
-		[],
-		"V",
-		undefined,
-		vertices_coordsFolded,
+		{ assignment: "V",  vertices_coordsFolded },
 	);
 	// console.log("result", result);
 	fs.writeFileSync(
@@ -167,10 +155,7 @@ test("foldGraph, populated graph, segment", () => {
 		graph,
 		{ vector: [0, 1], origin: [0.75, 0.45] },
 		ear.math.includeS,
-		[[0.75, 0.45], [0.75, 1.45]],
-		"V",
-		undefined,
-		vertices_coordsFolded,
+		{ points: [[0.75, 0.45], [0.75, 1.45]], assignment: "V",  vertices_coordsFolded },
 	);
 	// console.log("result", result);
 	fs.writeFileSync(
@@ -241,9 +226,7 @@ test("foldGraph through vertex, crane", () => {
 		graph,
 		{ vector: [0, 1], origin: [0.6464466094063558, 0.6464466094063558] },
 		ear.math.includeL,
-		[],
-		"V",
-		// 90,
+		{ assignment: "V" },
 	);
 
 	const folded = {
@@ -274,9 +257,7 @@ test("foldGraph 3D folded through vertex, crane", () => {
 		graph,
 		{ vector: [0, 1], origin: [0.6464466094063558, 0.6464466094063558] },
 		ear.math.includeL,
-		[],
-		"V",
-		FOLD_ANGLE,
+		{ assignment: "V", foldAngle: FOLD_ANGLE },
 	);
 
 	const folded = {
@@ -322,9 +303,7 @@ test("foldGraph 3D folded edge collinear, crane", () => {
 			graph,
 			line,
 			ear.math.includeL,
-			[],
-			"V",
-			FOLD_ANGLE,
+			{ assignment: "V", foldAngle: FOLD_ANGLE },
 		);
 		const folded = {
 			...graph,

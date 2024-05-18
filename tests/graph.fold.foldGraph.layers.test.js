@@ -6,10 +6,20 @@ const FOLD_ANGLE = 90;
 
 test("foldGraph, faceOrders, square folding, valley, valley", () => {
 	const graph = ear.graph.square();
-	ear.graph.foldGraph(graph, { vector: [3, 1], origin: [0.5, 0.5] });
+	ear.graph.foldGraph(
+		graph,
+		{ vector: [3, 1], origin: [0.5, 0.5] },
+		ear.math.includeL,
+		{ assignment: "V" },
+	);
 	graph.faceOrders = [[0, 1, 1]];
 	expect(graph.faceOrders).toMatchObject([[0, 1, 1]]);
-	ear.graph.foldGraph(graph, { vector: [-1, 5], origin: [0.5, 0.5] });
+	ear.graph.foldGraph(
+		graph,
+		{ vector: [-1, 5], origin: [0.5, 0.5] },
+		ear.math.includeL,
+		{ assignment: "V" },
+	);
 
 	// splitFace (first): 0 becomes 2, 3
 	// [0, 1, 1] becomes two rules: [2, 1, 1], [3, 1, 1].
@@ -35,7 +45,12 @@ test("foldGraph, faceOrders, square folding, valley, valley", () => {
 		[0, 2, -1], [1, 2, 1], [0, 3, 1], [1, 3, -1], [0, 1, 1], [2, 3, -1],
 	]);
 
-	ear.graph.foldGraph(graph, { vector: [4, -1], origin: [0.25, 0.25] });
+	ear.graph.foldGraph(
+		graph,
+		{ vector: [4, -1], origin: [0.25, 0.25] },
+		ear.math.includeL,
+		{ assignment: "V" },
+	);
 	// console.log(JSON.stringify(graph.faceOrders));
 	// did not check this yet.
 	expect(graph.faceOrders).toMatchObject([
@@ -49,15 +64,19 @@ test("foldGraph, faceOrders, square folding, valley, valley", () => {
 
 test("foldGraph, faceOrders, square folding, valley, mountain", () => {
 	const graph = ear.graph.square();
-	ear.graph.foldGraph(graph, { vector: [3, 1], origin: [0.5, 0.5] });
+	ear.graph.foldGraph(
+		graph,
+		{ vector: [3, 1], origin: [0.5, 0.5] },
+		ear.math.includeL,
+		{ assignment: "V" },
+	);
 	graph.faceOrders = [[0, 1, 1]];
 	expect(graph.faceOrders).toMatchObject([[0, 1, 1]]);
 	ear.graph.foldGraph(
 		graph,
 		{ vector: [-1, 5], origin: [0.5, 0.5] },
 		ear.math.includeL,
-		[],
-		"M",
+		{ assignment: "M" },
 	);
 
 	// splitFace (first): 0 becomes 2, 3
@@ -94,7 +113,12 @@ test("foldGraph, faceOrders, square folding", () => {
 	};
 
 	// fold step
-	ear.graph.foldGraph(graph, { vector: [3, 1], origin: [0.5, 0.5] });
+	ear.graph.foldGraph(
+		graph,
+		{ vector: [3, 1], origin: [0.5, 0.5] },
+		ear.math.includeL,
+		{ assignment: "V" },
+	);
 	sequence.file_frames.push(structuredClone(graph));
 	sequence.file_frames.push({
 		...structuredClone(graph),
@@ -105,7 +129,12 @@ test("foldGraph, faceOrders, square folding", () => {
 	expect(graph.faceOrders).toMatchObject([[0, 1, 1]]);
 
 	// fold step
-	ear.graph.foldGraph(graph, { vector: [-1, 5], origin: [0.5, 0.5] });
+	ear.graph.foldGraph(
+		graph,
+		{ vector: [-1, 5], origin: [0.5, 0.5] },
+		ear.math.includeL,
+		{ assignment: "V" },
+	);
 	sequence.file_frames.push(structuredClone(graph));
 	sequence.file_frames.push({
 		...structuredClone(graph),
@@ -128,7 +157,12 @@ test("foldGraph, faceOrders, square folding", () => {
 	// ]);
 
 	// fold step
-	ear.graph.foldGraph(graph, { vector: [4, -1], origin: [0.25, 0.25] });
+	ear.graph.foldGraph(
+		graph,
+		{ vector: [4, -1], origin: [0.25, 0.25] },
+		ear.math.includeL,
+		{ assignment: "V" },
+	);
 	sequence.file_frames.push(structuredClone(graph));
 	sequence.file_frames.push({
 		...structuredClone(graph),
@@ -137,7 +171,12 @@ test("foldGraph, faceOrders, square folding", () => {
 	});
 
 	// fold step
-	ear.graph.foldGraph(graph, { vector: [1, 4], origin: [0.25, 0.25] });
+	ear.graph.foldGraph(
+		graph,
+		{ vector: [1, 4], origin: [0.25, 0.25] },
+		ear.math.includeL,
+		{ assignment: "V" },
+	);
 	sequence.file_frames.push(structuredClone(graph));
 	sequence.file_frames.push({
 		...structuredClone(graph),
@@ -146,7 +185,12 @@ test("foldGraph, faceOrders, square folding", () => {
 	});
 
 	// fold step
-	ear.graph.foldGraph(graph, { vector: [1, 0], origin: [0.125, 0.125] });
+	ear.graph.foldGraph(
+		graph,
+		{ vector: [1, 0], origin: [0.125, 0.125] },
+		ear.math.includeL,
+		{ assignment: "V" },
+	);
 	sequence.file_frames.push(structuredClone(graph));
 	sequence.file_frames.push({
 		...structuredClone(graph),
@@ -155,7 +199,12 @@ test("foldGraph, faceOrders, square folding", () => {
 	});
 
 	// fold step
-	ear.graph.foldGraph(graph, { vector: [0, 1], origin: [0.125, 0.125] });
+	ear.graph.foldGraph(
+		graph,
+		{ vector: [0, 1], origin: [0.125, 0.125] },
+		ear.math.includeL,
+		{ assignment: "V" },
+	);
 	sequence.file_frames.push(structuredClone(graph));
 	sequence.file_frames.push({
 		...structuredClone(graph),
@@ -164,7 +213,12 @@ test("foldGraph, faceOrders, square folding", () => {
 	});
 
 	// fold step
-	ear.graph.foldGraph(graph, { vector: [1, 1], origin: [0.05, 0.05] });
+	ear.graph.foldGraph(
+		graph,
+		{ vector: [1, 1], origin: [0.05, 0.05] },
+		ear.math.includeL,
+		{ assignment: "V" },
+	);
 	sequence.file_frames.push(structuredClone(graph));
 	sequence.file_frames.push({
 		...structuredClone(graph),
@@ -173,7 +227,12 @@ test("foldGraph, faceOrders, square folding", () => {
 	});
 
 	// fold step
-	ear.graph.foldGraph(graph, { vector: [-1, 1], origin: [0.05, 0.05] });
+	ear.graph.foldGraph(
+		graph,
+		{ vector: [-1, 1], origin: [0.05, 0.05] },
+		ear.math.includeL,
+		{ assignment: "V" },
+	);
 	sequence.file_frames.push(structuredClone(graph));
 	sequence.file_frames.push({
 		...structuredClone(graph),
@@ -193,11 +252,31 @@ test("foldGraph, faceOrders, panels", () => {
 	const graph = JSON.parse(FOLD);
 
 	// no faceOrders exist at this point
-	ear.graph.foldLine(graph, { vector: [1, 0.1], origin: [0.5, 0.5] });
-	ear.graph.foldLine(graph.file_frames[0], { vector: [1, -0.1], origin: [0.5, 0.5] });
-	ear.graph.foldLine(graph.file_frames[1], { vector: [1, 0.1], origin: [0.5, 0.5] });
-	ear.graph.foldLine(graph.file_frames[2], { vector: [1, -0.1], origin: [0.5, 0.5] });
-	ear.graph.foldLine(graph.file_frames[3], { vector: [1, 0.1], origin: [0.5, 0.5] });
+	ear.graph.foldLine(
+		graph,
+		{ vector: [1, 0.1], origin: [0.5, 0.5] },
+		{ assignment: "V" },
+	);
+	ear.graph.foldLine(
+		graph.file_frames[0],
+		{ vector: [1, -0.1], origin: [0.5, 0.5] },
+		{ assignment: "V" },
+	);
+	ear.graph.foldLine(
+		graph.file_frames[1],
+		{ vector: [1, 0.1], origin: [0.5, 0.5] },
+		{ assignment: "V" },
+	);
+	ear.graph.foldLine(
+		graph.file_frames[2],
+		{ vector: [1, -0.1], origin: [0.5, 0.5] },
+		{ assignment: "V" },
+	);
+	ear.graph.foldLine(
+		graph.file_frames[3],
+		{ vector: [1, 0.1], origin: [0.5, 0.5] },
+		{ assignment: "V" },
+	);
 
 	expect(graph.faceOrders)
 		.toMatchObject([[0, 1, 1], [2, 3, -1]]);
@@ -226,11 +305,31 @@ test("foldGraph, faceOrders, panels", () => {
 	graph.file_frames[2].faceOrders = [[0, 1, 1], [1, 2, -1], [2, 3, 1], [3, 4, -1]];
 	graph.file_frames[3].faceOrders = [[0, 1, 1], [1, 2, -1], [2, 3, 1], [3, 4, -1], [4, 5, 1]];
 
-	ear.graph.foldLine(graph, { vector: [1, 0.1], origin: [0.5, 0.5] });
-	ear.graph.foldLine(graph.file_frames[0], { vector: [1, -0.1], origin: [0.5, 0.5] });
-	ear.graph.foldLine(graph.file_frames[1], { vector: [1, 0.1], origin: [0.5, 0.5] });
-	ear.graph.foldLine(graph.file_frames[2], { vector: [1, -0.1], origin: [0.5, 0.5] });
-	ear.graph.foldLine(graph.file_frames[3], { vector: [1, 0.1], origin: [0.5, 0.5] });
+	ear.graph.foldLine(
+		graph,
+		{ vector: [1, 0.1], origin: [0.5, 0.5] },
+		{ assignment: "V" },
+	);
+	ear.graph.foldLine(
+		graph.file_frames[0],
+		{ vector: [1, -0.1], origin: [0.5, 0.5] },
+		{ assignment: "V" },
+	);
+	ear.graph.foldLine(
+		graph.file_frames[1],
+		{ vector: [1, 0.1], origin: [0.5, 0.5] },
+		{ assignment: "V" },
+	);
+	ear.graph.foldLine(
+		graph.file_frames[2],
+		{ vector: [1, -0.1], origin: [0.5, 0.5] },
+		{ assignment: "V" },
+	);
+	ear.graph.foldLine(
+		graph.file_frames[3],
+		{ vector: [1, 0.1], origin: [0.5, 0.5] },
+		{ assignment: "V" },
+	);
 
 	// console.log(JSON.stringify(graph.faceOrders));
 
@@ -304,7 +403,11 @@ test("foldGraph, 3D simple", () => {
 		"utf8",
 	);
 
-	ear.graph.foldLine(graph, { vector: [-1, 1], origin: [1.75, 1.75] }, "V", FOLD_ANGLE);
+	ear.graph.foldLine(
+		graph,
+		{ vector: [-1, 1], origin: [1.75, 1.75] },
+		{ assignment: "V", fold_angle: FOLD_ANGLE },
+	);
 
 	const newFolded = {
 		...graph,
@@ -336,7 +439,11 @@ test("foldGraph, 3D Kabuto", () => {
 	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
 	ear.graph.populate(graph);
 	graph.faceOrders = ear.layer(folded).faceOrders();
-	ear.graph.foldLine(graph, { vector: [1, 0], origin: [0, 0.25] }, "V", FOLD_ANGLE);
+	ear.graph.foldLine(
+		graph,
+		{ vector: [1, 0], origin: [0, 0.25] },
+		{ assignment: "V", fold_angle: FOLD_ANGLE },
+	);
 	// ear.graph.foldLine(graph, { vector: [1, 0], origin: [0, 0.25] }, "F", 0);
 	const newFoldedGraph = {
 		...graph,

@@ -52,18 +52,18 @@ export const reverseFold = (
 
 	const reverseEdges = getEdgesUnderPoint(folded, origin);
 
-	const changes = foldGraph(
-		graph,
-		{ vector, origin },
-		lineDomain,
-		interiorPoints,
-		"F", // set this to flat for now.
-		0, // fold angle
-		vertices_coordsFolded,
-		epsilon,
-	);
-	// console.log(reverseEdges);
-	// console.log(changes);
+	// const changes = foldGraph(
+	// 	graph,
+	// 	{ vector, origin },
+	// 	lineDomain,
+	// 	interiorPoints,
+	// 	"F", // set this to flat for now.
+	// 	0, // fold angle
+	// 	vertices_coordsFolded,
+	// 	epsilon,
+	// );
+	// // console.log(reverseEdges);
+	// // console.log(changes);
 
 	return {};
 };

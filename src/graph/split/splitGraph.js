@@ -49,7 +49,7 @@ import {
  *       edges: FaceEdgeEvent[],
  *       points: FacePointEvent[],
  *     }[],
- *     map: (number|number[])[],
+ *     map: number[][],
  *   },
  * }}
  * @description The source info for both edges and vertices will contain

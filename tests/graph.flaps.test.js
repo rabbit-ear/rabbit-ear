@@ -2,15 +2,54 @@ import fs from "fs";
 import { expect, test } from "vitest";
 import ear from "../src/index.js";
 
-test("flaps", () => expect(true).toBe(true));
-
 test("flaps, waterbomb", () => {
 	const graph = ear.graph.waterbomb();
+	const vertices_coordsFolded = ear.graph.makeVerticesCoordsFlatFolded(graph);
 	const folded = {
 		...graph,
-		vertices_coords: ear.graph.makeVerticesCoordsFlatFolded(graph),
+		vertices_coords: vertices_coordsFolded,
 	};
+	// console.log(JSON.stringify(folded));
+	const line = { vector: [0, 1], origin: [0.25, 0] };
+	const result = ear.graph.getFlaps(graph, line, vertices_coordsFolded);
+	console.log(JSON.stringify(result));
+});
 
+test("crane flaps, cut through middle of wing", () => {
+	const FOLD = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
+	const fold = JSON.parse(FOLD);
+	const graph = ear.graph.getFramesByClassName(fold, "creasePattern")[0];
+	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	const line = ear.math.pointsToLine2(
+		folded.vertices_coords[14],
+		folded.vertices_coords[20],
+	);
+	const [sideA, sideB] = ear.graph.getFlaps(graph, line, folded.vertices_coords);
+	expect(sideA).toMatchObject([
+		[0,4,35,36,43,46],
+		[1,6,7],
+		[2,16,17,18,19,20,21,22,23,25,27,30,32,33,37,38],
+		[3,8,9,10,11,12,13,14,15,26,28,29,31,34,39,40],
+		[5,24,41,42,44,45],
+	]);
+	expect(sideB).toMatchObject([
+		[47,48,49,50,0,1,2,3,4,5,6,7,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46],
+		[51,52,53,54,55,56,57,58,16,17,18,19,20,21,22,23],
+		[8,9,10,11,12,13,14,15],
+	])
+});
+
+test("crane flaps, collinear with joining edge of wing", () => {
+	const FOLD = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
+	const fold = JSON.parse(FOLD);
+	const graph = ear.graph.getFramesByClassName(fold, "creasePattern")[0];
+	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	const line = ear.math.pointsToLine2(
+		folded.vertices_coords[39],
+		folded.vertices_coords[40],
+	);
+	const result = ear.graph.getFlaps(graph, line, folded.vertices_coords);
+	// console.log(result);
 });
 
 /*
@@ -50,18 +89,6 @@ test("getFacesSide", () => {
 	expect(positiveCount1).toBe(negativeCount1);
 	expect(intersectCount0).toBe(4);
 	expect(intersectCount1).toBe(0);
-});
-
-test("crane flaps", () => {
-	const FOLD = fs.readFileSync("./tests/files/fold/crane.fold", "utf-8");
-	const graph = JSON.parse(FOLD);
-	const origin = graph.vertices_coords[39];
-	const vector = ear.math.subtract2(...graph.edges_vertices[59].map(v => graph.vertices_coords[v]));
-	// const vector = [1, -1];
-	console.log(origin, vector);
-	const result = ear.graph.getFlapsThroughLine(graph, { vector, origin });
-	// console.log(graph);
-	expect(true).toBe(true);
 });
 
 */

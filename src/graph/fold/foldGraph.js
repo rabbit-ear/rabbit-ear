@@ -52,6 +52,9 @@ import {
 /**
  * @typedef FoldGraphEvent
  * @type {{
+ *   vertices?: {
+ *     folded: [number, number][]|[number, number, number][],
+ *   },
  *   edges?: {
  *     new: number[],
  *     map: (number|number[])[],
@@ -59,7 +62,7 @@ import {
  *   },
  *   faces?: {
  *     new: number[],
- *     map: (number|number[])[],
+ *     map: number[][],
  *   },
  * }}
  * @description an object which summarizes the changes to the graph.
@@ -74,15 +77,19 @@ import {
  * @param {VecLine2} foldLine a fold line
  * @param {Function} [lineDomain=includeL] a domain function
  * characterizing the line into a line, ray, or segment
- * @param {[number, number][]} interiorPoints in the case of a ray or segement,
- * supply the endpoint(s) here.
- * @param {string} [assignment="V"] the assignment to be applied to the
- * intersected faces with counter-clockwise winding. Clockwise-wound faces
- * will get the opposite assignment
- * @param {number} [foldAngle] the fold angle to be applied, similarly as
- * the assignment
- * @param {[number, number][]|[number, number, number][]} vertices_coordsFolded
- * a copy of the vertices_coords, in folded form
+ * @param {{
+ *   assignment?: string,
+ *   foldAngle?: number,
+ *   vertices_coordsFolded?: [number, number][]|[number, number, number][],
+ *   points?: [number, number][],
+ * }} options where
+ * - points in the case of a ray or segement, supply the endpoint(s).
+ * these are points which will be included inside faces which they appear.
+ * - assignment: to be applied to the intersected faces with counter-clockwise
+ * winding. Clockwise-wound faces will get the opposite assignment
+ * - foldAngle: the fold angle to be applied, similarly as the assignment.
+ * - vertices_coordsFolded a copy of the vertices_coords, in folded form,
+ * this will be computed if it does not exist.
  * @param {number} [epsilon=1e-6] an optional epsilon
  * @returns {FoldGraphEvent} an object summarizing the changes to the graph
  */
@@ -90,10 +97,7 @@ export const foldGraph = (
 	graph,
 	{ vector, origin },
 	lineDomain = includeL,
-	interiorPoints = [],
-	assignment = "V",
-	foldAngle = undefined,
-	vertices_coordsFolded = undefined,
+	{ assignment = "F", foldAngle, vertices_coordsFolded, points = [] } = {},
 	epsilon = EPSILON,
 ) => {
 	// if the user asks for a foldAngle, but edges_foldAngle array does not exist,
@@ -135,7 +139,7 @@ export const foldGraph = (
 		graph,
 		{ vector, origin },
 		lineDomain,
-		interiorPoints,
+		points,
 		epsilon,
 	);
 
@@ -264,6 +268,9 @@ export const foldGraph = (
 	// of this fold, it should be ignored. So, consult "new" and "reassign" for
 	// a list of edges which are involved in this fold.
 	return {
+		vertices: {
+			folded: vertices_coordsFoldedNew,
+		},
 		edges: {
 			map: splitGraphResult.edges.map,
 			new: splitGraphResult.edges.new,
@@ -283,28 +290,26 @@ export const foldGraph = (
 * in the case of repeated calls to fold an origami model.
  * @param {FOLD} graph a FOLD object
  * @param {VecLine2} line the fold line
- * @param {string} [assignment="V"]
- * @param {number} [foldAngle]
- * @param {[number, number][]|[number, number, number][]} [vertices_coordsFolded]
+ * @param {{
+ *   assignment?: string,
+ *   foldAngle?: number,
+ *   vertices_coordsFolded?: [number, number][]|[number, number, number][],
+ * }} options including the new edge assignment and fold angle, and the
+ * folded vertices_coords
  * @param {number} [epsilon=1e-6]
  * @returns {FoldGraphEvent} an object summarizing the changes to the graph
  */
 export const foldLine = (
 	graph,
 	line,
-	assignment = "V",
-	foldAngle = undefined,
-	vertices_coordsFolded = undefined,
+	{ assignment = "F", foldAngle, vertices_coordsFolded } = {},
 	epsilon = EPSILON,
 ) => (
 	foldGraph(
 		graph,
 		line,
 		includeL,
-		[],
-		assignment,
-		foldAngle,
-		vertices_coordsFolded,
+		{ points: [], assignment, foldAngle, vertices_coordsFolded },
 		epsilon,
 	));
 
@@ -315,28 +320,26 @@ export const foldLine = (
 * in the case of repeated calls to fold an origami model.
  * @param {FOLD} graph a FOLD object
  * @param {VecLine2} ray the fold line as a ray
- * @param {string} [assignment="V"]
- * @param {number} [foldAngle]
- * @param {[number, number][]|[number, number, number][]} [vertices_coordsFolded]
+ * @param {{
+ *   assignment?: string,
+ *   foldAngle?: number,
+ *   vertices_coordsFolded?: [number, number][]|[number, number, number][],
+ * }} options including the new edge assignment and fold angle, and the
+ * folded vertices_coords
  * @param {number} [epsilon=1e-6]
  * @returns {FoldGraphEvent} an object summarizing the changes to the graph
  */
 export const foldRay = (
 	graph,
 	ray,
-	assignment = "V",
-	foldAngle = undefined,
-	vertices_coordsFolded = undefined,
+	{ assignment = "F", foldAngle, vertices_coordsFolded } = {},
 	epsilon = EPSILON,
 ) => (
 	foldGraph(
 		graph,
 		ray,
 		includeR,
-		[ray.origin],
-		assignment,
-		foldAngle,
-		vertices_coordsFolded,
+		{ points: [ray.origin], assignment, foldAngle, vertices_coordsFolded },
 		epsilon,
 	));
 
@@ -347,27 +350,25 @@ export const foldRay = (
 * in the case of repeated calls to fold an origami model.
  * @param {FOLD} graph a FOLD object
  * @param {[[number, number], [number, number]]} segment the fold segment
- * @param {string} [assignment="V"]
- * @param {number} [foldAngle]
- * @param {[number, number][]|[number, number, number][]} [vertices_coordsFolded]
+ * @param {{
+ *   assignment?: string,
+ *   foldAngle?: number,
+ *   vertices_coordsFolded?: [number, number][]|[number, number, number][],
+ * }} options including the new edge assignment and fold angle, and the
+ * folded vertices_coords
  * @param {number} [epsilon=1e-6]
  * @returns {FoldGraphEvent} an object summarizing the changes to the graph
  */
 export const foldSegment = (
 	graph,
 	segment,
-	assignment = "V",
-	foldAngle = undefined,
-	vertices_coordsFolded = undefined,
+	{ assignment = "F", foldAngle, vertices_coordsFolded } = {},
 	epsilon = EPSILON,
 ) => (
 	foldGraph(
 		graph,
 		pointsToLine2(segment[0], segment[1]),
 		includeS,
-		segment,
-		assignment,
-		foldAngle,
-		vertices_coordsFolded,
+		{ points: segment, assignment, foldAngle, vertices_coordsFolded },
 		epsilon,
 	));
