@@ -1,5 +1,3 @@
-
-
 export const model_300_vert = `#version 300 es
 uniform mat4 u_modelView;
 uniform mat4 u_matrix;

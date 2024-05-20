@@ -16,7 +16,7 @@
 	"type": "module",
 	"types": "./types/index.d.ts",
 	"scripts": {
-		"build": "npm run clean && rollup -c && npm run types && npm run docs",
+		"build": "npm run clean && python3 ./scripts/bundle-shaders.py && rollup -c && npm run types && npm run docs",
 		"clean": "node tests/clean.js",
 		"docs": "typedoc --options typedoc.config.json",
 		"test": "mkdir -p ./tests/tmp && vitest",

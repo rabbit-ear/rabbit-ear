@@ -6,5 +6,5 @@
 	"includeVersion": true,
 	"entryPointStrategy": "expand",
 	"exclude": ["**/index.js"], // "**/*.d.ts"
-	"customCss": "docs-style.css"
+	"customCss": "./scripts/docs-style.css"
 }

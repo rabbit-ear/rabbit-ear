@@ -11,8 +11,6 @@ void main() {
 }
 `;
 
-
-
 export const cp_100_frag = `#version 100
 precision mediump float;
 varying vec3 blend_color;

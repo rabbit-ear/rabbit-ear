@@ -1,6 +1,9 @@
 import fs from "fs";
 import { test } from "vitest";
+import xmldom from "@xmldom/xmldom";
 import ear from "../src/index.js";
+
+ear.window = xmldom;
 
 test("test can remain empty", () => {});
 
@@ -36,6 +39,37 @@ test("test can remain empty", () => {});
 // 		`./tests/tmp/layer-solution.json`,
 // 		JSON.stringify(solution, null, 2),
 // 	);
+// });
+
+// test("write bulk fold-to-svg", () => {
+// 	const FOLD = fs.readFileSync("./tests/files/fold/crane-sequence.fold", "utf-8");
+// 	const fold = JSON.parse(FOLD);
+// 	// crease patterns
+// 	ear.graph.getFileFramesAsArray(fold)
+// 		.map(graph => ear.convert.foldToSvg(graph, { string: true }))
+// 		.map((svg, i) => fs.writeFileSync(
+// 			`./tests/tmp/crane-sequence-cp-${i}.svg`,
+// 			svg,
+// 		));
+// 	// folded forms
+// 	ear.graph.getFileFramesAsArray(fold)
+// 		.map(graph => ({
+// 			...graph,
+// 			vertices_coords: ear.graph.makeVerticesCoordsFolded(graph),
+// 			frame_classes: ["foldedForm"],
+// 		}))
+// 		.map(graph => ear.convert.foldToSvg(graph, {
+// 			string: true,
+// 			faces: {
+// 				front: { fill: "#ccc", opacity: 0.5, stroke: "black", "stroke-width": 0.005 },
+// 				back: { fill: "#ccc", opacity: 0.5, stroke: "black", "stroke-width": 0.005 },
+// 			},
+// 			edges: false,
+// 		}))
+// 		.map((svg, i) => fs.writeFileSync(
+// 			`./tests/tmp/crane-sequence-folded-${i}.svg`,
+// 			svg,
+// 		));
 // });
 
 // test("generate a graph with random edges", () => {
