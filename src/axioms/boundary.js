@@ -18,7 +18,8 @@ import {
 	normalAxiom7,
 } from "./axioms.js";
 import {
-	validateAxiom1And2,
+	validateAxiom1,
+	validateAxiom2,
 	validateAxiom3,
 	validateAxiom4,
 	validateAxiom5,
@@ -36,7 +37,7 @@ import {
  * @returns {UniqueLine[]}
  */
 export const normalAxiom1InPolygon = (polygon, point1, point2) => {
-	const isValid = validateAxiom1And2(polygon, point1, point2);
+	const isValid = validateAxiom1(polygon, point1, point2);
 	return normalAxiom1(point1, point2).filter((_, i) => isValid[i]);
 };
 
@@ -47,7 +48,7 @@ export const normalAxiom1InPolygon = (polygon, point1, point2) => {
  * @returns {VecLine2[]}
  */
 export const axiom1InPolygon = (polygon, point1, point2) => {
-	const isValid = validateAxiom1And2(polygon, point1, point2);
+	const isValid = validateAxiom1(polygon, point1, point2);
 	return axiom1(point1, point2).filter((_, i) => isValid[i]);
 };
 
@@ -58,7 +59,7 @@ export const axiom1InPolygon = (polygon, point1, point2) => {
  * @returns {UniqueLine[]}
  */
 export const normalAxiom2InPolygon = (polygon, point1, point2) => {
-	const isValid = validateAxiom1And2(polygon, point1, point2);
+	const isValid = validateAxiom2(polygon, point1, point2);
 	return normalAxiom2(point1, point2).filter((_, i) => isValid[i]);
 };
 
@@ -69,7 +70,7 @@ export const normalAxiom2InPolygon = (polygon, point1, point2) => {
  * @returns {VecLine2[]}
  */
 export const axiom2InPolygon = (polygon, point1, point2) => {
-	const isValid = validateAxiom1And2(polygon, point1, point2);
+	const isValid = validateAxiom2(polygon, point1, point2);
 	return axiom2(point1, point2).filter((_, i) => isValid[i]);
 };
 

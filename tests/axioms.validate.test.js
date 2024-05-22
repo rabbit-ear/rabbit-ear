@@ -39,8 +39,8 @@ test("validate, valid results", () => {
 	const solutions6 = ear.axiom.axiom6(...args6);
 	const solutions7 = ear.axiom.axiom7(...args7);
 
-	const valid1 = ear.axiom.validateAxiom1And2(boundary, ...args1);
-	const valid2 = ear.axiom.validateAxiom1And2(boundary, ...args2);
+	const valid1 = ear.axiom.validateAxiom1(boundary, ...args1);
+	const valid2 = ear.axiom.validateAxiom2(boundary, ...args2);
 	const valid3 = ear.axiom.validateAxiom3(boundary, solutions3, ...args3);
 	const valid4 = ear.axiom.validateAxiom4(boundary, solutions4, ...args4);
 	const valid5 = ear.axiom.validateAxiom5(boundary, solutions5, ...args5);
@@ -94,8 +94,8 @@ test("validate, invalid results due to point (or line) outside boundary", () => 
 	const solutions6 = ear.axiom.axiom6(...args6);
 	const solutions7 = ear.axiom.axiom7(...args7);
 
-	const valid1 = ear.axiom.validateAxiom1And2(boundary, ...args1);
-	const valid2 = ear.axiom.validateAxiom1And2(boundary, ...args2);
+	const valid1 = ear.axiom.validateAxiom1(boundary, ...args1);
+	const valid2 = ear.axiom.validateAxiom2(boundary, ...args2);
 	const valid3 = ear.axiom.validateAxiom3(boundary, solutions3, ...args3);
 	const valid4 = ear.axiom.validateAxiom4(boundary, solutions4, ...args4);
 	const valid5 = ear.axiom.validateAxiom5(boundary, solutions5, ...args5);
