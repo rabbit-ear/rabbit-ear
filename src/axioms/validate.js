@@ -37,10 +37,12 @@ import {
 import {
 	pointsToLine2,
 } from "../math/convert.js";
-import { doRangesOverlap } from "../math/range.js";
+import {
+	doRangesOverlap,
+} from "../math/range.js";
 
 /**
- *
+ * @todo this needs to work with non convex polygons
  */
 const isPointInGraph = (graph, point) => {
 	return getFacesUnderPoint(graph, point).length > 0;
@@ -71,10 +73,14 @@ export const validateAxiom1 = (graph, point1, point2) => {
 	// intersect the segment with all the edges in the graph,
 	// return result as the "a" parameter, sorted in increasing order
 	const line = pointsToLine2(point1, point2);
-	const params = intersectLineVerticesEdges(graph, line, includeS)
+	const intersections = intersectLineVerticesEdges(graph, line, includeS);
+	const vParams = intersections.vertices.filter(a => a !== undefined);
+	const eParams = intersections
 		.edges
-		.map(({ a }) => a)
-		.sort((m, n) => m - n);
+		.filter(a => a !== undefined)
+		.map(({ a }) => a);
+	const params = vParams.concat(eParams).sort((m, n) => m - n);
+
 	// a new list of points that lie at the midpoints of all edge intersections
 	const betweenPoints = params.length < 2
 		? []
@@ -185,14 +191,28 @@ export const validateAxiom3 = (boundary, solutions, line1, line2) => {
 /**
  * @description Validate the input parameters to origami axiom 4 with
  * respect to a boundary polygon that represents the folding surface.
+ * @algorithm There are two things tested:
+ * 1. is the point parameter inside the boundary
+ * 2. split the fold line into two halves at the perpendicular projection,
+ *   reflect one side onto the other and ensure that at least one segment
+ *   from either side overlap.
  * @param {FOLD} graph a FOLD object, foldedForm or creasePattern
  * @param {VecLine2} line the line parameter for axiom 4
  * @param {[number, number]} point the point parameter for axiom 4
  * @returns {boolean[]} true if the parameters/solutions are valid
  */
 export const validateAxiom4 = (graph, line, point) => {
+	// test 1: is the point parameter inside the graph
+	if (!isPointInGraph(graph, point)) {
+		return [false];
+	}
+
+	// test 2: do the two halves of the line overlap when folded?
 	const perpendicular = { vector: rotate90(line.vector), origin: point };
 	const intersectPoint = intersectLineLine(line, perpendicular).point;
+
+	// if there is no intersection, the axiom produced no result
+	// todo: should this mean, technically, that it's valid? (no result)
 	if (!point) { return [false]; }
 
 	// create a line collinear to the input line, but the line's origin
@@ -208,17 +228,21 @@ export const validateAxiom4 = (graph, line, point) => {
 	// both rays with the graph to create a list of segments for each ray,
 	// reflect one ray's segments across the line, test if there is
 	// at least one overlap between either sets of segments.
-	const params = intersectLineVerticesEdges(graph, intersectLine)
+	const intersections = intersectLineVerticesEdges(graph, intersectLine);
+	const vParams = intersections.vertices.filter(a => a !== undefined);
+	const eParams = intersections
 		.edges
-		.map(({ a }) => a)
-		.sort((m, n) => m - n);
-	const paramPairs = params.length < 2
+		.filter(a => a !== undefined)
+		.map(({ a }) => a);
+	const params = vParams.concat(eParams).sort((m, n) => m - n);
+
+	const paramPairs = (params.length < 2
 		? []
 		: Array.from(Array(params.length - 1))
-			.map((_, i) => [params[i], params[i + 1]])
+			.map((_, i) => [params[i], params[i + 1]]));
 	const betweenPoints = paramPairs
 			.map(([a, b]) => (a + b) / 2)
-			.map(param => add2(line.origin, scale2(line.vector, param)));
+			.map(param => add2(intersectLine.origin, scale2(intersectLine.vector, param)));
 	const betweenPointsInside = betweenPoints
 		.map(point => isPointInGraph(graph, point));
 
@@ -236,10 +260,20 @@ export const validateAxiom4 = (graph, line, point) => {
 		.filter(([a, b]) => a <= 0 && b <= 0)
 		.map(([a, b]) => [Math.abs(a), Math.abs(b)]);
 
+	// console.log("params", params);
+	// console.log("paramPairs", paramPairs);
+	// console.log("betweenPoints", betweenPoints);
+	// console.log("betweenPointsInside", betweenPointsInside);
+	// console.log("paramsRanges", paramsRanges);
+	// console.log("positiveSet", positiveSet);
+	// console.log("negativeSet", negativeSet);
+
 	// if there is any overlap between the two sets of ranges, the result is valid
 	for (let i = 0; i < positiveSet.length; i += 1) {
 		for (let j = 0; j < negativeSet.length; j += 1) {
-			if (doRangesOverlap(positiveSet[i], negativeSet[j])) { return [true]; }
+			if (doRangesOverlap(positiveSet[i], negativeSet[j])) {
+				return [true];
+			}
 		}
 	}
 	return [false];

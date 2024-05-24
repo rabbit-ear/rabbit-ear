@@ -12,23 +12,25 @@ The current version is 0.9.4 alpha, released 2024.05.12 [changelog](https://rabb
 
 # download
 
-The Rabbit Ear library is distributed as an ES6 module (NodeJS, Deno, modules) or as UMD/CommonJS single bundle (html `<script>`). Download Rabbit Ear here:
+The Rabbit Ear library is distributed as a single package which contains an ES6 module (for NodeJS, Deno, module scripts), and as UMD/CommonJS single-file bundle (for traditional html scripts)
 
-[download](https://github.com/rabbit-ear/rabbit-ear/releases/)
+### release
 
-or, install via [npm](https://www.npmjs.com/package/rabbit-ear).
+manual download [.zip](https://github.com/rabbit-ear/rabbit-ear/releases/)
+
+### npm ([link](https://www.npmjs.com/package/rabbit-ear))
 
 ```bash
 npm install rabbit-ear
 ```
 
-alternatively, link to a CDN. UMD/CommonJS CDN:
+### CDN (UMD/CommonJS)
 
 ```
 https://rabbit-ear.github.io/rabbit-ear/rabbit-ear.js
 ```
 
-ES6 module CDN:
+### CDN (ES6 module)
 
 ```
 https://rabbit-ear.github.io/rabbit-ear/src/index.js
