@@ -46,7 +46,7 @@ test("verticesFoldable", () => {
 	ear.singleVertex
 		.verticesFoldable(graphs[0])
 		.forEach((value, i) =>
-			expect(value).toBeCloseTo(
+			expect(value).toBe(
 				[true, true, true, true, true, true, true, true, true][i],
 			),
 		);
@@ -54,7 +54,7 @@ test("verticesFoldable", () => {
 	ear.singleVertex
 		.verticesFoldable(graphs[1])
 		.forEach((value, i) =>
-			expect(value).toBeCloseTo(
+			expect(value).toBe(
 				[true, true, true, true, true, true, true, true, true][i],
 			),
 		);
@@ -62,7 +62,7 @@ test("verticesFoldable", () => {
 	ear.singleVertex
 		.verticesFoldable(graphs[2])
 		.forEach((value, i) =>
-			expect(value).toBeCloseTo(
+			expect(value).toBe(
 				[true, true, true, true, true, false, true, true, true][i],
 			),
 		);
@@ -70,7 +70,7 @@ test("verticesFoldable", () => {
 	ear.singleVertex
 		.verticesFoldable(graphs[3])
 		.forEach((value, i) =>
-			expect(value).toBeCloseTo(
+			expect(value).toBe(
 				[true, true, true, true, true, false, true, true, true][i],
 			),
 		);
@@ -78,7 +78,7 @@ test("verticesFoldable", () => {
 	ear.singleVertex
 		.verticesFoldable(graphs[4])
 		.forEach((value, i) =>
-			expect(value).toBeCloseTo(
+			expect(value).toBe(
 				[true, true, true, true, true, true, true, true, true][i],
 			),
 		);

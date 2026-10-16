@@ -354,7 +354,7 @@ test("simpleFoldLine, faceOrders, square folding 02 with layer solver", () => {
 		{ assignment: "F" },
 	);
 	expect(result1.faces.map).toMatchObject([[0, 1]]);
-	expect(graph.faceOrders).toMatchObject(undefined);
+	expect(graph.faceOrders).toBe(undefined);
 	vertices_coordsFolded = ear.graph.makeVerticesCoordsFlatFolded(graph, [0]);
 
 	// 2.

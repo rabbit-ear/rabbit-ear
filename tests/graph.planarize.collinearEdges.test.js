@@ -219,7 +219,8 @@ test("planarize, non-planar square fish", () => {
 	expect(cp.edges_vertices).toHaveLength(26);
 	expect(result.edges_vertices).toHaveLength(25);
 
-	expect(vertices.map).toMatchObject([
+  // spots 40 and 41 (undefined) need to be empty
+	let verticesMapResult = [
 		0,
 		1,
 		35,
@@ -270,7 +271,11 @@ test("planarize, non-planar square fish", () => {
 		5,
 		5,
 		4,
-	]);
+	];
+  delete verticesMapResult[40];
+  delete verticesMapResult[41];
+	expect(vertices.map).toMatchObject(verticesMapResult);
+
 	expect(edges.map).toMatchObject([
 		[0],
 		[22],

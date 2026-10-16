@@ -277,7 +277,7 @@ test("constraints3DEdges, layer 3D special cases", () => {
 		taco_tortilla: [],
 	});
 
-	expect(results[7]).toMatchObject("error");
+	expect(results[7]).toBe("error");
 
 	// expect(results[8]).toMatchObject("error");
 	expect(results[8]).toMatchObject({

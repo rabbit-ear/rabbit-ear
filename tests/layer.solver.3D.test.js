@@ -227,11 +227,11 @@ test("3D layer solver, Mooser's train", () => {
 	// const edgesLine = edgesToLines3({ vertices_coords, edges_vertices });
 	// switch it out for "edgesToLines" and 1633 becomes 1581.
 
-	expect(JSON.stringify(folded.vertices_coords.map(ear.math.resize3))).toMatchObject(
+	expect(JSON.stringify(folded.vertices_coords.map(ear.math.resize3))).toBe(
 		JSON.stringify(folded.vertices_coords),
 	);
 
-	expect(JSON.stringify(ear.graph.edgesToLines(folded))).toMatchObject(
+	expect(JSON.stringify(ear.graph.edgesToLines(folded))).toBe(
 		JSON.stringify(ear.graph.edgesToLines3(folded)),
 	);
 

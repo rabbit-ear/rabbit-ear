@@ -32,7 +32,7 @@ test("topologicalSort, Graph with cycles", () => {
 	];
 	const result = ear.graph.topologicalSort(directedEdges);
 	// Since the graph contains a cycle, the result should be undefined
-	expect(result).toMatchObject(undefined);
+	expect(result).toBe(undefined);
 });
 
 test("topologicalSort, Graph with disconnected components", () => {
@@ -101,7 +101,7 @@ test("topologicalSort, Graph with multiple disconnected components", () => {
 		[5, 3],
 	];
 	const result = ear.graph.topologicalSort(directedEdges);
-	expect(result).toMatchObject(undefined);
+	expect(result).toBe(undefined);
 });
 
 test("topologicalSort, Graph with loops", () => {
@@ -112,7 +112,7 @@ test("topologicalSort, Graph with loops", () => {
 		[3, 1],
 	];
 	const result = ear.graph.topologicalSort(directedEdges);
-	expect(result).toMatchObject(undefined);
+	expect(result).toBe(undefined);
 });
 
 test("topologicalSort, Graph with negative vertex indices", () => {
@@ -155,7 +155,7 @@ test("topologicalSort, with cycle", () => {
 		[2, 1],
 		[1, 5],
 	]);
-	expect(ordering).toMatchObject(undefined);
+	expect(ordering).toBe(undefined);
 });
 
 test("topologicalSort, crane", () => {

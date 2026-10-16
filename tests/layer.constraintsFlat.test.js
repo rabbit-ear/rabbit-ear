@@ -319,10 +319,10 @@ test("makeSolverConstraintsFlat, kabuto", () => {
 	expect(constraints).toMatchObject(expected);
 	expect(ear.graph.getEdgesEdgesCollinearOverlap(folded).flat().length).toBe(104);
 	expect(ear.graph.getEdgesFacesOverlap(folded).flat().length).toBe(138);
-	expect(constraints.taco_taco.length).toMatchObject(21);
-	expect(constraints.taco_tortilla.length).toMatchObject(88);
-	expect(constraints.tortilla_tortilla.length).toMatchObject(0);
-	expect(constraints.transitivity.length).toMatchObject(258);
+	expect(constraints.taco_taco.length).toBe(21);
+	expect(constraints.taco_tortilla.length).toBe(88);
+	expect(constraints.tortilla_tortilla.length).toBe(0);
+	expect(constraints.transitivity.length).toBe(258);
 	expect(Object.keys(facePairs).length).toBe(117);
 	expect(Object.keys(orders).length).toBe(20);
 });
@@ -350,10 +350,10 @@ test("makeSolverConstraintsFlat, crane", () => {
 		554,
 	);
 	expect(ear.graph.getFacesEdgesOverlap(folded, epsilon).flat().length).toBe(1167);
-	expect(taco_taco.length).toMatchObject(196);
-	expect(taco_tortilla.length).toMatchObject(1049);
-	expect(tortilla_tortilla.length).toMatchObject(0);
-	expect(transitivity.length).toMatchObject(5328);
+	expect(taco_taco.length).toBe(196);
+	expect(taco_tortilla.length).toBe(1049);
+	expect(tortilla_tortilla.length).toBe(0);
+	expect(transitivity.length).toBe(5328);
 	expect(Object.keys(facePairs).length).toBe(838);
 	expect(Object.keys(orders).length).toBe(102);
 });
@@ -379,10 +379,10 @@ test("makeSolverConstraintsFlat, flapping bird", () => {
 		orders,
 	} = ear.layer.makeSolverConstraintsFlat(folded);
 
-	expect(taco_taco.length).toMatchObject(27);
-	expect(taco_tortilla.length).toMatchObject(82);
-	expect(tortilla_tortilla.length).toMatchObject(15);
-	expect(transitivity.length).toMatchObject(168);
+	expect(taco_taco.length).toBe(27);
+	expect(taco_tortilla.length).toBe(82);
+	expect(tortilla_tortilla.length).toBe(15);
+	expect(transitivity.length).toBe(168);
 	expect(Object.keys(facePairs).length).toBe(125);
 	expect(Object.keys(orders).length).toBe(30);
 });
