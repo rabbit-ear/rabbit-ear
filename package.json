@@ -1,6 +1,6 @@
 {
 	"name": "rabbit-ear",
-	"version": "0.9.4",
+	"version": "0.9.41",
 	"description": "origami design library",
 	"exports": {
 		".": {
@@ -16,8 +16,8 @@
 	"type": "module",
 	"types": "./types/index.d.ts",
 	"scripts": {
-		"build": "npm run clean && python3 ./scripts/bundle-shaders.py && rollup -c && npm run types && npm run docs",
-		"clean": "node tests/clean.js",
+		"build": "bun run clean && python3 ./scripts/bundle-shaders.py && rollup -c && bun run types && bun run docs",
+		"clean": "bun run tests/clean.js",
 		"docs": "typedoc --options typedoc.config.json",
 		"test": "mkdir -p ./tests/tmp && vitest",
 		"types": "tsc"
@@ -33,8 +33,8 @@
 	],
 	"license": "GPLv3",
 	"author": {
-		"name": "Maya Kraft",
-		"email": "maya@kraft.work",
+		"name": "Amber Kraft",
+		"email": "amber@kraft.work",
 		"url": "https://kraft.work"
 	},
 	"keywords": [

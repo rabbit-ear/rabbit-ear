@@ -8,17 +8,21 @@ This library assists in encoding, modifying, and rendering origami models. Origa
 
 # version
 
-The current version is 0.9.4 alpha, released 2024.05.12 [changelog](https://rabbit-ear.github.io/rabbit-ear/changelog.html)
+The current version is 0.9.41 alpha, released 2026.10.16 [changelog](https://rabbit-ear.github.io/rabbit-ear/changelog.html)
 
 # download
 
-The Rabbit Ear library is distributed as a single package which contains an ES6 module (for NodeJS, Deno, module scripts), and as UMD/CommonJS single-file bundle (for traditional html scripts)
+The Rabbit Ear library is distributed as a single package which contains an ES6 module (for NodeJS, Bun, module scripts), and as UMD/CommonJS single-file bundle (for traditional html scripts)
 
 ### release
 
 manual download [.zip](https://github.com/rabbit-ear/rabbit-ear/releases/)
 
 ### npm ([link](https://www.npmjs.com/package/rabbit-ear))
+
+```bash
+bun install rabbit-ear
+```
 
 ```bash
 npm install rabbit-ear
@@ -41,6 +45,16 @@ https://rabbit-ear.github.io/rabbit-ear/src/index.js
 The [docs](https://rabbitear.org/docs/) contain technical references for coding with this library.
 
 [FOLD validator/viewer](https://foldfile.com/) validate and visualize a FOLD file, the mesh file format used by this library.
+
+# developers
+
+clone this repository, run `bun i` or `npm i` to install dev dependencies, then to build the project (requires `rollup`):
+
+```bash
+bun run build
+```
+
+> see `packages.json` for build script (currently hard-coded to `bun` instead of `node`)
 
 # license
 
