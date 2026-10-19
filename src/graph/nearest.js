@@ -94,7 +94,7 @@ export const nearestFace = (graph, point) => {
 		if (edge === undefined) {
 			return undefined;
 		}
-		const faces = graph.edges_faces[edge];
+		const faces = graph.edges_faces[edge].filter((f) => f !== null && f !== undefined);
 		if (faces.length === 1) {
 			return faces[0];
 		}

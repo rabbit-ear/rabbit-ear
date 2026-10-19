@@ -176,7 +176,11 @@ export const scale2 = (graph, scaleAmounts = [1, 1], origin = [0, 0]) => {
  */
 export const scale3 = (graph, scaleAmounts = [1, 1, 1], origin = [0, 0, 0]) => {
 	/** @type {[number, number, number]} */
-	const sc3 = [scaleAmounts[0] || 1, scaleAmounts[1] || 1, scaleAmounts[2] || 1];
+	const sc3 = [
+		scaleAmounts[0] === undefined ? 1 : scaleAmounts[0],
+		scaleAmounts[1] === undefined ? 1 : scaleAmounts[1],
+		scaleAmounts[2] === undefined ? 1 : scaleAmounts[2],
+	];
 	const origin3 = resize3(origin);
 	const vertices_coords = graph.vertices_coords
 		.map(resize3)

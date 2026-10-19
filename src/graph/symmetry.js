@@ -70,7 +70,10 @@ export const findSymmetryLines = (graph, epsilon = EPSILON) => {
 	// group similar lines together, resulting in clusters of 1 (no match) or 2. (i think)
 	// First, cluster lines by similar distance from origin.
 	const groupsClusters = reflectionsUniqueLines.map((group) =>
-		clusterScalars(group.map((el) => el.distance)),
+		clusterScalars(
+			group.map((el) => el.distance),
+			epsilon,
+		),
 	);
 
 	// Second, within each cluster, cluster again by similar (parallel) vectors.

@@ -228,7 +228,7 @@ export const sweep = (
 			? { [v1]: 0, [v2]: 0 }
 			: { [v1]: edgesDirection[i], [v2]: -edgesDirection[i] },
 	);
-	const facesVertexSide = faces_vertices.map(([v1, v2], i) =>
+	const facesVertexSide = faces_edgeVertices.map(([v1, v2], i) =>
 		facesDegenerate[i]
 			? { [v1]: 0, [v2]: 0 }
 			: { [v1]: facesDirection[i], [v2]: -facesDirection[i] },

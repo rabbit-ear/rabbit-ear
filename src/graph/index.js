@@ -9,7 +9,7 @@ import * as addEdges from "./add/edge.js";
 import * as boundary from "./boundary/boundary.js";
 import * as boundaryBox from "./boundary/box.js";
 import * as boundaryPlanar from "./boundary/planar.js";
-import * as boundarySplit from "./boundary/split.js";
+import * as boundaryCut from "./boundary/cut.js";
 import * as edgesCircular from "./edges/circular.js";
 import * as edgesDuplicate from "./edges/duplicate.js";
 import * as edgesLines from "./edges/lines.js";
@@ -107,7 +107,7 @@ const graphMethods = {
   ...boundary,
   ...boundaryBox,
   ...boundaryPlanar,
-  ...boundarySplit,
+  ...boundaryCut,
 	...clean,
 	...connectedComponents,
 	...count,

@@ -31,7 +31,7 @@ const LAYER_NUDGE = 5e-6;
  */
 export const prepareForRenderingWithCycles = (
 	inputGraph,
-	{ earcut, layerNudge } = {},
+	{ earcut, layerNudge = LAYER_NUDGE } = {},
 ) => {
 	const graph = clone(inputGraph);
 	const {

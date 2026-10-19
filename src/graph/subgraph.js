@@ -154,8 +154,10 @@ export const subgraph = (graph, indicesToKeep = {}) => {
 	indices.edges.forEach((e) => {
 		lookup.edges[e] = true;
 	});
+	const edges_vertices = graph.edges_vertices || [];
+	const faces_vertices = graph.faces_vertices || [];
 	indices.edges.forEach((edge) =>
-		graph.edges_vertices[edge].forEach((v) => {
+		edges_vertices[edge].forEach((v) => {
 			lookup.vertices[v] = true;
 		}),
 	);
@@ -163,27 +165,27 @@ export const subgraph = (graph, indicesToKeep = {}) => {
 		lookup.faces[f] = true;
 	});
 	indices.faces.forEach((face) =>
-		graph.faces_vertices[face].forEach((v) => {
+		faces_vertices[face].forEach((v) => {
 			lookup.vertices[v] = true;
 		}),
 	);
 	// now, our selection of vertices is complete.
 	// use this to check all edges and faces, and if the full set of
 	// the element's vertices are included, include it as well.
-	graph.faces_vertices
+	faces_vertices
 		.map((_, f) => f)
 		.filter((f) =>
-			graph.faces_vertices[f]
+			faces_vertices[f]
 				.map((v) => lookup.vertices[v])
 				.reduce((a, b) => a && b, true),
 		)
 		.forEach((f) => {
 			lookup.faces[f] = true;
 		});
-	graph.edges_vertices
+	edges_vertices
 		.map((_, e) => e)
 		.filter((e) =>
-			graph.edges_vertices[e]
+			edges_vertices[e]
 				.map((v) => lookup.vertices[v])
 				.reduce((a, b) => a && b, true),
 		)

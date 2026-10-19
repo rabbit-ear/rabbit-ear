@@ -17,6 +17,10 @@ export const connectedComponents = (array_array) => {
 	const components = [];
 	/** @param {number} index @param {number} currentGroup */
 	const recurse = (index, currentGroup) => {
+		// FOLD allows null or undefined in _faces arrays
+		if (index === null || index === undefined || !(index in array_array)) {
+			return 0;
+		}
 		// only set unset component entries.
 		// the return value is only meaningful during the first call to recurse()
 		// for each row, meaning, if this row has already been set at time of the

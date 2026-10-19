@@ -97,7 +97,7 @@ export const getFacesPlane = ({ vertices_coords, faces_vertices }, epsilon = EPS
 	// for every cluster of a shared normal, further divide into clusters where
 	// each inner cluster contains faces which share the same plane
 	const clustersClusters = normalClustersFacesDot.map((dots, i) =>
-		clusterScalars(dots).map((cluster) =>
+		clusterScalars(dots, epsilon).map((cluster) =>
 			cluster.map((index) => normalClustersFaces[i][index]),
 		),
 	);

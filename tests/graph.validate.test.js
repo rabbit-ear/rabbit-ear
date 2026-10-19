@@ -33,7 +33,8 @@ test("validate, contains null inside arrays", () => {
 			[2, 0],
 			[undefined, 0],
 		],
-		vertices_faces: [[0, 1, 2]],
+		// one entry per vertex, so that the only violations are the nulls
+		vertices_faces: [[0, 1, 2], [], []],
 	};
 	const violations = ear.graph.validate(graph);
 	expect(violations.length).toBe(2);

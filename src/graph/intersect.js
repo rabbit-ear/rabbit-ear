@@ -37,7 +37,9 @@ export const intersectLineVertices = (
 		.map((coord) => subtract2(coord, origin))
 		.map((vec) => {
 			const parameter = dot2(vec, vector) / lineMagSq;
-			return Math.abs(cross2(vec, vector)) < epsilon &&
+			// divide by the magnitude so that this is the perpendicular distance
+			// from the line, independent of the length of the line's vector.
+			return Math.abs(cross2(vec, vector)) / lineMag < epsilon &&
 				lineDomain(parameter, epsilon / lineMag)
 				? parameter
 				: undefined;
@@ -113,6 +115,7 @@ export const intersectLineVerticesEdges = (
 						pointsToLine2(s0, s1),
 						lineDomain,
 						includeS,
+						epsilon,
 					)
 				: undefined,
 		)

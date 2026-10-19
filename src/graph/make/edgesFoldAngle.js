@@ -2,6 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import Messages from "../../environment/messages.js";
+import { EPSILON } from "../../math/constant.js";
 import { normalize, dot, subtract } from "../../math/vector.js";
 import { makeFacesNormal } from "../normals.js";
 import { makeFacesEdgesFromVertices } from "./facesEdges.js";
@@ -66,26 +67,28 @@ export const makeEdgesFoldAngleFromFaces = ({
 		}
 		const a = faces_normal[faces[0]];
 		const b = faces_normal[faces[1]];
-		const a2b = normalize(subtract(faces_center[faces[1]], faces_center[faces[0]]));
-		// for mountain creases (faces facing away from each other), set the sign to negative.
-		let sign = Math.sign(dot(a, a2b));
-		// if the sign is zero, the faces are coplanar, it's impossible to tell if
-		// this was because of a mountain or a valley fold.
-		if (sign === 0) {
-			if (edges_assignment && edges_assignment[e]) {
-				if (edges_assignment[e] === "F" || edges_assignment[e] === "F") {
-					sign = 0;
-				}
-				if (edges_assignment[e] === "M" || edges_assignment[e] === "m") {
-					sign = -1;
-				}
-				if (edges_assignment[e] === "V" || edges_assignment[e] === "v") {
-					sign = 1;
-				}
-			} else {
+		// floating point error can push the dot product of two unit vectors past 1
+		const cos = Math.max(-1, Math.min(1, dot(a, b)));
+		const angle = Math.acos(cos) * (180 / Math.PI);
+		// the faces are flat-folded on top of each other (+/-180 degrees). their
+		// centers can coincide, so the sign cannot be inferred from geometry,
+		// it's impossible to tell if this was a mountain or a valley fold.
+		if (180 - angle < EPSILON) {
+			if (!edges_assignment || !edges_assignment[e]) {
 				throw new Error(Messages.flatFoldAngles);
 			}
+			if (edges_assignment[e] === "M" || edges_assignment[e] === "m") {
+				return -180;
+			}
+			if (edges_assignment[e] === "V" || edges_assignment[e] === "v") {
+				return 180;
+			}
+			return 0;
 		}
-		return Math.acos(dot(a, b)) * (180 / Math.PI) * sign;
+		const a2b = normalize(subtract(faces_center[faces[1]], faces_center[faces[0]]));
+		// for mountain creases (faces facing away from each other), set the sign to negative.
+		// if the faces are coplanar (angle is 0), the sign doesn't matter.
+		const sign = dot(a, a2b) < 0 ? -1 : 1;
+		return angle * sign;
 	});
 };

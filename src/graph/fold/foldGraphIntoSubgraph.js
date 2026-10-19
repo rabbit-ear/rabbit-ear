@@ -129,10 +129,15 @@ export const foldGraphIntoSubgraph = (
 		.map((collinear, e) => (collinear ? e : undefined))
 		.filter((a) => a !== undefined)
 		.forEach((edge) => {
-			if (!reassignable[edges_assignment[edge]]) {
+			// "edge" is an index in the crease pattern, check the crease pattern's
+			// assignment (or fold angle), not the new graph's (which has holes here).
+			const isReassignable = cp.edges_assignment
+				? reassignable[cp.edges_assignment[edge]]
+				: !cp.edges_foldAngle || cp.edges_foldAngle[edge] === 0;
+			if (!isReassignable) {
 				return;
 			}
-			const face = edges_faces[edge].filter((a) => a !== undefined).shift();
+			const face = edges_faces[edge].filter((a) => a !== undefined && a !== null).shift();
 			const winding = faces_winding[face];
 			edges_assignment[edge] = winding ? assignment : oppositeAssignment;
 			edges_foldAngle[edge] = winding ? foldAngle : oppositeFoldAngle;

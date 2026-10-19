@@ -201,8 +201,6 @@ export const boundingBox = (points, padding = 0) => {
 				}
 			}),
 		);
-	// apply the padding after the extremes have been found, otherwise the
-	// comparisons above would be made against already-padded values.
 	for (let i = 0; i < dimension; i += 1) {
 		min[i] -= padding;
 		max[i] += padding;

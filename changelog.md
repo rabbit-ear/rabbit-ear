@@ -1,6 +1,25 @@
 # 0.9.42
 
+- new `splitCuts` method 
 - `makeLookAt` matrix4 method last line multiplication order was incorrect
+- issues fixed in `clockwiseSubsectRadians`, `collinearBetween`. 
+- `makeEdgesFaces` sorting faces to match FOLD spec.
+- `makeEdgesFoldAngleFromFaces` near 180 deg and the sign comes from edges_assignment.
+- `mergeFlatBackmaps` / `mergeBackmaps` dropped indices whenever a step removed elements.
+- `sweep()` read each face's first two vertices instead of its leftmost and rightmost
+- `intersectLineVertices`: whether a vertex counts as on the line depended on the length of the line's vector
+- `getEdgesEdgesCollinearOverlap` overlap test used to scale with line length squared
+- `getVerticesCollinearToLine` now measures perpendicular distance instead of an angle test
+- `foldGraphIntoSubgraph` never folded existing flat creases along the fold line: it read the new subgraph's assignment array, which has holes at those indices, instead of the crease pattern's.
+- `validateReferences` now catches arrays that are too short (worked already for too long)
+- `scale3` turned a scale of 0 into 1.
+- `getFacesPlane` / `findSymmetryLines` cluster distances with hardcoded epsilon
+- also check for null in `_faces` arrays, not just undefined
+- folding along an existing flat crease: `simpleFoldLine` crashed when the graph had only one of `edges_assignment` / `edges_foldAngle`
+- `splitGraphWithLineAndPoints` crashed when `splitFace` couldn't split, for example, a face containing a leaf edge
+- `subgraph()` no longer crashes on graphs without faces.
+- `prepareForRenderingWithCycles`, when called directly, gave NaN vertex coordinates because layerNudge had no default.
+- `normalize()` always returns a copy
 
 # 0.9.41
 

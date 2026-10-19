@@ -130,8 +130,10 @@ export const mergeFlatBackmaps = (...maps) => {
 	if (maps.length === 0) {
 		return [];
 	}
-	let solution = maps[0].map((_, i) => i);
-	maps.forEach((map) => {
+	// start with the first backmap itself, not an identity map sized to it,
+	// a backmap can point to indices larger than its own length (removals).
+	let solution = maps[0].slice();
+	maps.slice(1).forEach((map) => {
 		const next = map.map((n) => solution[n]);
 		solution = next;
 	});
@@ -150,9 +152,10 @@ export const mergeBackmaps = (...maps) => {
 	if (maps.length === 0) {
 		return [];
 	}
-	// let solution = maps[0].reduce((a, b) => a.concat(b), []).map((_, i) => [i]);
-	let solution = maps[0].flat().map((_, i) => [i]);
-	maps.forEach((map) => {
+	// start with the first backmap itself, not an identity map sized to it,
+	// a backmap can point to indices larger than its own length (removals).
+	let solution = maps[0].map((el) => (typeof el === "number" ? [el] : [...el]));
+	maps.slice(1).forEach((map) => {
 		const next = [];
 		map.forEach((el, j) => {
 			if (typeof el === "number") {

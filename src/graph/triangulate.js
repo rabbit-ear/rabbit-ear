@@ -9,7 +9,7 @@ import { makeVerticesToEdge, makeVerticesToFace } from "./make/lookup.js";
 /**
  * @description Convert an array of indices into an array of array of
  * indices where each inner array forms a triangle fan: [0, 1, 2, 3, 4]
- * becomes [[0, 1, 2], [1, 2, 3], [1, 3, 4]].
+ * becomes [[0, 1, 2], [0, 2, 3], [0, 3, 4]].
  * @param {number[]} indices an array of indices
  * @returns {number[][]} an array of arrays where the inner arrays are
  * all of length 3.

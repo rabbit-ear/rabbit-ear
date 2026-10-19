@@ -10,11 +10,8 @@ import { sortVerticesCounterClockwise } from "../vertices/sort.js";
 import { makeVerticesToEdge } from "../make/lookup.js";
 import { includeL, excludeS } from "../../math/compare.js";
 import {
-	magnitude2,
 	normalize2,
-	dot2,
 	cross2,
-	scale2,
 	distance,
 	subtract,
 	subtract2,
@@ -649,18 +646,11 @@ export const getVerticesCollinearToLine = (
 	epsilon = EPSILON,
 ) => {
 	const normalizedLineVec = normalize2(vector);
-	const pointIsCollinear = (point) => {
-		const originToPoint = subtract2(point, origin);
-		const mag = magnitude2(originToPoint);
-		// point and origin are the same
-		if (Math.abs(mag) < epsilon) {
-			return true;
-		}
-		// normalize both vectors, compare dot product
-		const originToPointUnit = scale2(originToPoint, 1 / mag);
-		const dotprod = Math.abs(dot2(originToPointUnit, normalizedLineVec));
-		return Math.abs(1.0 - dotprod) < epsilon;
-	};
+	// the perpendicular distance from the point to the line is less than
+	// epsilon. (comparing the angle of the point instead would make the
+	// tolerance grow with the point's distance from the line's origin)
+	const pointIsCollinear = (point) =>
+		Math.abs(cross2(subtract2(point, origin), normalizedLineVec)) < epsilon;
 	return vertices_coords
 		.map(pointIsCollinear)
 		.map((a, i) => ({ a, i }))

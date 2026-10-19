@@ -89,10 +89,12 @@ export const makeEdgesFaces = ({
 	// sort edges_faces in 2D based on which side of the edge's vector
 	// each face lies, sorting the face on the left first. see FOLD spec.
 	edges_faces.forEach((faces, e) => {
-		const faces_cross = faces
-			.map((f) => faces_center[f])
-			.map((center) => subtract2(center, edges_origin[e]))
-			.map((vector) => cross2(vector, edges_vector[e]));
+		/** @type {{ [face: number]: number }} */
+		const faces_cross = {};
+		faces.forEach((f) => {
+			const vector = subtract2(faces_center[f], edges_origin[e]);
+			faces_cross[f] = cross2(vector, edges_vector[e]);
+		});
 		faces.sort((a, b) => faces_cross[a] - faces_cross[b]);
 	});
 	return edges_faces;

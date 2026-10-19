@@ -79,15 +79,21 @@ export const reassignCollinearEdges = (
 	const reassignableEdgesInfo = collinearEdges
 		.map((edge) => ({
 			edge,
-			faces: edges_faces[edge].filter((a) => a !== undefined),
+			faces: edges_faces[edge].filter((a) => a !== undefined && a !== null),
 		}))
 		.filter(({ faces }) => faces.length === 2)
 		.filter(({ faces: [f0, f1] }) => faces_winding[f0] === faces_winding[f1]);
 
+	// only apply the assignment and fold angle if the graph contains these
+	// arrays, it's possible for a graph to contain only one of the two.
 	reassignableEdgesInfo.forEach(({ edge, faces }) => {
 		const winding = faces.map((face) => faces_winding[face]).shift();
-		edges_assignment[edge] = winding ? assignment : oppositeAssignment;
-		edges_foldAngle[edge] = winding ? foldAngle : oppositeFoldAngle;
+		if (edges_assignment) {
+			edges_assignment[edge] = winding ? assignment : oppositeAssignment;
+		}
+		if (edges_foldAngle) {
+			edges_foldAngle[edge] = winding ? foldAngle : oppositeFoldAngle;
+		}
 	});
 
 	// list of edge indices which were reassigned
@@ -147,8 +153,12 @@ export const makeNewFlatFoldFaceOrders = (
 	{ edges_faces, edges_assignment, edges_foldAngle },
 	newEdges,
 ) => {
-	const edges = newEdges.filter((e) => edges_faces[e].length === 2);
-	const edgesAdjacentFaces = edges.map((e) => edges_faces[e]);
+	// edges_faces can contain null (boundary edges in the FOLD spec) or undefined
+	const edgesFaces = newEdges.map((e) =>
+		edges_faces[e].filter((f) => f !== undefined && f !== null),
+	);
+	const edges = newEdges.filter((_, i) => edgesFaces[i].length === 2);
+	const edgesAdjacentFaces = edgesFaces.filter((faces) => faces.length === 2);
 
 	if (edges_assignment) {
 		const assignments = edges.map((e) => edges_assignment[e]);

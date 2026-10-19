@@ -352,8 +352,9 @@ export const splitEdge = (graph, oldEdge, coords = undefined) => {
 	// note: "incidentFaces" may only include 1 face, in the case of a
 	// boundary edge. this needs to be taken account, for example,
 	// to ensure winding order matches across component arrays.
+	// edges_faces can contain null (FOLD spec, and JSON-parsed files) or undefined
 	const incidentFaces = makeEdgesFacesForEdge(graph, oldEdge).filter(
-		(a) => a !== undefined,
+		(a) => a !== undefined && a !== null,
 	);
 	updateFacesVertices(graph, vertex, incidentVertices, incidentFaces);
 	updateFacesEdges(graph, incidentFaces, newEdges);

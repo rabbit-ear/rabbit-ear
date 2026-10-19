@@ -39,17 +39,27 @@ const arraysHaveSameIndices = (arrays = []) => {
 	arrays[0].forEach((_, i) => {
 		indices[i] = true;
 	});
-	// arrays 1...N-1. test each array against array 0.
+	// arrays 1...N-1. test each array against array 0, in both directions:
+	// indices in this array missing from array 0, and indices in array 0
+	// missing from this array.
 	return Array.from(Array(arrays.length - 1))
 		.map((_, i) => arrays[i + 1])
-		.flatMap((arr, p) =>
-			arr
-				// if error, return [a, b, i], where a and b are the indices
-				// of the arrays inside "arrays" param, and i is the out of place index.
-				// (p is off by one due to i + 1 mapping 0...N-2 to 1...N-1).
+		.flatMap((arr, p) => {
+			const arrIndices = {};
+			arr.forEach((_, i) => {
+				arrIndices[i] = true;
+			});
+			// if error, return [a, b, i], where a and b are the indices
+			// of the arrays inside "arrays" param, and i is the out of place index.
+			// (p is off by one due to i + 1 mapping 0...N-2 to 1...N-1).
+			const extra = arr
 				.map((_, i) => (indices[i] ? undefined : [0, p + 1, i]))
-				.filter((a) => a !== undefined),
-		);
+				.filter((a) => a !== undefined);
+			const missing = arrays[0]
+				.map((_, i) => (arrIndices[i] ? undefined : [0, p + 1, i]))
+				.filter((a) => a !== undefined);
+			return extra.concat(missing);
+		});
 };
 
 /**

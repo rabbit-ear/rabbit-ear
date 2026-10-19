@@ -3,7 +3,7 @@
  */
 import { EPSILON } from "../math/constant.js";
 import { include, exclude, excludeS, includeS } from "../math/compare.js";
-import { dot, resize2, add2, scale2 } from "../math/vector.js";
+import { dot, normalize, resize2, add2, scale2 } from "../math/vector.js";
 import { boundingBox } from "../math/polygon.js";
 import { intersectLineLine } from "../math/intersect.js";
 import {
@@ -233,8 +233,11 @@ export const getEdgesEdgesCollinearOverlap = (
 
 	// we're going to project each edge onto the shared line, we can't use
 	// each edge's vector, we have to use the edge's line's common vector.
+	// normalize the vector so that the ranges are in units of distance,
+	// otherwise the epsilon comparison would scale with the line's length.
+	const lines_unitVector = lines.map(({ vector }) => normalize(vector));
 	const edges_range = makeEdgesCoords({ vertices_coords, edges_vertices }).map(
-		(points, e) => points.map((point) => dot(lines[edges_line[e]].vector, point)),
+		(points, e) => points.map((point) => dot(lines_unitVector[edges_line[e]], point)),
 	);
 
 	/** @type {number[][]} */

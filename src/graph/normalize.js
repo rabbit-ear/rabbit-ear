@@ -10,20 +10,20 @@ import { remapKey } from "./maps.js";
  * designed so that the user can re-merge the graphs. Alternatively, you can
  * run this method to make a subgraph a valid FOLD object with no holes.
  * @param {FOLD} graph a FOLD object
- * @returns {FOLD} a copy of the input FOLD graph, with no array holes.
+ * @returns {FOLD} the same FOLD graph, modified in place, with no array holes.
  */
 export const normalize = (graph) => {
 	const maps = { vertices: [], edges: [], faces: [] };
 	let v = 0;
 	let e = 0;
 	let f = 0;
-	graph.vertices_coords.forEach((_, i) => {
+	(graph.vertices_coords || []).forEach((_, i) => {
 		maps.vertices[i] = v++;
 	});
-	graph.edges_vertices.forEach((_, i) => {
+	(graph.edges_vertices || []).forEach((_, i) => {
 		maps.edges[i] = e++;
 	});
-	graph.faces_vertices.forEach((_, i) => {
+	(graph.faces_vertices || []).forEach((_, i) => {
 		maps.faces[i] = f++;
 	});
 	remapKey(graph, "vertices", maps.vertices);

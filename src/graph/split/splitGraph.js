@@ -186,20 +186,27 @@ export const splitGraphWithLineAndPoints = (
 			// - splitting edge between two faces
 			// - leaf edge with a leaf vertex that cuts into one non-split face
 			// - isolated edge, inside the face but unassociated with any face
-			const {
-				edge: newEdgeIndex,
-				faces: { map },
-			} = splitFace(graph, newFace, newEdgeVertices);
+			// splitFace can decline (return {}), for example if the face visits
+			// the same vertex twice (contains a leaf edge), in which case no
+			// new edge is made and the face is left unchanged.
+			const { edge: newEdgeIndex, faces: { map } = {} } = splitFace(
+				graph,
+				newFace,
+				newEdgeVertices,
+			);
 
 			// new edge (and possibly new vertices) were just created, update
 			// the source information that created these new components.
 			// "face" is the index as it relates to the input graph,
 			// "faces" will be set to the finished graph's new indices for
 			// whatever the original face turned into (either one or two faces).
-			edgesSource[newEdgeIndex] = { face, faces: undefined };
 			isolatedPointVertices.forEach((vertex, i) => {
 				verticesSource[vertex] = { ...points[i], face, faces: undefined };
 			});
+			if (newEdgeIndex === undefined) {
+				return;
+			}
+			edgesSource[newEdgeIndex] = { face, faces: undefined };
 
 			// face indices were heavily modified, update the face map
 			faceMap = map === undefined ? faceMap : mergeNextmaps(faceMap, map);
