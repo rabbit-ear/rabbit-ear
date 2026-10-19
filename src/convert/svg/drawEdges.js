@@ -306,9 +306,11 @@ export const edgesLines = (graph, options = {}) => {
 
 	if (graph.edges_assignment) {
 		// add lines to their corresponding assignment's line group.
+		// groups were made for uppercase assignments only, lowercase is valid
+		// FOLD, and any unknown assignment will be placed in the "U" group.
 		lines.forEach((line, i) => {
-			const assignment = graph.edges_assignment[i] || "U";
-			groupsByAssignment[assignment].appendChild(line);
+			const assignment = (graph.edges_assignment[i] || "U").toUpperCase();
+			(groupsByAssignment[assignment] || groupsByAssignment.U).appendChild(line);
 		});
 	} else {
 		// add all lines to the "unassigned" group if no assignments exist

@@ -14,10 +14,14 @@ const getParenNumbers = (str) => {
 	if (match == null || !match.length) {
 		return [];
 	}
-	return match[0]
-		.substring(1, match[0].length - 1)
-		.split(/[\s,]+/)
-		.map(parseFloat);
+	return (
+		match[0]
+			.substring(1, match[0].length - 1)
+			// separated by commas or spaces, in modern CSS syntax a slash
+			// separates the alpha value, as in "rgb(255 0 0 / 0.5)"
+			.split(/[\s,/]+/)
+			.map(parseFloat)
+	);
 };
 
 /**
@@ -73,7 +77,13 @@ const parseColorToHex = (string) => {
 		return rgbToHex(r, g, b, a);
 	}
 	if (string.substring(0, 4) === "rgba" || string.substring(0, 3) === "rgb") {
-		const [r, g, b, a] = getParenNumbers(string);
+		const values = getParenNumbers(string);
+		[0, 1, 2]
+			.filter((i) => values[i] === undefined)
+			.forEach((i) => {
+				values[i] = 0;
+			});
+		const [r, g, b, a] = values;
 		return rgbToHex(r, g, b, a);
 	}
 	if (string.substring(0, 4) === "hsla" || string.substring(0, 3) === "hsl") {

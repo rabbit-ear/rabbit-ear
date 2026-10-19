@@ -72,6 +72,12 @@ export const solveLayerOrders = (
 	if (!edges_faces) {
 		// eslint-disable-next-line no-param-reassign
 		edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_vertices, faces_edges });
+	} else {
+    // solver expect edges_faces to not have any null or undefined
+		// eslint-disable-next-line no-param-reassign
+		edges_faces = edges_faces.map((faces) =>
+			faces.filter((face) => face !== null && face !== undefined),
+		);
 	}
 
 	// these are needed for the 3D solver.
@@ -159,6 +165,12 @@ export const solveLayerOrdersSingleBranches = (
 	if (!edges_faces) {
 		// eslint-disable-next-line no-param-reassign
 		edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_vertices, faces_edges });
+	} else {
+    // solver expect edges_faces to not have any null or undefined
+		// eslint-disable-next-line no-param-reassign
+		edges_faces = edges_faces.map((faces) =>
+			faces.filter((face) => face !== null && face !== undefined),
+		);
 	}
 
 	// find an appropriate epsilon, but only if it is not specified
@@ -237,6 +249,12 @@ export const solveLayerOrders3D = (
 	if (!edges_faces) {
 		// eslint-disable-next-line no-param-reassign
 		edges_faces = makeEdgesFacesUnsorted({ edges_vertices, faces_vertices, faces_edges });
+	} else {
+    // solver expect edges_faces to not have any null or undefined
+		// eslint-disable-next-line no-param-reassign
+		edges_faces = edges_faces.map((faces) =>
+			faces.filter((face) => face !== null && face !== undefined),
+		);
 	}
 
 	// these are needed for the 3D solver.

@@ -175,9 +175,7 @@ export const subgraph = (graph, indicesToKeep = {}) => {
 	faces_vertices
 		.map((_, f) => f)
 		.filter((f) =>
-			faces_vertices[f]
-				.map((v) => lookup.vertices[v])
-				.reduce((a, b) => a && b, true),
+			faces_vertices[f].map((v) => lookup.vertices[v]).reduce((a, b) => a && b, true),
 		)
 		.forEach((f) => {
 			lookup.faces[f] = true;
@@ -185,9 +183,7 @@ export const subgraph = (graph, indicesToKeep = {}) => {
 	edges_vertices
 		.map((_, e) => e)
 		.filter((e) =>
-			edges_vertices[e]
-				.map((v) => lookup.vertices[v])
-				.reduce((a, b) => a && b, true),
+			edges_vertices[e].map((v) => lookup.vertices[v]).reduce((a, b) => a && b, true),
 		)
 		.forEach((e) => {
 			lookup.edges[e] = true;

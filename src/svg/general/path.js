@@ -4,7 +4,9 @@
  */
 
 const markerRegEx = /[MmLlSsQqLlHhVvCcSsQqTtAaZz]/g;
-const digitRegEx = /-?[0-9]*\.?\d+/g;
+// numbers can be signed, have no leading digit (".5"), and an exponent ("1e-5").
+// consecutive decimals are separate numbers: "1.5.5" is 1.5 and 0.5.
+const digitRegEx = /[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?/g;
 
 /**
  * @description Path names in English
@@ -92,30 +94,62 @@ const parsePathCommands = (d) => {
 		});
 };
 
+/**
+ * @description The number of values which make up one set of parameters
+ * for each command. A command can contain multiple sets of values,
+ * for example "L 1 1 2 2" is two line commands.
+ */
+const commandValueCount = { M: 2, L: 2, H: 1, V: 1, C: 6, S: 4, Q: 4, T: 2, A: 7, Z: 0 };
+
+/**
+ * @description Split a command which contains multiple sets of values into
+ * a list of commands, each containing one set. In the case of a move command,
+ * all additional sets of values are implicitly line commands (SVG spec).
+ * @param {{ command: string, values: number[] }} command a parsed command
+ * @returns {{ command: string, values: number[] }[]} a list of commands
+ */
+const splitCommandValueSets = ({ command, values }) => {
+	const upper = command.toUpperCase();
+	const count = commandValueCount[upper];
+	if (!count || values.length <= count) {
+		return [{ command, values }];
+	}
+	const lineCommand = command === upper ? "L" : "l";
+	return Array.from(Array(Math.floor(values.length / count))).map((_, i) => ({
+		command: i > 0 && upper === "M" ? lineCommand : command,
+		values: values.slice(i * count, (i + 1) * count),
+	}));
+};
+
+/**
+ * @description Parse a path "d" attribute into an array of objects, one for
+ * every segment, where each object contains a command, its numerical values,
+ * and the start and end points of the segment. Commands with multiple sets
+ * of values ("L 1 1 2 2") will be split into multiple commands.
+ * @param {string} d the "d" attribute of a path.
+ * @returns {{
+ *   command: string,
+ *   values: number[],
+ *   start: number[],
+ *   end: number[],
+ * }[]}
+ */
 const parsePathCommandsWithEndpoints = (d) => {
 	let pen = [0, 0];
-	const parsedCommands = parsePathCommands(d);
-	const commands = parsedCommands.map((obj) => ({
-		...obj,
-		end: undefined,
-		start: undefined,
-	}));
-	if (!commands.length) {
-		return commands;
-	}
-	commands.forEach((command, i) => {
-		commands[i].end = getEndpoint(command.command, command.values, pen);
-		commands[i].start = i === 0 ? pen : commands[i - 1].end;
-		pen = commands[i].end;
-	});
-	const last = commands[commands.length - 1];
-	const firstDrawCommand = commands
-		.filter((el) => el.command.toUpperCase() !== "M" && el.command.toUpperCase() !== "Z")
-		.shift();
-	if (last.command.toUpperCase() === "Z") {
-		last.end = [...firstDrawCommand.start];
-	}
-	return commands;
+	// the start of the current subpath, this is where a "Z" command returns to
+	let subpathStart = [0, 0];
+	return parsePathCommands(d)
+		.flatMap(splitCommandValueSets)
+		.map(({ command, values }) => {
+			const upper = command.toUpperCase();
+			const start = pen;
+			const end = upper === "Z" ? [...subpathStart] : getEndpoint(command, values, pen);
+			if (upper === "M") {
+				subpathStart = end;
+			}
+			pen = end;
+			return { command, values, start, end };
+		});
 };
 
 export { parsePathCommands, parsePathCommandsWithEndpoints, pathCommandNames };

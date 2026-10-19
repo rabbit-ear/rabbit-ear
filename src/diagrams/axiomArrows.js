@@ -199,8 +199,10 @@ export const axiom6Arrows = (
  * @description Create an array of arrows which neatly describes the action of
  * performing origami axiom 7 on a given FOLD object with 2D vertices.
  * @param {FOLD} graph a FOLD object
- * @param {VecLine2} line1 the first line needed for axiom 7
- * @param {VecLine2} line2 the second line needed for axiom 7
+ * @param {VecLine2} line1 the first line needed for axiom 7,
+ * the line which will be folded onto itself.
+ * @param {VecLine2} line2 the second line needed for axiom 7,
+ * the line the point will be brought onto.
  * @param {[number, number]} point the point needed for axiom 7
  * @param {{ vmax?: number, padding?: number }} [options = {}]
  * @returns {Arrow[]} an array of definitions for arrows.
@@ -211,10 +213,11 @@ export const axiom7Arrows = ({ vertices_coords }, line1, line2, point, options) 
 	return axiom7(line1, line2, point)
 		.flatMap((foldLine) => [
 			[point, diagramReflectPoint(foldLine, point)],
+			// line1 is folded onto itself, about its intersection with the fold line
 			perpendicularBalancedSegment(
 				hull,
 				foldLine,
-				intersectLineLine(foldLine, line2).point,
+				intersectLineLine(foldLine, line1).point,
 			),
 		])
 		.filter((a) => a !== undefined) // is this?

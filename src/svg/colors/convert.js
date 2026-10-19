@@ -10,7 +10,7 @@ const roundF = (n) => Math.round(n * 100) / 100;
 
 /**
  * @description Convert hue-saturation-lightness values into
- * three RGB values, each between 0 and 1 (not 0-255).
+ * three RGB values, each between 0 and 255.
  * @param {number} hue value between 0 and 360
  * @param {number} saturation value between 0 and 100
  * @param {number} lightness value between 0 and 100
@@ -44,10 +44,11 @@ const mapHexNumbers = (numbers, map) => {
 
 /**
  * @description Convert a hex string into an array of
- * three numbers, the rgb values (between 0 and 1).
- * This ignores any alpha values.
+ * three numbers, the rgb values (between 0 and 255), or four numbers
+ * if the hex string contains an alpha value (between 0 and 1).
  * @param {string} string a hex color code as a string
- * @returns {number[]} three values between 0 and 255
+ * @returns {number[]} three values between 0 and 255, or four
+ * if an alpha value is provided, where the fourth is between 0 and 1.
  * @linkcode Origami ./src/convert/svgParsers/colors/hexToRGB.js 10
  */
 const hexToRgb = (string) => {
@@ -58,7 +59,7 @@ const hexToRgb = (string) => {
 		: mapHexNumbers(numbers, [0, 0, 1, 1, 2, 2]);
 	const c = parseInt(hexString, 16);
 	return hasAlpha
-		? [(c >> 24) & 255, (c >> 16) & 255, (c >> 8) & 255, roundF((c & 255) / 256)]
+		? [(c >> 24) & 255, (c >> 16) & 255, (c >> 8) & 255, roundF((c & 255) / 255)]
 		: [(c >> 16) & 255, (c >> 8) & 255, c & 255];
 };
 

@@ -141,6 +141,9 @@ export const clusterScalars = (numbers, epsilon = EPSILON) => {
  * a list of indices which point to the "ranges" input array.
  */
 export const clusterRanges = (ranges, epsilon = EPSILON) => {
+	if (!ranges.length) {
+		return [];
+	}
 	// sort the ranges by the minimum element, save it as a list of indices
 	const indices = ranges
 		.map(([a, b], i) => ({ v: Math.min(a, b), i }))

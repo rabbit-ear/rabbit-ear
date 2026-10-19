@@ -16,7 +16,10 @@ import { svg_multiplyMatrices2 } from "./algebra.js";
  * the "parameters" is a list of floats.
  */
 const parseTransform = (transform) => {
-	const parsed = transform.match(/(\w+\((\-?\d+\.?\d*e?\-?\d*,?\s*)+\))+/g);
+	// numbers can be signed, have no leading digit (".5"), and an exponent.
+	const parsed = transform.match(
+		/(\w+\(([-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?[,\s]*)+\))+/g,
+	);
 	if (!parsed) {
 		return [];
 	}
@@ -44,8 +47,8 @@ const matrixFormTranslate = function (params) {
 };
 
 const matrixFormRotate = function (params) {
-	const cos_p = Math.cos(params[0] / (180 * Math.PI));
-	const sin_p = Math.sin(params[0] / (180 * Math.PI));
+	const cos_p = Math.cos((params[0] * Math.PI) / 180);
+	const sin_p = Math.sin((params[0] * Math.PI) / 180);
 	switch (params.length) {
 		case 1:
 			return [cos_p, sin_p, -sin_p, cos_p, 0, 0];
@@ -77,11 +80,11 @@ const matrixFormScale = function (params) {
 };
 
 const matrixFormSkewX = function (params) {
-	return [1, 0, Math.tan(params[0] / (180 * Math.PI)), 1, 0, 0];
+	return [1, 0, Math.tan((params[0] * Math.PI) / 180), 1, 0, 0];
 };
 
 const matrixFormSkewY = function (params) {
-	return [1, Math.tan(params[0] / (180 * Math.PI)), 0, 1, 0, 0];
+	return [1, Math.tan((params[0] * Math.PI) / 180), 0, 1, 0, 0];
 };
 
 const matrixForm = function (transformType, params) {

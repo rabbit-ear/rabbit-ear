@@ -171,8 +171,12 @@ const getUserAssignmentOptions = (options) => {
 	}
 	const assignments = {};
 	Object.keys(options.assignments).forEach((key) => {
-		const hex = parseColorToHex(key).toUpperCase();
-		assignments[hex] = options.assignments[key];
+		// skip any keys which cannot be parsed as a color
+		const hex = parseColorToHex(key);
+		if (hex === undefined) {
+			return;
+		}
+		assignments[hex.toUpperCase()] = options.assignments[key];
 	});
 	return assignments;
 };

@@ -106,7 +106,9 @@ Graph.prototype.clear = function () {
 };
 
 /**
- * @description return a shallow copy of this graph with the vertices folded.
+ * @description Fold the vertices of this graph, modifying this graph
+ * in place, and set its frame_classes to "foldedForm". Returns this graph.
+ * Use clone() first to keep the unfolded graph.
  * This method works for both 2D and 3D origami.
  * The angle of the fold is searched for in this order:
  * - faces_matrix2 if it exists
@@ -127,7 +129,9 @@ Graph.prototype.folded = function () {
 };
 
 /**
- * @description return a copy of this graph with the vertices folded.
+ * @description Flat-fold the vertices of this graph, modifying this graph
+ * in place, and set its frame_classes to "foldedForm". Returns this graph.
+ * Use clone() first to keep the unfolded graph.
  * This method will work for 2D only.
  * The angle of the fold is searched for in this order:
  * - faces_matrix2 if it exists

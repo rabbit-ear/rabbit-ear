@@ -50,8 +50,12 @@ const init = function (parent, ...args) {
 	paths[1].setAttribute(str_stroke, str_none);
 	paths[2].setAttribute(str_stroke, str_none);
 	element.options = makeArrowOptions();
+	// options is undefined if the user did not provide an options object
 	const options = matchingOptions(...args);
-	ArrowMethods.setPoints(element, ...(options.segment || args));
+	ArrowMethods.setPoints(
+		element,
+		...(options && options.segment ? options.segment : args),
+	);
 	if (options) {
 		Object.keys(options)
 			.filter((key) => ArrowMethods[key])

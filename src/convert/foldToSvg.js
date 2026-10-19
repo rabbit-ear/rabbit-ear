@@ -223,7 +223,7 @@ export const renderSVG = (graph, element, options = {}) => {
  * const svg = foldToSvg(birdBase, {
  *   string: true,
  *   vertices: false,
- *   edges: { mountain: "lightgray", valley: "blue" },
+ *   edges: { mountain: { stroke: "lightgray" }, valley: { stroke: "blue" } },
  *   faces: false,
  *   boundaries: false,
  * });

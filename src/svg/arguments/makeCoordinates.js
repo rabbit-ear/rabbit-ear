@@ -14,22 +14,21 @@ import { str_number, str_object } from "../environment/strings.js";
  * findCoordinates(...flatten(...args));
  */
 const makeCoordinates = (...args) =>
-	args
-		.filter((a) => typeof a === str_number)
-		.concat(
-			args
-				.filter((a) => typeof a === str_object && a !== null)
-				.map((el) => {
-					if (typeof el.x === str_number) {
-						return [el.x, el.y];
-					}
-					if (typeof el[0] === str_number) {
-						return [el[0], el[1]];
-					}
-					return undefined;
-				})
-				.filter((a) => a !== undefined)
-				.reduce((a, b) => a.concat(b), []),
-		);
+	// the order of the arguments is preserved, numbers and points can be mixed
+	args.flatMap((el) => {
+		if (typeof el === str_number) {
+			return [el];
+		}
+		if (typeof el !== str_object || el === null) {
+			return [];
+		}
+		if (typeof el.x === str_number) {
+			return [el.x, el.y];
+		}
+		if (typeof el[0] === str_number) {
+			return [el[0], el[1]];
+		}
+		return [];
+	});
 
 export { makeCoordinates as default };

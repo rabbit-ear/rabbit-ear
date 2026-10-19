@@ -13,6 +13,7 @@ import { makeVerticesVertices } from "../graph/make/verticesVertices.js";
 import { makeVerticesEdges } from "../graph/make/verticesEdges.js";
 import { makeVerticesFaces } from "../graph/make/verticesFaces.js";
 import { makeVerticesVerticesVector } from "../graph/make/vertices.js";
+import { makeEdgesFoldAngle } from "../graph/make/edgesFoldAngle.js";
 
 /**
  * @description Given a crease pattern, this method will test every vertex
@@ -33,10 +34,17 @@ export const verticesFoldability = ({
 	vertices_edges,
 	vertices_faces,
 	edges_vertices,
+	edges_assignment,
 	edges_foldAngle,
 	edges_vector,
 	faces_vertices,
 }) => {
+	// a crease pattern will often contain only edges_assignment, in which
+	// case, infer the (flat) fold angles from the assignments.
+	if (!edges_foldAngle && edges_assignment) {
+		// eslint-disable-next-line no-param-reassign
+		edges_foldAngle = makeEdgesFoldAngle({ edges_assignment });
+	}
 	if (!vertices_vertices) {
 		// eslint-disable-next-line no-param-reassign
 		vertices_vertices = makeVerticesVertices({

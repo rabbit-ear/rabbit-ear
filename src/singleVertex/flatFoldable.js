@@ -6,7 +6,10 @@ import { resize2 } from "../math/vector.js";
 import { counterClockwiseSectors2 } from "../math/radial.js";
 import { assignmentCanBeFolded, assignmentFlatFoldAngle } from "../fold/spec.js";
 import { makeVerticesVertices } from "../graph/make/verticesVertices.js";
-import { makeVerticesEdgesUnsorted } from "../graph/make/verticesEdges.js";
+import {
+	makeVerticesEdgesUnsorted,
+	makeVerticesEdges,
+} from "../graph/make/verticesEdges.js";
 import { makeVerticesVerticesVector } from "../graph/make/vertices.js";
 import { boundaryVertices } from "../graph/boundary/boundary.js";
 import { alternatingSum } from "./kawasaki.js";
@@ -34,8 +37,9 @@ const getVerticesWithNoFolds = ({ vertices_edges, edges_assignment }) =>
  * for each vertex. This assumes that you are passing in a flat-foldable
  * crease pattern, it assumes that all mountain/valley are flat folded.
  * @param {FOLD} graph a FOLD object
- * @returns {number[]} for every vertex, the number of its edges which violate
- * Maekawa's theorem (0 means that the theorem is satisfied).
+ * @returns {number[]} for every vertex, the deviation from Maekawa's theorem,
+ * |M - V| - 2, where 0 means that the theorem is satisfied (this can be
+ * negative, for example, a vertex with only one mountain fold is -1).
  */
 export const verticesFlatFoldabilityMaekawa = ({
 	edges_vertices,
@@ -71,6 +75,8 @@ export const verticesFlatFoldabilityMaekawa = ({
  * @description For every vertex, check if Kawasaki's theorem is satisfied.
  * The result is in the form of a scalar value, how much the vertex deviates
  * from being satisfied, where a 0 (or near to 0) means the vertex is valid.
+ * If vertices_edges is provided, it must be sorted radially, to match
+ * vertices_vertices (see makeVerticesEdges).
  * @param {FOLD} graph a FOLD object
  * @returns {number[]} for every vertex, a deviation value, where a value
  * of near-zero indicates the theorem is satisfied for this vertex, if not,
@@ -92,9 +98,11 @@ export const verticesFlatFoldabilityKawasaki = ({
 			edges_vertices,
 		});
 	}
+	// vertices_edges must be sorted (matching vertices_vertices), as it is
+	// used to filter the radially sorted vectors by their edge's assignment.
 	if (!vertices_edges) {
 		// eslint-disable-next-line no-param-reassign
-		vertices_edges = makeVerticesEdgesUnsorted({ edges_vertices });
+		vertices_edges = makeVerticesEdges({ edges_vertices, vertices_vertices });
 	}
 	const verticesValidAmount = makeVerticesVerticesVector({
 		vertices_coords,

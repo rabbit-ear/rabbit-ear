@@ -115,7 +115,10 @@ export const collinearBetween = (p0, p1, p2, inclusive = false, epsilon = EPSILO
 	const p0ToP1 = subtract(p1, p0);
 	const t = dot(p0ToP1, vector) / magSq;
 	// perpendicular distance check: is p1 actually on the line?
-	const perpendicular = subtract(p0ToP1, vector.map((n) => n * t));
+	const perpendicular = subtract(
+		p0ToP1,
+		vector.map((n) => n * t),
+	);
 	if (Math.sqrt(dot(perpendicular, perpendicular)) > epsilon) {
 		return false;
 	}

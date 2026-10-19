@@ -202,9 +202,9 @@ export const validAxiom6 = (graph, line1, line2, point1, point2) => {
 /**
  * @param {FOLD} graph a FOLD graph, folded or crease pattern
  * @param {UniqueLine} line1 one 2D line in {normal, distance} form,
- * the line the point will be brought onto.
+ * the line which will be folded onto itself (the fold is perpendicular to it).
  * @param {UniqueLine} line2 one 2D line in {normal, distance} form,
- * the line which the perpendicular will be based off.
+ * the line the point will be brought onto.
  * @param {[number, number]} point the point to bring onto the line
  * @returns {UniqueLine[]}
  */
@@ -223,9 +223,9 @@ export const validNormalAxiom7 = (graph, line1, line2, point) => {
 /**
  * @param {FOLD} graph a FOLD graph, folded or crease pattern
  * @param {VecLine2} line1 one 2D line in {vector, origin} form,
- * the line the point will be brought onto.
+ * the line which will be folded onto itself (the fold is perpendicular to it).
  * @param {VecLine2} line2 one 2D line in {vector, origin} form,
- * the line which the perpendicular will be based off.
+ * the line the point will be brought onto.
  * @param {[number, number]} point the point to bring onto the line
  * @returns {VecLine2[]}
  */

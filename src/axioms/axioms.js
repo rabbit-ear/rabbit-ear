@@ -160,13 +160,14 @@ export const axiom4 = ({ vector }, point) => [
  * @param {UniqueLine} line one 2D line in {normal, distance} form
  * @param {[number, number]} point1 one 2D point, the point that the line(s) pass through
  * @param {[number, number]} point2 one 2D point, the point that is being brought onto the line
- * @returns {[UniqueLine?, UniqueLine?]} an array of solutions in {normal, distance} form
+ * @returns {UniqueLine[]} an array of zero, one, or two solutions in {normal, distance} form
  */
 export const normalAxiom5 = (line, point1, point2) => {
 	const p1base = dot2(point1, line.normal);
+	// the signed distance from point1 to the line. can be negative
 	const a = line.distance - p1base;
 	const c = distance2(point1, point2);
-	if (a > c) {
+	if (Math.abs(a) > c) {
 		return [];
 	}
 	const b = Math.sqrt(c * c - a * a);
@@ -178,10 +179,11 @@ export const normalAxiom5 = (line, point1, point2) => {
 		b < EPSILON
 			? [base_center]
 			: [add2(base_center, base_vector), subtract2(base_center, base_vector)];
-	const [resultA, resultB] = mirrors
+	// in the tangent case there is only one solution,
+	// result array will contain only one line
+	return mirrors
 		.map((pt) => normalize2(subtract2(point2, pt)))
 		.map((normal) => ({ normal, distance: dot2(point1, normal) }));
-	return [resultA, resultB];
 };
 
 /**
@@ -213,12 +215,6 @@ export const axiom5 = (line, point1, point2) =>
  * an array of solutions in {normal, distance} form
  */
 export const normalAxiom6 = (line1, line2, point1, point2) => {
-	// at least pointA must not be on lineA
-	// for some reason this epsilon is much higher than 1e-6
-	if (Math.abs(1 - dot2(line1.normal, point1) / line1.distance) < 0.02) {
-		return [];
-	}
-
 	// line vec is the first line's vector, along the line, not the normal
 	const line_vec = rotate90(line1.normal);
 	const vec1 = subtract2(
@@ -248,8 +244,12 @@ export const normalAxiom6 = (line1, line2, point1, point2) => {
 	} else if (Math.abs(b) > EPSILON) {
 		coefficients = [a, b];
 	}
+	// each root is the location along line1 where point1 lands. if point1
+	// lands on itself (it was already on line1) the fold line is undefined,
+	// filter out these degenerate solutions.
 	return polynomialSolver(coefficients)
 		.map((n) => add2(scale2(line1.normal, line1.distance), scale2(line_vec, n)))
+		.filter((p) => distance2(p, point1) > EPSILON)
 		.map((p) => ({ p, normal: normalize2(subtract2(p, point1)) }))
 		.map((el) => ({
 			normal: el.normal,
@@ -276,21 +276,27 @@ export const axiom6 = (line1, line2, point1, point2) =>
 
 /**
  * @description origami axiom 7: form a line by bringing a point onto a given line
- * while being perpendicular to another given line.
+ * while being perpendicular to another given line. The first line is folded
+ * onto itself (as in axiom 4), it decides the direction of the fold line,
+ * and the point and the second line decide its position.
  * @param {UniqueLine} line1 one 2D line in {normal, distance} form,
- * the line the point will be brought onto.
+ * the line which will be folded onto itself (the fold is perpendicular to it).
  * @param {UniqueLine} line2 one 2D line in {normal, distance} form,
- * the line which the perpendicular will be based off.
+ * the line the point will be brought onto.
  * @param {[number, number]} point the point to bring onto the line
- * @returns {[UniqueLine?]} an array of one solution in {normal, distance} form
+ * @returns {[UniqueLine?]} an array of one solution in {normal, distance} form,
+ * or an empty array if the given lines are parallel
  */
 export const normalAxiom7 = (line1, line2, point) => {
+	// the fold line is perpendicular to line1, so the fold line's normal
+	// is the direction of line1.
 	const normal = rotate90(line1.normal);
 	const norm_norm = dot2(normal, line2.normal);
 	// if norm_norm is close to 0, the two input lines are parallel, no solution
 	if (Math.abs(norm_norm) < EPSILON) {
-		return undefined;
+		return [];
 	}
+	// reflect the point across the fold line so that it lands on line2
 	const a = dot2(point, normal);
 	const b = dot2(point, line2.normal);
 	const distance = (line2.distance + 2.0 * a * norm_norm - b) / (2.0 * norm_norm);
@@ -299,19 +305,23 @@ export const normalAxiom7 = (line1, line2, point) => {
 
 /**
  * @description origami axiom 7: form a line by bringing a point onto a given line
- * while being perpendicular to another given line.
+ * while being perpendicular to another given line. The first line is folded
+ * onto itself (as in axiom 4), it decides the direction of the fold line,
+ * and the point and the second line decide its position.
  * @param {VecLine2} line1 one 2D line in {vector, origin} form,
- * the line the point will be brought onto.
+ * the line which will be folded onto itself (the fold is perpendicular to it).
+ * Only the vector of this line is used.
  * @param {VecLine2} line2 one 2D line in {vector, origin} form,
- * the line which the perpendicular will be based off.
+ * the line the point will be brought onto.
  * @param {[number, number]} point the point to bring onto the line
- * @returns {[VecLine2?]} the line in {vector, origin} form
- * or undefined if the given lines are parallel
+ * @returns {[VecLine2?]} an array of one solution in {vector, origin} form,
+ * or an empty array if the given lines are parallel
  */
 export const axiom7 = (line1, line2, point) => {
+	// the point travels parallel to line1 until it lands on line2.
 	const intersect = intersectLineLine(
-		line1,
-		{ vector: line2.vector, origin: point },
+		line2,
+		{ vector: line1.vector, origin: point },
 		includeL,
 		includeL,
 	).point;
@@ -319,9 +329,10 @@ export const axiom7 = (line1, line2, point) => {
 		? []
 		: [
 				{
-					// todo: switch this out, but test it as you do
-					vector: normalize2(rotate90(subtract2(intersect, point))),
-					// vector: normalize2(rotate90(line2.vector)),
+					// the fold line is perpendicular to line1. (using the vector between
+					// the point and the intersection would be degenerate if the point
+					// already lies on line2)
+					vector: normalize2(rotate90(line1.vector)),
 					origin: midpoint2(point, intersect),
 				},
 			];

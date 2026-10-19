@@ -44,11 +44,13 @@ export const nonUniqueElements = (array) => {
  * @example [3, 2, 1.5, 2, 3] will result in [1.5, 2, 3]
  */
 export const uniqueSortedNumbers = (array) => {
-	const hash = {};
-	array.forEach((n) => {
-		hash[n] = true;
-	});
-	return Object.keys(hash).map(parseFloat);
+	// values are coerced into numbers (as the previous implementation did,
+	// via object keys), so "4" or [4] become 4. object keys are only sorted
+	// numerically for non-negative integers, floats and negative numbers
+	// would remain in insertion order, so sort. (forEach skips array holes)
+	const numbers = [];
+	array.forEach((n) => numbers.push(parseFloat(String(n))));
+	return Array.from(new Set(numbers)).sort((a, b) => a - b);
 };
 
 /**
@@ -115,7 +117,7 @@ export const arrayIntersection = (array1, array2) => {
  */
 export const rotateCircularArray = (array, newStartIndex) =>
 	newStartIndex <= 0
-		? array
+		? array.slice()
 		: array.slice(newStartIndex).concat(array.slice(0, newStartIndex));
 
 /**
@@ -158,7 +160,7 @@ export const chooseTwoPairs = (array) => {
  * @description Return a modified copy of set "a" that filters
  * out any number that exists in set "b". This method assumes that
  * both input arrays are sorted, so this method will run in O(n) time.
- * Numbers are compared within an epsilon range of each other.
+ * Numbers are compared exactly (see setDifferenceSortedEpsilonNumbers).
  * If arrays are not sorted, sort them before using this method.
  * @param {number[]} a an array of numbers, in sorted order
  * @param {number[]} b an array of numbers, in sorted order
@@ -181,7 +183,8 @@ export const setDifferenceSortedNumbers = (a, b) => {
 			ai += 1;
 		}
 	}
-	return result;
+	// once "b" is exhausted, all remaining values in "a" are kept
+	return result.concat(a.slice(ai));
 };
 
 /**
@@ -211,7 +214,8 @@ export const setDifferenceSortedEpsilonNumbers = (a, b, epsilon = EPSILON) => {
 			ai += 1;
 		}
 	}
-	return result;
+	// once "b" is exhausted, all remaining values in "a" are kept
+	return result.concat(a.slice(ai));
 };
 
 /**

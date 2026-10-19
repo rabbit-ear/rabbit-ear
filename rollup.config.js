@@ -1,7 +1,7 @@
 import cleanup from "rollup-plugin-cleanup";
 import terser from "@rollup/plugin-terser";
 
-const version = "0.9.42 alpha 2026-XX-XX";
+const version = "0.9.42 alpha XXXX-XX-XX";
 const input = "src/index.js";
 const name = "ear";
 const banner = `/* Rabbit Ear ${version} (c) Kraft, GNU GPLv3 License */\n`;

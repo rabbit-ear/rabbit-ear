@@ -74,11 +74,11 @@ const solveBranch = (constraints, lookup, unsolvedKeys, ...orders) => {
 	// result to one or more of the face-pairs from each other, consider each
 	// of these to now be a new branch in the total set of possible solutions
 	// to explore. Each branch may or may not end up being successful, and if
-	// unsuccessful, the recursed branch will become undefined, which will get
-	// filtered out later in the return statement. Recurse with the subset of
+	// unsuccessful, the recursed branch will become an empty array, which will
+	// get filtered out later in the return statement. Recurse with the subset of
 	// unfinishedKeys, and append the new branch's set of orders to the end.
-
-	return guessResults.map((order) =>
+	/** @type {LayerFork[]} */
+	const forks = guessResults.map((order) =>
 		// check if all variables are solved or more work is required.
 		// store the result as either completed or unfinished
 		Object.keys(order).length === unsolvedKeys.length
@@ -93,6 +93,12 @@ const solveBranch = (constraints, lookup, unsolvedKeys, ...orders) => {
 						solveBranch(constraints, lookup, branchUnsolvedKeys, ...orders, order),
 					),
 				},
+	);
+
+	// a guess is only valid if every one of its independent sub-branches
+	// contains at least one solution, otherwise the guess is a dead end.
+	return forks.filter(
+		({ branches }) => !branches || branches.every((branch) => branch.length),
 	);
 };
 
@@ -151,19 +157,26 @@ export const solver = ({ constraints, lookup, facePairs, orders }) => {
 	// get all keys unsolved after the first round of propagate
 	const remainingKeys = facePairs.filter((key) => !(key in rootOrders));
 
+	if (remainingKeys.length === 0) {
+		return { orders: rootOrders };
+	}
+
 	// group the remaining keys into groups that are isolated from one another.
 	// recursively solve each branch, each branch could have more than one solution.
-	/** @type {{[key: string]: number}[][][]} */
+	/** @type {LayerBranch[]} */
+	let branches;
 	try {
-		return remainingKeys.length === 0
-			? { orders: rootOrders }
-			: {
-					orders: rootOrders,
-					branches: getBranches(remainingKeys, constraints, lookup).map((unsolvedKeys) =>
-						solveBranch(constraints, lookup, unsolvedKeys, orders, initialResult),
-					),
-				};
+		branches = getBranches(remainingKeys, constraints, lookup).map((unsolvedKeys) =>
+			solveBranch(constraints, lookup, unsolvedKeys, orders, initialResult),
+		);
 	} catch (error) {
 		throw new Error(Messages.noLayerSolution, { cause: error });
 	}
+
+	// if any one of the isolated groups has no solution, there is no solution.
+	if (branches.some((branch) => !branch.length)) {
+		throw new Error(Messages.noLayerSolution);
+	}
+
+	return { orders: rootOrders, branches };
 };

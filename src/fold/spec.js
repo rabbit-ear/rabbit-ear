@@ -372,7 +372,8 @@ const allFOLDKeys = Object.freeze(
 export const isFoldObject = (object = {}) =>
 	Object.keys(object).length === 0
 		? 0
-		: allFOLDKeys.filter((key) => object[key]).length / Object.keys(object).length;
+		: allFOLDKeys.filter((key) => object[key] !== undefined).length /
+			Object.keys(object).length;
 
 /**
  * @description Check the coordinates of each vertex and if any of them
@@ -462,38 +463,27 @@ export const isFoldedForm = (
 		return false;
 	}
 
-	const dimensions = getDimensionQuick({ vertices_coords });
+	// iterate over every vertex, check each vertex's Z component, if any
+	// Z value is not 0, consider the graph to be folded. 3D coordinates
+	// which all have a Z of 0 are treated the same as 2D coordinates.
+	if (getDimension({ vertices_coords }, epsilon) === 3) {
+		return true;
+	}
 
 	// if there are no faces, the idea of "folded" kinda doesn't exist, does it?
 	if (!faces_vertices && !faces_edges) {
-		// our best guess is yes, it's folded if the vertices are in 3D.
-		return dimensions === 3;
+		return false;
 	}
 
-	// if the coordinates have only 2 dimensions, we only know that it's flat.
+	// the coordinates are flat, we only know that it's flat.
 	// we have to check if it's a crease pattern or a flat-folded model,
 	// do this by checking if any two edges overlap.
-	if (edges_vertices && dimensions === 2) {
+	if (edges_vertices) {
 		return doEdgesOverlap({ vertices_coords, edges_vertices });
 	}
 
-	// iterate over every vertex, check each vertex's Z component, if the
-	// Z value is not 0, consider the graph to be folded.
-	for (let i = 0; i < vertices_coords.length; i += 1) {
-		if (!vertices_coords[i]) {
-			continue;
-		}
-		if (typeof vertices_coords[i][2] !== "number") {
-			continue;
-		}
-		if (!epsilonEqual(vertices_coords[i][2], 0, epsilon)) {
-			return true;
-		}
-	}
-
 	// no evidence that the graph is folded.
-	// our best guess is yes, it's folded if the vertices are in 3D.
-	return dimensions === 3;
+	return false;
 };
 
 /**
@@ -568,18 +558,20 @@ export const sortEdgesByAssignment = ({ edges_vertices, edges_assignment = [] })
 		new Set(edgesAssignmentValues.map((s) => s.toUpperCase())),
 	);
 
-	// for every edge, return that edge's assignment (uppercase), ensuring
-	// that this array matches in length to edges_vertices, and if any
-	// edge assignment is unknown, it is given a "U" (unassigned).
-	const edges_upperAssignment = edges_vertices
-		.map((_, i) => edges_assignment[i] || "U")
-		.map((a) => a.toUpperCase());
-
 	// dictionary with assignments as keys and arrays of edge indices as values
 	const assignmentIndices = {};
 	allAssignments.forEach((a) => {
 		assignmentIndices[a] = [];
 	});
+
+	// for every edge, return that edge's assignment (uppercase), ensuring
+	// that this array matches in length to edges_vertices, and if any
+	// edge assignment is missing or unknown, it is given a "U" (unassigned).
+	const edges_upperAssignment = edges_vertices
+		.map((_, i) => edges_assignment[i] || "U")
+		.map((a) => a.toUpperCase())
+		.map((a) => (assignmentIndices[a] ? a : "U"));
+
 	edges_upperAssignment.forEach((a, i) => assignmentIndices[a].push(i));
 	return assignmentIndices;
 };

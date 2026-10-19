@@ -8,8 +8,11 @@ const isNodeOrBun =
 	typeof process.versions === "object" &&
 	(process.versions.node != null || process.versions.bun != null);
 
+// Deno 2 removed the global "window" and is now found on globalThis
 const isDeno =
-	typeof window === "object" && "Deno" in window && typeof window.Deno === "object";
+	typeof globalThis === "object" &&
+	"Deno" in globalThis &&
+	typeof globalThis["Deno"] === "object";
 
 const isBackend = isNodeOrBun || isDeno;
 

@@ -11,6 +11,37 @@ import { EPSILON } from "./constant.js";
 const cubeRootSigned = (n) => (n < 0 ? -((-n) ** (1 / 3)) : n ** (1 / 3));
 
 /**
+ * @description Refine a root of the monic cubic x^3 + a2*x^2 + a1*x + a0
+ * with a few iterations of Newton's method. Cardano's formula loses
+ * precision (especially near double roots).
+ * @param {number} a0 the constant coefficient
+ * @param {number} a1 the x coefficient
+ * @param {number} a2 the x^2 coefficient
+ * @param {number} root an approximate root
+ * @returns {number} the refined root
+ */
+const polishCubicRoot = (a0, a1, a2, root) => {
+	let x = root;
+	let f = ((x + a2) * x + a1) * x + a0;
+	for (let i = 0; i < 4; i += 1) {
+		const df = (3 * x + 2 * a2) * x + a1;
+		if (Math.abs(df) < 1e-12) {
+			break;
+		}
+		// near a double root the derivative is near 0 and a Newton step
+		// can overshoot, only accept a step if it brings us closer to 0.
+		const next = x - f / df;
+		const nextF = ((next + a2) * next + a1) * next + a0;
+		if (Math.abs(nextF) >= Math.abs(f)) {
+			break;
+		}
+		x = next;
+		f = nextF;
+	}
+	return x;
+};
+
+/**
  * @description This polynomial solver will solve anything polynomial up
  * to a degree 3 (cubic, via Cardano's formula). Polynomial is inputted via an
  * array of its coefficients, which includes the constant, in order from
@@ -19,8 +50,7 @@ const cubeRootSigned = (n) => (n < 0 ? -((-n) ** (1 / 3)) : n ** (1 / 3));
  * To solve a quadratic: supply [c, b, a], where a is the x^2 coeff.
  * To solve a cubic: supply [d, c, b, a], where a is the x^3 coeff.
  * @param {number[]} coefficients a list of coefficients to the polynomial
- * @returns {[]|[number]|[number,number]|[number,number,number]}
- * a solution array with either zero, one, two, or three numbers.
+ * @returns {number[]} a solution array with either zero, one, two, or three numbers.
  */
 export const polynomialSolver = (coefficients) => {
 	// trim any leading (highest-degree) coefficients which are near 0,
@@ -65,28 +95,41 @@ export const polynomialSolver = (coefficients) => {
 			const d0 = q ** 3 + r ** 2;
 			const u = -a2 / 3;
 
-			// two solutions. this must be tested before the one solution case,
-			// floating point error can make d0 a tiny positive number.
-			if (Math.abs(d0) < EPSILON) {
-				const s = cubeRootSigned(r);
-				return [u + 2 * s, u - s];
-			}
+			// the discriminant is built from cubes and squares, so the tolerance
+			// for "zero" must scale with these terms.
+			const tolerance = 1e-10 * Math.max(1, Math.abs(q) ** 3, r ** 2);
 
-			// one solution
-			if (d0 > 0) {
+			// one solution, the discriminant is clearly positive.
+			if (d0 > tolerance) {
 				const sqrt_d0 = Math.sqrt(d0);
 				const s = cubeRootSigned(r + sqrt_d0);
 				const t = cubeRootSigned(r - sqrt_d0);
-				return [u + s + t];
+				return [polishCubicRoot(a0, a1, a2, u + s + t)];
 			}
 
-			// three solutions
-			const sqrt_d0 = Math.sqrt(-d0);
+			// three solutions, some of which may be repeated (double, triple root).
+			// floating point error can make d0 a tiny positive number in the case
+			// of a repeated root, clamp it to 0. (an earlier approach, testing
+			// for a double root with an epsilon, merged distinct close roots.)
+			const sqrt_d0 = Math.sqrt(Math.max(0, -d0));
 			const phi = Math.atan2(sqrt_d0, r) / 3;
-			const r_s = (r ** 2 - d0) ** (1 / 6);
+			const r_s = (r ** 2 - Math.min(0, d0)) ** (1 / 6);
 			const s_r = r_s * Math.cos(phi);
 			const s_i = r_s * Math.sin(phi);
-			return [u + 2 * s_r, u - s_r - Math.sqrt(3) * s_i, u - s_r + Math.sqrt(3) * s_i];
+			const roots = [
+				polishCubicRoot(a0, a1, a2, u + 2 * s_r),
+				polishCubicRoot(a0, a1, a2, u - s_r - Math.sqrt(3) * s_i),
+				polishCubicRoot(a0, a1, a2, u - s_r + Math.sqrt(3) * s_i),
+			];
+			// a repeated root will appear more than once, remove the duplicates.
+			return roots.filter(
+				(root, i) =>
+					!roots
+						.slice(0, i)
+						.some(
+							(other) => Math.abs(other - root) < EPSILON * Math.max(1, Math.abs(root)),
+						),
+			);
 		}
 		default:
 			return [];

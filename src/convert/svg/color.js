@@ -10,13 +10,18 @@ import { parseColorToHex, parseColorToRgb } from "../../svg/colors/parseColor.js
  * @param {string} color a hex, rgb, hsl, or named color string
  * @param {{ [key:string]: string }} customAssignments a dictionary that
  * maps an uppercase hex color string to a FOLD edge assignment.
- * @returns {string} a FOLD edge assignment
+ * @returns {string} a FOLD edge assignment, "U" if the color
+ * could not be parsed (for example "none", "currentColor", or a "url()").
  */
 export const colorToAssignment = (color, customAssignments) => {
-	const hex = parseColorToHex(color).toUpperCase();
-	return customAssignments && customAssignments[hex]
-		? customAssignments[hex]
-		: rgbToAssignment(...parseColorToRgb(color));
+	const hex = parseColorToHex(color);
+	const rgb = parseColorToRgb(color);
+	if (hex === undefined || rgb === undefined) {
+		return "U";
+	}
+	return customAssignments && customAssignments[hex.toUpperCase()]
+		? customAssignments[hex.toUpperCase()]
+		: rgbToAssignment(...rgb);
 };
 
 /**

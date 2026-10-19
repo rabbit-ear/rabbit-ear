@@ -182,7 +182,7 @@ export const validateAxiom4 = (graph, line, point) => {
 
 	// if there is no intersection, the axiom produced no result
 	// todo: should this mean, technically, that it's valid? (no result)
-	if (!point) {
+	if (!intersectPoint) {
 		return [false];
 	}
 
@@ -316,8 +316,10 @@ export const validateAxiom6 = function (graph, solutions, line1, line2, point1, 
  * respect to a boundary polygon that represents the folding surface.
  * @param {FOLD} graph a FOLD object, foldedForm or creasePattern
  * @param {VecLine2[]} solutions an array of solutions in vector-origin form
- * @param {VecLine2} line1 the line parameter for axiom 7
- * @param {VecLine2} line2 the line parameter for axiom 7
+ * @param {VecLine2} line1 the line parameter for axiom 7,
+ * the line which will be folded onto itself.
+ * @param {VecLine2} line2 the line parameter for axiom 7,
+ * the line the point will be brought onto.
  * @param {[number, number]} point the point parameter for axiom 7
  * @returns {boolean[]} true if the parameters/solutions are valid
  */
@@ -335,9 +337,9 @@ export const validateAxiom7 = (graph, solutions, line1, line2, point) => {
 	const reflected = reflectPoint(solutions[0], point);
 	const reflectTest = overlapConvexPolygonPoint(polygon, reflected, include).overlap;
 	// check if the line to fold onto itself is somewhere inside the polygon
-	const paramLineTest = intersectPolygonLine(polygon, line2, includeL).length >= 2;
+	const paramLineTest = intersectPolygonLine(polygon, line1, includeL).length >= 2;
 	// same test we do for axiom 4
-	const intersect = intersectLineLine(line2, solutions[0], includeL, includeL).point;
+	const intersect = intersectLineLine(line1, solutions[0], includeL, includeL).point;
 	const intersectInsideTest = intersect
 		? overlapConvexPolygonPoint(polygon, intersect, include).overlap
 		: false;

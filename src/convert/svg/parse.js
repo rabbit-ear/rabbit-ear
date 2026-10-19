@@ -49,7 +49,13 @@ export const pathToSegments = (path) =>
 		.map(([a, b]) => [a[0], a[1], b[0], b[1]]);
 
 const pointsStringToArray = (str) => {
-	const list = str.split(/[\s,]+/).map(parseFloat);
+	// leading or trailing whitespace would create empty strings, which
+	// would shift every following x, y pair by one, so trim and filter.
+	const list = str
+		.trim()
+		.split(/[\s,]+/)
+		.filter((s) => s !== "")
+		.map(parseFloat);
 	return Array.from(Array(Math.floor(list.length / 2))).map((_, i) => [
 		list[i * 2 + 0],
 		list[i * 2 + 1],

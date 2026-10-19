@@ -170,6 +170,11 @@ export const solver = ({ constraints, lookup, facePairs, orders }) => {
 		throw new Error(Messages.noLayerSolution, { cause: error });
 	}
 
+	// if any one of the isolated groups has no solution, there is no solution.
+	if (branchResults.some((branch) => !branch.length)) {
+		throw new Error(Messages.noLayerSolution);
+	}
+
 	// solver is finished.
 	// the set of face-pair solutions which are true for all branches
 	const root = { ...orders, ...initialResult };

@@ -116,8 +116,10 @@ export const makeThickEdgesVertexArrays = (gl, program, graph, options = {}) => 
 	if (!graph || !graph.vertices_coords || !graph.edges_vertices) {
 		return [];
 	}
+	// assignment colors (and "dark") are found at the top level of the options
+	// (see readme), additionally allow them to be nested under "assignment_color".
 	const { vertices_coords, vertices_color, verticesEdgesVector, vertices_vector } =
-		makeThickEdgesVertexData(graph, options.assignment_color);
+		makeThickEdgesVertexData(graph, { ...options, ...options.assignment_color });
 
 	// todo: better
 	if (!vertices_coords) {

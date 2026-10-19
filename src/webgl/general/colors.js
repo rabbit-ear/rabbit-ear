@@ -40,16 +40,18 @@ export const light = {
 /**
  * @description Convert a color into a WebGL RGB with three
  * float values,, red, green, and blue, between 0.0 and 1.0.
- * @param {number[]|string} color a color as an array of 0-255 values,
- * or a RGB/HSL/hex encoded string
+ * @param {number[]|string} color a color as an array of three values
+ * already in WebGL format (0.0 to 1.0), or a RGB/HSL/hex encoded string
  * @returns {[number, number, number]|undefined} list of three numbers
  * red, green, blue, each value between 0.0 and 1.0.
  */
 export const parseColorToWebGLColor = (color) => {
 	if (typeof color === "string") {
-		const [r, g, b] = parseColorToRgb(color)
-			.slice(0, 3)
-			.map((n) => n / 255);
+		const rgb = parseColorToRgb(color);
+		if (!rgb) {
+			return undefined;
+		}
+		const [r, g, b] = rgb.slice(0, 3).map((n) => n / 255);
 		return [r, g, b];
 	}
 

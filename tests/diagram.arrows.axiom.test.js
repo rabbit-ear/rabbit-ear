@@ -302,8 +302,8 @@ test("axiom7Arrows, square A", () => {
 	const graph = ear.graph.square();
 	// const polygon = ear.graph.boundaryPolygon(graph);
 	const params = [
-		{ vector: [1, 0], origin: [0.5, 0.25] },
 		{ vector: [1, 1], origin: [0, 0] },
+		{ vector: [1, 0], origin: [0.5, 0.25] },
 		[0.5, 0.0],
 	];
 	const axiomResults = ear.axiom.validAxiom7(graph, ...params);
@@ -326,8 +326,8 @@ test("axiom7Arrows, square B", () => {
 	const graph = ear.graph.square();
 	// const polygon = ear.graph.boundaryPolygon(graph);
 	const params = [
-		{ vector: [1, 0], origin: [0.5, 0.5] },
 		{ vector: [1, 1], origin: [0, 0] },
+		{ vector: [1, 0], origin: [0.5, 0.5] },
 		[0.75, 0.0],
 	];
 	const axiomResults = ear.axiom.validAxiom7(graph, ...params);
@@ -412,8 +412,8 @@ test("axiom7Arrows, non-convex", () => {
 	// const polygon = ear.math.convexHull(graph.vertices_coords)
 	// 	.map(i => graph.vertices_coords[i]);
 	const params = [
-		{ vector: [1, 0], origin: [0.5, 0.5] },
 		{ vector: [1, 1], origin: [0, 0] },
+		{ vector: [1, 0], origin: [0.5, 0.5] },
 		[0.75, 0.25],
 	];
 	const axiomResults = ear.axiom.validAxiom7(graph, ...params);

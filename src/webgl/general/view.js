@@ -60,7 +60,8 @@ export const makeProjectionMatrix = (
 /**
  * @description build an aspect-fit model matrix
  * (possibly an inverse-model matrix)
- * which brings the vertices inside of a 2x2x2 origin-centered bounding box.
+ * which brings the vertices inside of a 1x1x1 origin-centered bounding box
+ * (aspect-fit, the longest side spans -0.5 to 0.5).
  * @param {FOLD} graph a FOLD object
  * @returns {number[]} a 4x4 model matrix
  */

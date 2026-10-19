@@ -7,6 +7,9 @@ import { makeEdgesFacesUnsorted } from "../graph/make/edgesFaces.js";
 import { makeEdgesFoldAngleFromFaces } from "../graph/make/edgesFoldAngle.js";
 import { makeEdgesAssignment } from "../graph/make/edgesAssignment.js";
 import { makeFacesEdgesFromVertices } from "../graph/make/facesEdges.js";
+import { makeFacesNormal } from "../graph/normals.js";
+import { EPSILON } from "../math/constant.js";
+import { dot } from "../math/vector.js";
 
 /**
  * @returns {FOLD} graph a FOLD object
@@ -81,6 +84,26 @@ const parseVertex = (vertex) => {
 };
 
 /**
+ * @description For every edge, are its two adjacent faces folded flat on
+ * top of each other (a fold angle of +/-180)? Using the same test as
+ * makeEdgesFoldAngleFromFaces, without an assignment, it's impossible to
+ * know if these are a mountain or valley fold.
+ * @param {FOLDExtended} graph a FOLD object with edges_faces and faces_normal
+ * @returns {boolean[]} for every edge, true if the edge is folded flat.
+ */
+const makeEdgesIsFlatFolded = ({ edges_faces, faces_normal }) =>
+	edges_faces.map((faces) => {
+		if (faces.length !== 2) {
+			return false;
+		}
+		const cos = Math.max(
+			-1,
+			Math.min(1, dot(faces_normal[faces[0]], faces_normal[faces[1]])),
+		);
+		return 180 - Math.acos(cos) * (180 / Math.PI) < EPSILON;
+	});
+
+/**
  * @description Convert an OBJ mesh file into a FOLD object. The conversion
  * will create edge definitions and give them assignments and fold angles
  * depending on the dihedral angles, or boundary edges
@@ -106,8 +129,24 @@ export const objToFold = (file) => {
 	graph.edges_vertices = makeEdgesVertices(graph);
 	graph.faces_edges = makeFacesEdgesFromVertices(graph);
 	graph.edges_faces = makeEdgesFacesUnsorted(graph);
-	graph.edges_foldAngle = makeEdgesFoldAngleFromFaces(graph);
-	graph.edges_assignment = makeEdgesAssignment(graph);
+
+	// an OBJ contains no assignments, so faces which are folded flat on top
+	// of each other (+/-180) cannot be determined to be mountain or valley.
+	// provide a placeholder "U" assignment, these edges will get a fold angle
+	// of 0, then afterwards, mark these edges as "U" unassigned.
+	const faces_normal = makeFacesNormal(graph);
+	const edges_isFlatFolded = makeEdgesIsFlatFolded({
+		edges_faces: graph.edges_faces,
+		faces_normal,
+	});
+	graph.edges_foldAngle = makeEdgesFoldAngleFromFaces({
+		...graph,
+		faces_normal,
+		edges_assignment: graph.edges_vertices.map(() => "U"),
+	});
+	graph.edges_assignment = makeEdgesAssignment(graph).map((assignment, e) =>
+		edges_isFlatFolded[e] ? "U" : assignment,
+	);
 	graph.vertices_vertices = makeVerticesVerticesFromFaces(graph);
 
 	// edges_faces was built unsorted. the sorted method is slower to construct,

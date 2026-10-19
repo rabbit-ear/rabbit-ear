@@ -19,8 +19,9 @@ const bgClass = "svg-background-rectangle";
 // i prevented circular dependency by passing a pointer to Constructor through 'this'
 // every function is bound
 const makeBackground = function (element, color) {
+	// childNodes can include text nodes (whitespace), which have no attributes
 	let backRect = Array.from(element.childNodes)
-		.filter((child) => child.getAttribute(str_class) === bgClass)
+		.filter((child) => child.getAttribute && child.getAttribute(str_class) === bgClass)
 		.shift();
 	if (backRect == null) {
 		backRect = RabbitEarWindow().document.createElementNS(NS, "rect");

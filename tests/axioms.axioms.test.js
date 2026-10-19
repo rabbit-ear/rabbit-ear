@@ -154,11 +154,13 @@ test("axiom 6 with 2 results", () => {
 });
 
 test("axiom 7", () => {
-	const line1 = { vector: [1, 1], origin: [-1, 0] };
-	const line2 = { vector: [1, -1] }; // no origin needed
+	// line1 is folded onto itself, the fold line is perpendicular to it
+	const line1 = { vector: [1, -1] }; // no origin needed
+	// line2 is the line the point is brought onto
+	const line2 = { vector: [1, 1], origin: [-1, 0] };
 	const res = ear.axiom.axiom7(line1, line2, [1, 0]);
-	expect(res[0].vector[0]).toBeCloseTo(-Math.SQRT1_2);
-	expect(res[0].vector[1]).toBeCloseTo(-Math.SQRT1_2);
+	expect(res[0].vector[0]).toBeCloseTo(Math.SQRT1_2);
+	expect(res[0].vector[1]).toBeCloseTo(Math.SQRT1_2);
 	expect(res[0].origin[0]).toBe(0.5);
 	expect(res[0].origin[1]).toBe(0.5);
 });
