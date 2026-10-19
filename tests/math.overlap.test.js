@@ -14,7 +14,7 @@ test("overlapConvexPolygonPoint bad inputs", () => {
 			[],
 			ear.math.exclude,
 		).overlap,
-	).toBe(true);
+	).toBe(false);
 });
 
 test("overlapConvexPolygonPoint counter-clockwise point on boundary", () => {

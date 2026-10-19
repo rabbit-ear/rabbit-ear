@@ -347,27 +347,32 @@ test("counterClockwiseSubsect2", () => {
 });
 
 test("clockwiseSubsectRadians", () => {
-	testEqualVectors(ear.math.clockwiseSubsectRadians(3, 0, 3), [4, 5]);
-	testEqualVectors(ear.math.clockwiseSubsectRadians(2, -1, 3), [3, 4]);
-	testEqualVectors(ear.math.clockwiseSubsectRadians(2, -2, 4), [3, 4, 5]);
+	// clockwise means decreasing angle
+	testEqualVectors(ear.math.clockwiseSubsectRadians(3, 0, 3), [2, 1]);
+	testEqualVectors(ear.math.clockwiseSubsectRadians(2, -1, 3), [1, 0]);
+	testEqualVectors(ear.math.clockwiseSubsectRadians(2, -2, 4), [1, 0, -1]);
 
+	// clockwise from -X to +X passes through +Y
 	expect(ear.math.clockwiseSubsectRadians(-Math.PI, 0, 4)[0]).toBeCloseTo(
-		-Math.PI * (3 / 4),
+		-Math.PI * (5 / 4),
 	);
 	expect(ear.math.clockwiseSubsectRadians(-Math.PI, 0, 4)[1]).toBeCloseTo(
-		-Math.PI * (2 / 4),
+		-Math.PI * (6 / 4),
 	);
 	expect(ear.math.clockwiseSubsectRadians(-Math.PI, 0, 4)[2]).toBeCloseTo(
-		-Math.PI * (1 / 4),
+		-Math.PI * (7 / 4),
 	);
 
-	expect(ear.math.clockwiseSubsectRadians(-Math.PI, 0, 2)[0]).toBeCloseTo(-Math.PI / 2);
+	expect(ear.math.clockwiseSubsectRadians(-Math.PI, 0, 2)[0]).toBeCloseTo(
+		-Math.PI * (3 / 2),
+	);
 	expect(ear.math.clockwiseSubsectRadians(-Math.PI, 0, 1).length).toBe(0);
 });
 
 test("clockwiseSubsect2", () => {
+	// clockwise from +Y to +X, the bisector is the 45 degree vector
 	expect(ear.math.clockwiseSubsect2([0, 1], [1, 0], 2)[0][0]).toBeCloseTo(
-		-Math.sqrt(2) / 2,
+		Math.sqrt(2) / 2,
 	);
 	expect(ear.math.clockwiseSubsect2([0, 1], [1, 0], 2)[0][1]).toBeCloseTo(
 		Math.sqrt(2) / 2,
@@ -377,15 +382,15 @@ test("clockwiseSubsect2", () => {
 		-Math.sqrt(2) / 2,
 	);
 	expect(ear.math.clockwiseSubsect2([-1, 0], [1, 0], 4)[0][1]).toBeCloseTo(
-		-Math.sqrt(2) / 2,
+		Math.sqrt(2) / 2,
 	);
 	expect(ear.math.clockwiseSubsect2([-1, 0], [1, 0], 4)[1][0]).toBeCloseTo(0);
-	expect(ear.math.clockwiseSubsect2([-1, 0], [1, 0], 4)[1][1]).toBeCloseTo(-1);
+	expect(ear.math.clockwiseSubsect2([-1, 0], [1, 0], 4)[1][1]).toBeCloseTo(1);
 	expect(ear.math.clockwiseSubsect2([-1, 0], [1, 0], 4)[2][0]).toBeCloseTo(
 		Math.sqrt(2) / 2,
 	);
 	expect(ear.math.clockwiseSubsect2([-1, 0], [1, 0], 4)[2][1]).toBeCloseTo(
-		-Math.sqrt(2) / 2,
+		Math.sqrt(2) / 2,
 	);
 });
 

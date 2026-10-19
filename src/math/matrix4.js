@@ -85,8 +85,7 @@ export const multiplyMatrices4 = (m1, m2) => [
 ];
 
 /**
- * @description calculate the determinant of a 4x4 or 3x3 matrix.
- * in the case of 4x4, the translation component is ignored.
+ * @description calculate the determinant of a 4x4 matrix.
  * @param {number[]} m one matrix in array form
  * @returns {number} the determinant of the matrix
  */

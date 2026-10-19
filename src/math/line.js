@@ -94,6 +94,9 @@ export const collinearPoints = (p0, p1, p2, epsilon = EPSILON) => {
 
 /**
  * @description Check if a point is collinear and between two other points.
+ * The epsilon is a distance (in the same units as the points): the point
+ * must lie within epsilon of the line through p0 and p2, and, if exclusive,
+ * further than epsilon away from either endpoint.
  * @param {number[]} p0 a point
  * @param {number[]} p1 the point to test collinearity and between-ness
  * @param {number[]} p2 a point
@@ -102,19 +105,22 @@ export const collinearPoints = (p0, p1, p2, epsilon = EPSILON) => {
  * @returns {boolean} true if the point lies collinear and between the other two points.
  */
 export const collinearBetween = (p0, p1, p2, inclusive = false, epsilon = EPSILON) => {
-	const similar = [p0, p2]
-		.map((p) => epsilonEqualVectors(p1, p, epsilon))
-		.reduce((a, b) => a || b, false);
-	if (similar) {
-		return inclusive;
+	const vector = subtract(p2, p0);
+	const magSq = dot(vector, vector);
+	const mag = Math.sqrt(magSq);
+	// p0 and p2 are the same point
+	if (mag < epsilon) {
+		return epsilonEqualVectors(p1, p0, epsilon);
 	}
-	const vectors = [
-		[p0, p1],
-		[p1, p2],
-	]
-		.map((segment) => subtract(segment[1], segment[0]))
-		.map((vector) => normalize(vector));
-	return epsilonEqual(1.0, dot(vectors[0], vectors[1]), EPSILON);
+	const p0ToP1 = subtract(p1, p0);
+	const t = dot(p0ToP1, vector) / magSq;
+	// perpendicular distance check: is p1 actually on the line?
+	const perpendicular = subtract(p0ToP1, vector.map((n) => n * t));
+	if (Math.sqrt(dot(perpendicular, perpendicular)) > epsilon) {
+		return false;
+	}
+	const e = epsilon / mag;
+	return inclusive ? t >= -e && t <= 1 + e : t > e && t < 1 - e;
 };
 
 /**

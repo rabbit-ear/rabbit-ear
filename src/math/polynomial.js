@@ -23,11 +23,17 @@ const cubeRootSigned = (n) => (n < 0 ? -((-n) ** (1 / 3)) : n ** (1 / 3));
  * a solution array with either zero, one, two, or three numbers.
  */
 export const polynomialSolver = (coefficients) => {
+	// trim any leading (highest-degree) coefficients which are near 0,
+	// otherwise we would divide by 0. this reduces the degree of the polynomial.
+	let degree = coefficients.length;
+	while (degree > 0 && Math.abs(coefficients[degree - 1]) < EPSILON) {
+		degree -= 1;
+	}
 	const [a, b, c, d] = coefficients;
 
 	// the degree of the polynomial is the length of the array - 1,
-	// because the constant is included as the last element.
-	switch (coefficients.length) {
+	// because the constant is included as the first element.
+	switch (degree) {
 		case 2:
 			return [-a / b];
 		case 3: {
@@ -59,22 +65,19 @@ export const polynomialSolver = (coefficients) => {
 			const d0 = q ** 3 + r ** 2;
 			const u = -a2 / 3;
 
+			// two solutions. this must be tested before the one solution case,
+			// floating point error can make d0 a tiny positive number.
+			if (Math.abs(d0) < EPSILON) {
+				const s = cubeRootSigned(r);
+				return [u + 2 * s, u - s];
+			}
+
 			// one solution
 			if (d0 > 0) {
 				const sqrt_d0 = Math.sqrt(d0);
 				const s = cubeRootSigned(r + sqrt_d0);
 				const t = cubeRootSigned(r - sqrt_d0);
 				return [u + s + t];
-			}
-
-			// two solutions
-			if (Math.abs(d0) < EPSILON) {
-				// if r is negative, s will be NaN
-				if (r < 0) {
-					return [];
-				}
-				const s = r ** (1 / 3);
-				return [u + 2 * s, u - s];
 			}
 
 			// three solutions

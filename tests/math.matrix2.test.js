@@ -40,7 +40,8 @@ test("matrix 2", () => {
 	testEqualVectors([3, 0, 0, 3, -2, 0], ear.math.makeMatrix2Scale([3, 3], [1, 0]));
 	testEqualVectors([0, 1, 1, -0, -8, 8], ear.math.makeMatrix2Reflect([1, 1], [-5, 3]));
 	testEqualVectors(
-		[Math.SQRT1_2, Math.SQRT1_2, -Math.SQRT1_2, Math.SQRT1_2, 1, 1],
+		// translation is origin - R * origin, so that the origin stays fixed
+		[Math.SQRT1_2, Math.SQRT1_2, -Math.SQRT1_2, Math.SQRT1_2, 1, 1 - Math.SQRT2],
 		ear.math.makeMatrix2Rotate(Math.PI / 4, [1, 1]),
 	);
 	testEqualVectors(

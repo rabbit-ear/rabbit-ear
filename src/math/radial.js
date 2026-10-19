@@ -24,6 +24,10 @@ export const isCounterClockwiseBetween = (angle, floor, ceiling) => {
 		ceiling += TWO_PI;
 	}
 	// eslint-disable-next-line no-param-reassign
+	while (ceiling > floor + TWO_PI) {
+		ceiling -= TWO_PI;
+	}
+	// eslint-disable-next-line no-param-reassign
 	while (angle > floor) {
 		angle -= TWO_PI;
 	}
@@ -52,11 +56,11 @@ export const clockwiseAngleRadians = (a, b) => {
 		b += TWO_PI;
 	}
 	// eslint-disable-next-line no-param-reassign
-	while (a > TWO_PI) {
+	while (a >= TWO_PI) {
 		a -= TWO_PI;
 	}
 	// eslint-disable-next-line no-param-reassign
-	while (b > TWO_PI) {
+	while (b >= TWO_PI) {
 		b -= TWO_PI;
 	}
 	const a_b = a - b;
@@ -81,11 +85,11 @@ export const counterClockwiseAngleRadians = (a, b) => {
 		b += TWO_PI;
 	}
 	// eslint-disable-next-line no-param-reassign
-	while (a > TWO_PI) {
+	while (a >= TWO_PI) {
 		a -= TWO_PI;
 	}
 	// eslint-disable-next-line no-param-reassign
-	while (b > TWO_PI) {
+	while (b >= TWO_PI) {
 		b -= TWO_PI;
 	}
 	const b_a = b - a;
@@ -164,7 +168,7 @@ export const counterClockwiseBisect2 = (a, b) =>
  */
 export const clockwiseSubsectRadians = (angleA, angleB, divisions) => {
 	const angle = clockwiseAngleRadians(angleA, angleB) / divisions;
-	return Array.from(Array(divisions - 1)).map((_, i) => angleA + angle * (i + 1));
+	return Array.from(Array(divisions - 1)).map((_, i) => angleA - angle * (i + 1));
 };
 
 /**
@@ -299,7 +303,7 @@ export const threePointTurnDirection = (p0, p1, p2, epsilon = EPSILON) => {
 	}
 	// collinear. now we have to ensure the order is 0, 1, 2, and point
 	// 1 lies between 0 and 2. otherwise we made a 180 degree turn (return undefined)
-	return epsilonEqual(distance2(p0, p1) + distance2(p1, p2), distance2(p0, p2))
+	return epsilonEqual(distance2(p0, p1) + distance2(p1, p2), distance2(p0, p2), epsilon)
 		? 0
 		: undefined;
 };

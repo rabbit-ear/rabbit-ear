@@ -128,7 +128,8 @@ export const intersectCircleLine = (
 	if (Math.abs(det) > circle.radius + epsilon) {
 		return undefined;
 	}
-	const side = Math.sqrt(circle.radius ** 2 - det ** 2);
+	// det can exceed the radius by up to epsilon (near-tangent), clamp to 0
+	const side = Math.sqrt(Math.max(0, circle.radius ** 2 - det ** 2));
 	const f = (s, i) => circle.origin[i] - rot90[i] * det + norm[i] * s;
 	/** @type {[number, number][]} */
 	const results =

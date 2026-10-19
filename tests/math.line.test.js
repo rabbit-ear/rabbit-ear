@@ -42,10 +42,27 @@ test("collinearBetween perpendicularly away too far", () => {
 		[0, 0],
 		[1, 0],
 	];
+	// epsilon is a perpendicular distance, default 1e-6
 	expect(ear.math.collinearBetween(p0, [0.5, 1e-2], p2)).toBe(false);
 	expect(ear.math.collinearBetween(p0, [0.5, 1e-3], p2)).toBe(false);
-	expect(ear.math.collinearBetween(p0, [0.5, 1e-4], p2)).toBe(true);
-	expect(ear.math.collinearBetween(p0, [0.5, 1e-5], p2)).toBe(true);
+	expect(ear.math.collinearBetween(p0, [0.5, 1e-4], p2)).toBe(false);
+	expect(ear.math.collinearBetween(p0, [0.5, 1e-5], p2)).toBe(false);
+	expect(ear.math.collinearBetween(p0, [0.5, 1e-7], p2)).toBe(true);
+	// a larger epsilon widens the band
+	expect(ear.math.collinearBetween(p0, [0.5, 1e-3], p2, false, 1e-2)).toBe(true);
+	expect(ear.math.collinearBetween(p0, [0.5, 1e-1], p2, false, 1e-2)).toBe(false);
+});
+
+test("collinearBetween scale independent", () => {
+	// the same 1e-3 perpendicular offset, segments of very different lengths
+	expect(ear.math.collinearBetween([0, 0], [500, 1e-3], [1000, 0], false, 1e-2)).toBe(true);
+	expect(ear.math.collinearBetween([0, 0], [0.05, 1e-3], [0.1, 0], false, 1e-2)).toBe(true);
+	// endpoints within epsilon are excluded / included
+	expect(ear.math.collinearBetween([0, 0], [5e-3, 0], [1, 0], false, 1e-2)).toBe(false);
+	expect(ear.math.collinearBetween([0, 0], [5e-3, 0], [1, 0], true, 1e-2)).toBe(true);
+	// beyond the endpoints
+	expect(ear.math.collinearBetween([0, 0], [1.5, 0], [1, 0], true, 1e-2)).toBe(false);
+	expect(ear.math.collinearBetween([0, 0], [-0.5, 0], [1, 0], true, 1e-2)).toBe(false);
 });
 
 test("collinearBetween perpendicularly away near", () => {

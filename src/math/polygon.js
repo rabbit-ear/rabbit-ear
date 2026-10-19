@@ -194,13 +194,19 @@ export const boundingBox = (points, padding = 0) => {
 		.forEach((point) =>
 			point.forEach((c, i) => {
 				if (c < min[i]) {
-					min[i] = c - padding;
+					min[i] = c;
 				}
 				if (c > max[i]) {
-					max[i] = c + padding;
+					max[i] = c;
 				}
 			}),
 		);
+	// apply the padding after the extremes have been found, otherwise the
+	// comparisons above would be made against already-padded values.
+	for (let i = 0; i < dimension; i += 1) {
+		min[i] -= padding;
+		max[i] += padding;
+	}
 	const span = max.map((m, i) => m - min[i]);
 	return { min, max, span };
 };

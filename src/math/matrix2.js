@@ -133,7 +133,14 @@ export const makeMatrix2UniformScale = (scale = 1, origin = [0, 0]) =>
 export const makeMatrix2Rotate = (angle, origin = [0, 0]) => {
 	const cos = Math.cos(angle);
 	const sin = Math.sin(angle);
-	return [cos, sin, -sin, cos, origin[0], origin[1]];
+	return [
+		cos,
+		sin,
+		-sin,
+		cos,
+		origin[0] - (cos * origin[0] - sin * origin[1]),
+		origin[1] - (sin * origin[0] + cos * origin[1]),
+	];
 };
 
 /**

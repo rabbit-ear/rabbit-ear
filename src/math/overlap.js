@@ -65,7 +65,6 @@ export const overlapConvexPolygonPoint = (
 	const overlap = t
 		.map((n) => n * sign)
 		.map((side) => polyDomain(side, epsilon))
-		.map((s, _, arr) => s === arr[0])
 		.reduce((prev, curr) => prev && curr, true);
 	return { overlap, t };
 };

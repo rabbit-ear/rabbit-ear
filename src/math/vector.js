@@ -65,7 +65,7 @@ export const magSquared = (v) => v.map((n) => n * n).reduce(safeAdd, 0);
  */
 export const normalize = (v) => {
 	const m = magnitude(v);
-	return m === 0 ? v : v.map((c) => c / m);
+	return m === 0 ? v.slice() : v.map((c) => c / m);
 };
 
 /**
@@ -85,7 +85,7 @@ export const normalize2 = (v) => {
  */
 export const normalize3 = (v) => {
 	const m = magnitude3(v);
-	return m === 0 ? v : [v[0] / m, v[1] / m, v[2] / m];
+	return m === 0 ? [v[0], v[1], v[2]] : [v[0] / m, v[1] / m, v[2] / m];
 };
 
 /**
@@ -396,10 +396,12 @@ export const rotate270 = (v) => [v[1], -v[0]];
 
 /**
  * @description check if a vector is degenerate, meaning its
- * magnitude is below an epsilon limit.
+ * size is below an epsilon limit. For speed, the size is measured as the
+ * sum of the absolute values of the components (the L1 norm), which is
+ * always >= the Euclidean magnitude, so this is the stricter test.
  * @param {number[]} v one vector, n-dimensions
  * @param {number} [epsilon=1e-6] an optional epsilon with a default value of 1e-6
- * @returns {boolean} is the magnitude of the vector smaller than the epsilon?
+ * @returns {boolean} is the L1 norm of the vector smaller than the epsilon?
  */
 export const degenerate = (v, epsilon = EPSILON) =>
 	v.map((n) => Math.abs(n)).reduce(safeAdd, 0) < epsilon;

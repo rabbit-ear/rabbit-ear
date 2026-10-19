@@ -222,12 +222,12 @@ test("lookat matrix", () => {
 	);
 
 	const res2 = ear.math.makeLookAtMatrix4([1, 0, 0], [0, 0, 0], [0, 1, 0]);
-	[0, 0, 1, 0, 0, 1, 0, 0, -1, 0, 0, 0, -1, 0, 0, 1].forEach((n, i) =>
+	[0, 0, 1, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, -1, 1].forEach((n, i) =>
 		expect(res2[i]).toBeCloseTo(n),
 	);
 
 	const res3 = ear.math.makeLookAtMatrix4([0, 0, -1], [0, 0, 0], [0, 1, 0]);
-	[-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 1, 1].forEach((n, i) =>
+	[-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, -1, 1].forEach((n, i) =>
 		expect(res3[i]).toBeCloseTo(n),
 	);
 
