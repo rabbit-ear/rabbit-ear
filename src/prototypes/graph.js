@@ -19,13 +19,15 @@ import * as validate from "../graph/validate/validate.js";
 // } from "../general/get.js";
 import { foldKeys, invertAssignments } from "../fold/spec.js";
 import { subgraph } from "../graph/subgraph.js";
+import { boundingBox } from "../graph/boundary/box.js";
 import {
 	boundary,
 	boundaries,
+} from "../graph/boundary/boundary.js";
+import {
 	planarBoundary,
 	planarBoundaries,
-	boundingBox,
-} from "../graph/boundary.js";
+} from "../graph/boundary/planar.js";
 import {
 	makeVerticesCoordsFolded,
 	makeVerticesCoordsFlatFolded,

@@ -8,7 +8,7 @@ import {
 	invertMatrix4,
 } from "../../math/matrix4.js";
 import { midpoint, resize } from "../../math/vector.js";
-import { boundingBox } from "../../graph/boundary.js";
+import { boundingBox } from "../../graph/boundary/box.js";
 
 /**
  * @description Initialize a viewport for a WebGL context

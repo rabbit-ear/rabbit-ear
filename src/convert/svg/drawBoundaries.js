@@ -3,7 +3,7 @@
  */
 import SVG from "../../svg/index.js";
 import { addClass } from "../../svg/general/dom.js";
-import { boundaries } from "../../graph/boundary.js";
+import { boundaries } from "../../graph/boundary/boundary.js";
 import { isFoldedForm } from "../../fold/spec.js";
 import { setKeysAndValues } from "../general/svg.js";
 

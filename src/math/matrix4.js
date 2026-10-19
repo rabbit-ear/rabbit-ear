@@ -397,7 +397,7 @@ export const makeLookAtMatrix4 = (position, target, up) => {
 		1,
 	];
 	const t = makeMatrix4Translate(-position[0], -position[1], -position[2]);
-	return multiplyMatrices4(t, m);
+	return multiplyMatrices4(m, t);
 };
 
 /**

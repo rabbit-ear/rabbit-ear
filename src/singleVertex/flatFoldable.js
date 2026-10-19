@@ -8,7 +8,7 @@ import { assignmentCanBeFolded, assignmentFlatFoldAngle } from "../fold/spec.js"
 import { makeVerticesVertices } from "../graph/make/verticesVertices.js";
 import { makeVerticesEdgesUnsorted } from "../graph/make/verticesEdges.js";
 import { makeVerticesVerticesVector } from "../graph/make/vertices.js";
-import { boundaryVertices } from "../graph/boundary.js";
+import { boundaryVertices } from "../graph/boundary/boundary.js";
 import { alternatingSum } from "./kawasaki.js";
 
 /**

@@ -6,6 +6,10 @@ import * as foldFileFrames from "../fold/frames.js";
 import * as foldSpecMethods from "../fold/spec.js";
 import * as addVertices from "./add/vertex.js";
 import * as addEdges from "./add/edge.js";
+import * as boundary from "./boundary/boundary.js";
+import * as boundaryBox from "./boundary/box.js";
+import * as boundaryPlanar from "./boundary/planar.js";
+import * as boundarySplit from "./boundary/split.js";
 import * as edgesCircular from "./edges/circular.js";
 import * as edgesDuplicate from "./edges/duplicate.js";
 import * as edgesLines from "./edges/lines.js";
@@ -31,7 +35,6 @@ import * as verticesDuplicate from "./vertices/duplicate.js";
 import * as verticesFolded from "./vertices/folded.js";
 import * as verticesIsolated from "./vertices/isolated.js";
 import * as verticesSort from "./vertices/sort.js";
-import * as boundary from "./boundary.js";
 import * as clean from "./clean.js";
 import * as connectedComponents from "./connectedComponents.js";
 import * as count from "./count.js";
@@ -101,7 +104,10 @@ const graphMethods = {
 	...verticesFolded,
 	...verticesIsolated,
 	...verticesSort,
-	...boundary,
+  ...boundary,
+  ...boundaryBox,
+  ...boundaryPlanar,
+  ...boundarySplit,
 	...clean,
 	...connectedComponents,
 	...count,

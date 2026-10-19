@@ -5,7 +5,7 @@ import window from "../environment/window.js";
 import SVG from "../svg/index.js";
 import { findElementTypeInParents, addClass } from "../svg/general/dom.js";
 import { isFoldedForm } from "../fold/spec.js";
-import { boundingBox } from "../graph/boundary.js";
+import { boundingBox } from "../graph/boundary/box.js";
 import { boundingBoxToViewBox, getStrokeWidth } from "./general/svg.js";
 import { drawVertices } from "./svg/drawVertices.js";
 import { drawEdges } from "./svg/drawEdges.js";

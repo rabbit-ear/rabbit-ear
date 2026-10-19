@@ -1,3 +1,7 @@
+# 0.9.42
+
+- `makeLookAt` matrix4 method last line multiplication order was incorrect
+
 # 0.9.41
 
 - WebGL creasePattern rendering renders non-flat foldAngle edges with opacity and checkerboard pattern by default.

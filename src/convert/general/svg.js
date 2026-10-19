@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { boundingBox } from "../../graph/boundary.js";
+import { boundingBox } from "../../graph/boundary/box.js";
 import { makeEdgesLength } from "../../graph/make/edges.js";
 
 /**

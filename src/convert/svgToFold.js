@@ -8,7 +8,7 @@ import { file_spec, file_creator } from "../fold/rabbitear.js";
 import { resize2 } from "../math/vector.js";
 import { multiplyMatrix2Vector2 } from "../math/matrix2.js";
 import { cleanNumber } from "../general/number.js";
-import { planarBoundary } from "../graph/boundary.js";
+import { planarBoundary } from "../graph/boundary/planar.js";
 import { parseColorToHex } from "../svg/colors/parseColor.js";
 import {
 	getRootParent,

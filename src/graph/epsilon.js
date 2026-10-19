@@ -1,7 +1,7 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { boundingBox } from "./boundary.js";
+import { boundingBox } from "./boundary/box.js";
 import { distance } from "../math/vector.js";
 
 /**

@@ -2,7 +2,7 @@
  * Rabbit Ear (c) Kraft
  */
 import { getEpsilon } from "../../graph/epsilon.js";
-import { boundingBox } from "../../graph/boundary.js";
+import { boundingBox } from "../../graph/boundary/box.js";
 import { cleanNumber } from "../../general/number.js";
 
 /**
