@@ -1,7 +1,7 @@
 # 0.9.42
 
 - `axiom7` line parameters are swapped, it matches better with how `axiom4` works
-- new `splitCuts` method 
+- new `cutBoundaries` method in `src/graph/boundary/`
 - `makeLookAt` matrix4 method last line multiplication order was incorrect
 - issues fixed in `clockwiseSubsectRadians`, `collinearBetween`. 
 - `makeEdgesFaces` sorting faces to match FOLD spec.

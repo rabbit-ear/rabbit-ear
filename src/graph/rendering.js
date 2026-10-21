@@ -65,7 +65,8 @@ export const prepareForRenderingWithCycles = (
 		),
 	}));
 
-	// this resizes the length of the coordinates back to 2.
+	// planarizes graphs
+	// this resizes vertices_coords back to 2D
 	const planes_graphXYFixed = planes_graphXY.map((g, p) =>
 		fixCycles({
 			...g,
@@ -73,6 +74,7 @@ export const prepareForRenderingWithCycles = (
 		}),
 	);
 
+	// move planarized graphs back into 3D
 	const planes_graphFixed = planes_graphXYFixed.map((graphXY, p) => ({
 		...graphXY,
 		vertices_coords: graphXY.vertices_coords
@@ -85,11 +87,16 @@ export const prepareForRenderingWithCycles = (
 	);
 
 	// triangulate will modify faces and edges.
-	// this will store the changes to the graph from the triangulation
-	const planes_triangulatedVerbose = planes_graphFixed.map((g) => triangulate(g, earcut));
+	// this will store the changes to the graph from the triangulation.
+	const planes_triangulatedVerbose = planes_graphXYFixed.map((g) =>
+		triangulate(g, earcut),
+	);
 
 	const planes_graphExploded = planes_triangulatedVerbose
-		.map(({ result }) => result)
+		.map(({ result }, p) => ({
+			...result,
+			vertices_coords: planes_graphFixed[p].vertices_coords,
+		}))
 		.map(explodeFaces);
 
 	planes_triangulatedVerbose.forEach(({ changes }, p) => {

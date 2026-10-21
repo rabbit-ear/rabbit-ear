@@ -1,15 +1,11 @@
 /**
  * Rabbit Ear (c) Kraft
  */
-import { normalize3, cross3, subtract3, parallel, resize3 } from "../math/vector.js";
+import { normalize3, resize3 } from "../math/vector.js";
 
 /**
- * @description Make one vector for every face that represents the
- * face's normal direction. This assumes that the faces are planar
- * and convex. It works by taking the first 3 adjacent non-parallel
- * vertices and compute the cross product from 0 to 1 and 0 to 2.
- * The windings may be flipped if faces are non-convex, otherwise
- * they will still be correct.
+ * @description Make one vector for every face that represents the face's normal
+ * direction. This assumes that the faces are planar. Newell's method.
  * @param {FOLD} graph a FOLD object
  * @returns {[number, number, number][]} an array of 3D vectors, one for every face
  */
@@ -20,20 +16,15 @@ export const makeFacesNormal = ({ vertices_coords, faces_vertices }) => {
 	return faces_vertices
 		.map((vertices) => vertices.map((vertex) => vertices_coords3D[vertex]))
 		.map((polygon) => {
-			// we have to ensure that the two edges we choose are not parallel
-			let a;
-			let b;
-			let i = 0;
-			do {
-				a = subtract3(polygon[(i + 1) % polygon.length], polygon[i]);
-				b = subtract3(polygon[(i + 2) % polygon.length], polygon[i]);
-				i += 1;
-			} while (i < polygon.length && parallel(a, b));
-
-			// cross product unit vectors from point 0 to point 1 and 2.
-			// as long as the face winding data is consistent,
-			// this gives consistent face normals.
-			return normalize3(cross3(a, b));
+			/** @type {[number, number, number]} */
+			const normal = [0, 0, 0];
+			polygon.forEach((a, i) => {
+				const b = polygon[(i + 1) % polygon.length];
+				normal[0] += (a[1] - b[1]) * (a[2] + b[2]);
+				normal[1] += (a[2] - b[2]) * (a[0] + b[0]);
+				normal[2] += (a[0] - b[0]) * (a[1] + b[1]);
+			});
+			return normalize3(normal);
 		});
 };
 

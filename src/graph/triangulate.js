@@ -2,7 +2,10 @@
  * Rabbit Ear (c) Kraft
  */
 import Messages from "../environment/messages.js";
+import { resize2, resize3 } from "../math/vector.js";
+import { multiplyMatrix4Vector3 } from "../math/matrix4.js";
 import { countImpliedEdges } from "./count.js";
+import { getFacesPlane } from "./faces/planes.js";
 import { makeFacesWinding } from "./faces/winding.js";
 import { makeVerticesToEdge, makeVerticesToFace } from "./make/lookup.js";
 
@@ -66,14 +69,15 @@ export const triangulateNonConvexFacesVertices = (
 	}
 	const dimensions = vertices_coords.filter(() => true).shift().length;
 
-	// Small note on Earcut documentation: Earcut does not truly work in 3D,
-	// it simply projects points down into 2D and ignores the Z component.
-	// if we refactor this to include the plane which the face lies in, we can
-	// filter only if the plane is orthogonal to the XY, therefore still
-	// use earcut for some 3D faces, or even better, transform those planes
-	// into the XY so that earcut works for everything.
-	if (dimensions === 3 || !earcut) {
+	if (!earcut) {
 		return triangulateConvexFacesVertices({ faces_vertices });
+	}
+
+	// Earcut does not truly work in 3D, it simply projects points down into 2D
+	// and ignores the Z component. 3D graphs are handled by transforming
+	// each plane of faces into the XY plane first.
+	if (dimensions === 3) {
+		return triangulateEarcut3D({ vertices_coords, faces_vertices }, earcut);
 	}
 
 	// dimensions are 2 from here on
@@ -293,4 +297,54 @@ export const triangulate = (
 		edges: { new: newEdges },
 	};
 	return { result, changes };
+};
+
+/**
+ * @description Triangulate the faces of a 3D graph using Earcut, which is
+ * capable of handling non-convex faces. Earcut only works in 2D, so faces
+ * are grouped by the plane they lie in, and each plane's vertices are
+ * transformed into the XY plane before triangulating. Triangulation does
+ * not move any vertices, so the result references the original
+ * vertices_coords (no need to transform back into 3D), and the order of
+ * the faces is maintained: face i is replaced by its triangles in place,
+ * which matches the nextmap made by makeTriangulatedFacesNextMap.
+ * @param {FOLD} graph a FOLD object with 3D vertices_coords.
+ * @param {any} earcut the earcut npm package from Mapbox
+ * @returns {number[][]} faces_vertices where all faces have only 3 vertices
+ */
+export const triangulateEarcut3D = ({ vertices_coords, faces_vertices }, earcut) => {
+	const { planes_faces, planes_transform } = getFacesPlane({
+		vertices_coords,
+		faces_vertices,
+	});
+	const vertices_coords3D = vertices_coords.map(resize3);
+
+	// for every face, the list of triangles which will replace it
+	/** @type {number[][][]} */
+	const faces_triangles = faces_vertices.map(() => []);
+
+	planes_faces.forEach((faces, p) => {
+		// a sparse copy of vertices_coords containing only this plane's vertices,
+		// transformed into the XY plane. a vertex shared between faces in
+		// different planes is transformed separately for each plane.
+		/** @type {[number, number][]} */
+		const vertices_coordsXY = [];
+		faces
+			.flatMap((f) => faces_vertices[f])
+			.forEach((v) => {
+				vertices_coordsXY[v] = resize2(
+					multiplyMatrix4Vector3(planes_transform[p], vertices_coords3D[v]),
+				);
+			});
+		// triangulate one face at a time to keep track of which face
+		// each triangle came from.
+		faces.forEach((f) => {
+			faces_triangles[f] = triangulateNonConvexFacesVertices(
+				{ vertices_coords: vertices_coordsXY, faces_vertices: [faces_vertices[f]] },
+				earcut,
+			);
+		});
+	});
+
+	return faces_triangles.flat();
 };

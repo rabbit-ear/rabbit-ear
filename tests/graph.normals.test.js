@@ -11,6 +11,71 @@ test("makeFacesNormal crease pattern", () => {
 		.forEach((dot) => expect(dot).toBeCloseTo(1));
 });
 
+test("makeFacesNormal non-convex face, first corner is reflex", () => {
+	// an L-shape (counter-clockwise), starting at the reflex corner [1, 1]
+	const lShape = [
+		[1, 1],
+		[1, 2],
+		[0, 2],
+		[0, 0],
+		[2, 0],
+		[2, 1],
+	];
+	const graph = {
+		vertices_coords: lShape,
+		faces_vertices: [
+			[0, 1, 2, 3, 4, 5],
+			[5, 4, 3, 2, 1, 0],
+		],
+	};
+	const faceNormals = ear.graph.makeFacesNormal(graph);
+	expect(ear.math.dot(faceNormals[0], [0, 0, 1])).toBeCloseTo(1);
+	expect(ear.math.dot(faceNormals[1], [0, 0, -1])).toBeCloseTo(1);
+});
+
+test("makeFacesNormal non-convex face in 3D, with a collinear vertex", () => {
+	// the same L-shape rotated into the XZ plane, with an extra collinear
+	// vertex [1.5, 1] next to the reflex corner. the normal is -Y.
+	const lShape = [
+		[1, 1],
+		[1, 2],
+		[0, 2],
+		[0, 0],
+		[2, 0],
+		[2, 1],
+		[1.5, 1],
+	];
+	const graph = {
+		vertices_coords: lShape.map(([x, y]) => [x, 4, y]),
+		faces_vertices: [[0, 1, 2, 3, 4, 5, 6]],
+	};
+	const [normal] = ear.graph.makeFacesNormal(graph);
+	expect(ear.math.dot(normal, [0, -1, 0])).toBeCloseTo(1);
+});
+
+test("makeFacesNormal folded frame, top ring planarized", () => {
+	// planarizing the overlapping top ring of the frame creates non-convex
+	// faces, some begin at a reflex corner. all normals should match.
+	const fold = JSON.parse(fs.readFileSync("./tests/files/fold/frame.fold", "utf-8"));
+	const folded = ear.graph.getFramesByClassName(fold, "foldedForm")[0];
+	const { planes_faces, planes_transform } = ear.graph.getFacesPlane(folded);
+	const graph3 = {
+		...folded,
+		vertices_coords: folded.vertices_coords.map(ear.math.resize3),
+	};
+	const subgraph = ear.graph.subgraphWithFaces(graph3, planes_faces[0]);
+	const graphXY = {
+		...subgraph,
+		vertices_coords: subgraph.vertices_coords.map((coord) =>
+			ear.math.resize2(ear.math.multiplyMatrix4Vector3(planes_transform[0], coord)),
+		),
+	};
+	const planar = ear.graph.planarize(graphXY);
+	const faceNormals = ear.graph.makeFacesNormal(planar);
+	expect(faceNormals).toHaveLength(12);
+	faceNormals.forEach((normal) => expect(ear.math.dot(normal, [0, 0, 1])).toBeCloseTo(1));
+});
+
 test("makeVerticesNormal crease pattern", () => {
 	const foldfile = fs.readFileSync("./tests/files/fold/crane-cp.fold", "utf-8");
 	const FOLD = JSON.parse(foldfile);

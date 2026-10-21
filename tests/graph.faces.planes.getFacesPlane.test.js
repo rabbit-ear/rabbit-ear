@@ -2,6 +2,9 @@ import fs from "fs";
 import { expect, test } from "vitest";
 import ear from "../src/index.js";
 
+// the order of faces within a plane is not meaningful, sort before comparing
+const sortNumbers = (array) => array.slice().sort((a, b) => a - b);
+
 // const createRandomTriangleGraph = (NUM_TRIS = 10) => ({
 // 	vertices_coords: Array.from(Array(3 * NUM_TRIS))
 // 		.map(() => [Math.random(), Math.random(), Math.random()]),
@@ -357,7 +360,9 @@ test("coplanar and overlapping faces, Mooser's train, carriage only", () => {
 		}),
 	);
 
-	expect(planes_faces).toMatchObject(expectedPlanesFaces);
+	expect(planes_faces.map(sortNumbers)).toMatchObject(
+		expectedPlanesFaces.map(sortNumbers),
+	);
 });
 
 test("coplanar and overlapping faces, Mooser's train, engine only", () => {
@@ -485,5 +490,7 @@ test("coplanar and overlapping faces, Mooser's train, engine only", () => {
 		}),
 	);
 
-	expect(planes_faces).toMatchObject(expectedPlanesFaces);
+	expect(planes_faces.map(sortNumbers)).toMatchObject(
+		expectedPlanesFaces.map(sortNumbers),
+	);
 });
