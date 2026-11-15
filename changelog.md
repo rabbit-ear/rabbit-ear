@@ -1,5 +1,6 @@
 # 0.9.42
 
+- fixed issue with 3D layer solver, overlaps with 3d edges were searched after clusters were filtered, now it's correct
 - fixed issues rendering 3D non-convex cyclic faceOrders with holes
 - `makeFacesNormal` works for non-convex faces.
 - `axiom7` line parameters are swapped, it matches better with how `axiom4` works
