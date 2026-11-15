@@ -120,6 +120,25 @@ export const makeSolverConstraints3D = (
 		.map((flat, i) => (!flat ? i : undefined))
 		.filter((a) => a !== undefined);
 
+  // this was previously lower in the function,
+  // this needs to be before the 3D edges are removed from clusters_graph
+	const edgeFace3DOverlaps = getOverlapFacesWith3DEdge(
+		{ edges_faces },
+		{ clusters_graph, faces_plane },
+		epsilon,
+	);
+
+	let orders3DEdgeFace;
+	try {
+		orders3DEdgeFace = solveOverlapFacesWith3DEdge(
+			{ edges_foldAngle },
+			edgeFace3DOverlaps,
+			faces_winding,
+		);
+	} catch (error) {
+		throw new Error(Messages.noLayerSolution, { cause: error });
+	}
+
 	// remove any non-flat edges from the shallow copies.
 	["edges_vertices", "edges_faces", "edges_assignment", "edges_foldAngle"].forEach(
 		(key) =>
@@ -173,27 +192,6 @@ export const makeSolverConstraints3D = (
 	const adjacentOrders = clusters_graph
 		.map((el) => solveFlatAdjacentEdges(el, faces_winding))
 		.reduce((a, b) => Object.assign(a, b), {});
-
-	// solutions where an edge with a 3D fold angle is crossing somewhere
-	// in the interior of another face, where one of the edge's face's is
-	// co-planar with the face, this results in a known layer ordering
-	// between two faces.
-	const edgeFace3DOverlaps = getOverlapFacesWith3DEdge(
-		{ edges_faces },
-		{ clusters_graph, faces_plane },
-		epsilon,
-	);
-
-	let orders3DEdgeFace;
-	try {
-		orders3DEdgeFace = solveOverlapFacesWith3DEdge(
-			{ edges_foldAngle },
-			edgeFace3DOverlaps,
-			faces_winding,
-		);
-	} catch (error) {
-		throw new Error(Messages.noLayerSolution, { cause: error });
-	}
 
 	// if the FOLD object contains a subset of pre-solved faceOrders,
 	// convert them into solver form and use them as the initial condition.

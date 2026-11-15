@@ -1,5 +1,7 @@
 # 0.9.42
 
+- fixed issues rendering 3D non-convex cyclic faceOrders with holes
+- `makeFacesNormal` works for non-convex faces.
 - `axiom7` line parameters are swapped, it matches better with how `axiom4` works
 - new `cutBoundaries` method in `src/graph/boundary/`
 - `makeLookAt` matrix4 method last line multiplication order was incorrect

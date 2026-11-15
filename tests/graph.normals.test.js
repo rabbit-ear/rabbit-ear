@@ -11,21 +11,23 @@ test("makeFacesNormal crease pattern", () => {
 		.forEach((dot) => expect(dot).toBeCloseTo(1));
 });
 
-test("makeFacesNormal non-convex face, first corner is reflex", () => {
-	// an L-shape (counter-clockwise), starting at the reflex corner [1, 1]
+test("makeFacesNormal non-convex face, second vertex is reflex", () => {
+	// an L-shape (counter-clockwise). a cross product taken at the face's
+	// first vertices, (v1 - v0) x (v2 - v0), measures the turn at v1, so
+	// the reflex corner [1, 1] is placed at index 1, for both windings.
 	const lShape = [
+		[2, 1],
 		[1, 1],
 		[1, 2],
 		[0, 2],
 		[0, 0],
 		[2, 0],
-		[2, 1],
 	];
 	const graph = {
 		vertices_coords: lShape,
 		faces_vertices: [
 			[0, 1, 2, 3, 4, 5],
-			[5, 4, 3, 2, 1, 0],
+			[2, 1, 0, 5, 4, 3],
 		],
 	};
 	const faceNormals = ear.graph.makeFacesNormal(graph);
@@ -35,15 +37,17 @@ test("makeFacesNormal non-convex face, first corner is reflex", () => {
 
 test("makeFacesNormal non-convex face in 3D, with a collinear vertex", () => {
 	// the same L-shape rotated into the XZ plane, with an extra collinear
-	// vertex [1.5, 1] next to the reflex corner. the normal is -Y.
+	// vertex [1.5, 1] at index 1. the first three vertices are collinear,
+	// so a method that skips to the next corner lands on the reflex
+	// corner [1, 1]. the normal is -Y.
 	const lShape = [
+		[2, 1],
+		[1.5, 1],
 		[1, 1],
 		[1, 2],
 		[0, 2],
 		[0, 0],
 		[2, 0],
-		[2, 1],
-		[1.5, 1],
 	];
 	const graph = {
 		vertices_coords: lShape.map(([x, y]) => [x, 4, y]),
