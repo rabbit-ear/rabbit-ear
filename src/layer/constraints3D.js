@@ -17,6 +17,37 @@ import { solveFlatAdjacentEdges } from "./initialSolutionsFlat.js";
 import { faceOrdersToSolverOrders, mergeWithoutOverwrite } from "./general.js";
 
 /**
+ * Summary of 3D layer constraints so far
+ *
+ * Handled:
+ * - coplanar overlapping faces (constraints3DFaces), where each is solved
+ *   like a flat fold using the regular 2D taco/tortilla/transitivity.
+ * - collinear overlapping edges with coplanar faces (constraints3DEdges)
+ *   - T-junction
+ *   - Y-junction
+ *   - bent-flat-tortilla (orders),
+ *   - bent-tortillas (tortilla-tortilla)
+ *   - bent-tortilla-flat-taco (taco-tortilla).
+ * - collinear overlapping edges without coplanar faces, imagine a book's pages
+ *   fanning out if the spine was an idealized single line. (this will detect
+ *   if joined faces are crossing through another causing invalid intersection).
+ * - a 3D edge crossing the interior of a face which is coplanar with one
+ *   of the edge's faces (orders, getOverlapFacesWith3DEdge).
+ *        /
+ *   ____/
+ *   _________
+ *   there are two faces coplanar, the one with the branch upwards MUST be above
+ *   the other face (so long as this face extends beyond this crease line)
+ *
+ * Not handled (invalid graphs will return "valid" solutions):
+ * - a face passing through the interior of a non-coplanar face (requires
+ *   face-face geometric intersection)
+ * - same as above, but the face piercing the other contains an edge exactly
+ *   coplanar with the crossing face (this is an edge-case for the above case)
+ * - non-manifold edges with more than two faces
+ */
+
+/**
  * @description Convert a 3D folded graph into the input parameters for the
  * solver including taco-taco, taco-tortilla, tortilla-tortilla,
  * and transitivity constraints.
@@ -95,6 +126,7 @@ export const makeSolverConstraints3D = (
 				edges_vertices,
 				edges_faces,
 				edges_foldAngle,
+				faces_vertices,
 			},
 			{
 				faces_plane,

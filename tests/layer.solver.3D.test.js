@@ -61,7 +61,8 @@ test("3D layer solver, all 3D special cases", () => {
 				[0, 4, 1],
 			],
 		},
-		// todo
+		// 1-9 T-junction, 3-7 bent-flat-tortilla
+		// 2-8 follows from both (tortilla-tortillas)
 		{
 			orders: [
 				[1, 9, -1],
@@ -69,7 +70,8 @@ test("3D layer solver, all 3D special cases", () => {
 				[2, 8, -1],
 			],
 		},
-		// todo
+		// 1-10 Y-junction, with 2-9, 3-8, 4-7 (tortilla-tortillas)
+		// 5-6 taco, 4 and 7 outside of it. rest by transitivity
 		{
 			orders: [
 				[1, 10, -1],
@@ -84,7 +86,7 @@ test("3D layer solver, all 3D special cases", () => {
 			],
 		},
 		"error",
-		{ orders: [] }, // this is a layer-crossing error. undetected for now
+		"error",
 		"error",
 		"error",
 	]);

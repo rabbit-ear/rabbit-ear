@@ -2,11 +2,13 @@
  * Rabbit Ear (c) Kraft
  */
 import { EPSILON } from "../math/constant.js";
+import { cross3, dot3, normalize3, resize3, subtract3 } from "../math/vector.js";
 import { arrayArrayToLookupArray } from "../general/array.js";
 import { connectedComponentsPairs } from "../graph/connectedComponents.js";
 import { invertFlatToArrayMap } from "../graph/maps.js";
 import { mergeWithoutOverwrite } from "./general.js";
 import { getEdgesEdgesCollinearOverlap, getFacesEdgesOverlap } from "../graph/overlap.js";
+import { makeFacesNormal } from "../graph/normals.js";
 
 /**
  * @description There are two kinds of arrangements of edges/faces that
@@ -394,6 +396,60 @@ export const getSolvable3DEdgePairs = ({
 };
 
 /**
+ * @description this handles the specific case where two planes of faces
+ * cross through each other causing self-intersection (and should be invalid),
+ * specifically where along the shared intersection there exists an edge
+ * in both of the planes. the intersection is detected because these two
+ * edges are coincident, and then we check if the faces branch off from
+ * this shared line in angles which imply the planes are intersecting each other.
+ * You can imagine an X shape, but more general because the planes on either side
+ * do not need to be coplanar, the fold angle at this shared intersection can
+ * be something other than a flat 0deg fold angle.
+ * around this shared line, rays are generated for joined faces, and if
+ * a ray exists between two joined faces's rays, this is an intersection.
+ * @param {FOLD} graph a FOLD object
+ * @param {[number, number][]} edgePairs pairs of collinear overlapping edges,
+ * where each edge has two adjacent faces.
+ * @param {number} [epsilon=1e-6] an optional epsilon
+ * @returns {[number, number][]} the subset of edgePairs which cross.
+ */
+export const getCrossingEdgePairs = (
+	{ vertices_coords, edges_vertices, edges_faces, faces_vertices },
+	edgePairs,
+	epsilon = EPSILON,
+) => {
+	const coords = vertices_coords.map(resize3);
+	const faces_normal = makeFacesNormal({ vertices_coords, faces_vertices });
+
+	// the direction leaving the edge, into the face. a face winds counter-
+	// clockwise around its normal, so the interior is to the left of the edge
+	// in the direction the face traverses it: normal x (b - a)
+	const ray = (face, edge) => {
+		const [v0, v1] = edges_vertices[edge];
+		const fv = faces_vertices[face];
+		const forward = fv[(fv.indexOf(v0) + 1) % fv.length] === v1;
+		const [a, b] = forward ? [v0, v1] : [v1, v0];
+		return normalize3(cross3(faces_normal[face], subtract3(coords[b], coords[a])));
+	};
+	const sameDirection = (a, b) => dot3(a, b) > 1 - epsilon;
+
+	return edgePairs.filter(([e1, e2]) => {
+		const [r0, r1] = edges_faces[e1].map((face) => ray(face, e1));
+		const [r2, r3] = edges_faces[e2].map((face) => ray(face, e2));
+		if ([r2, r3].some((r) => sameDirection(r, r0) || sameDirection(r, r1))) {
+			return false;
+		}
+		// angles around the shared line, from 0 to 2pi, measured from r0
+		const [va, vb] = edges_vertices[e1].map((v) => coords[v]);
+		const axis = normalize3(subtract3(vb, va));
+		const angle = (v) =>
+			(Math.atan2(dot3(cross3(r0, v), axis), dot3(r0, v)) + 2 * Math.PI) % (2 * Math.PI);
+		const between = angle(r1);
+		return [r2, r3].filter((r) => angle(r) < between).length === 1;
+	});
+};
+
+/**
  * @description Given a FOLD object which has 3D edges, generate an additional
  * set of solutions and constraints in preparation of solving the layer order,
  * the set of solutions includes solved orderings between pairs of faces, and
@@ -414,7 +470,7 @@ export const getSolvable3DEdgePairs = ({
  * }}
  */
 export const constraints3DEdges = (
-	{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle },
+	{ vertices_coords, edges_vertices, edges_faces, edges_foldAngle, faces_vertices },
 	{ faces_plane, faces_winding, facesFacesOverlap },
 	epsilon = EPSILON,
 ) => {
@@ -439,6 +495,26 @@ export const constraints3DEdges = (
 	// two adjacent faces. otherwise, this including pairs of edges which
 	// hold no value to us at this stage
 	const edgePairs = connectedComponentsPairs(edgesEdgesOverlap);
+
+  // this handles the case where a top-down view looks like an X or + shape,
+  // where two sets of faces cross through each other (and should be invalid),
+  // but ONLY if there exists a crease (flat or otherwise) that exists in both
+  // faces along the shared intersection line.
+  // flat or otherwise: so that it doesn't need to be an X shape specifically where
+  // each two sets are parallel, it doesn't matter what the fold angle is
+  // this just checks if there's self-intersection
+	const crossingEdgePairs = getCrossingEdgePairs(
+		{ vertices_coords, edges_vertices, edges_faces, faces_vertices },
+		edgePairs,
+		epsilon,
+	);
+	if (crossingEdgePairs.length) {
+		throw new Error(
+			`paper self-intersects at collinear edges: ${crossingEdgePairs
+				.map((pair) => pair.join(" "))
+				.join(", ")}`,
+		);
+	}
 
 	const facesFacesLookup = arrayArrayToLookupArray(facesFacesOverlap);
 

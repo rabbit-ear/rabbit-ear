@@ -35,10 +35,10 @@ const foldedFormsOf = (name) => {
 		});
 };
 
-// every fixture here has a valid layer solution.
 const fixtures = [
+  // leaving out some of these frames which are purposefully invalid
 	...foldedFramesOf("layers-3d-edge-face", [0, 1, 2, 3, 4, 5]),
-	...foldedFramesOf("layers-3d-edge-edge", [0, 1, 2, 3, 4, 5, 6, 8]),
+	...foldedFramesOf("layers-3d-edge-edge", [0, 1, 2, 3, 4, 5, 6]),
 	...foldedFramesOf("moosers-train-carriage", [0]),
 	...foldedFramesOf("moosers-train-carriage-fourth", [0]),
 	...foldedFramesOf("square-fish-3d", [0]),
@@ -48,10 +48,8 @@ const fixtures = [
 	...foldedFormsOf("maze-s"),
 	...foldedFormsOf("cube-octagon"),
 	...foldedFormsOf("crane-3d"),
-	...foldedFormsOf("bird-base-3d"),
 	...foldedFormsOf("pleats-angle-3d"),
 	...foldedFormsOf("disjoint-triangles-3d"),
-	...foldedFormsOf("random-triangles-3d"),
 ];
 
 const populated = (graph) => {

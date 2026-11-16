@@ -279,15 +279,8 @@ test("constraints3DEdges, layer 3D special cases", () => {
 
 	expect(results[7]).toBe("error");
 
-	// expect(results[8]).toMatchObject("error");
-	expect(results[8]).toMatchObject({
-		faces_winding: [true, true, true, true, true],
-		facesFacesOverlap: [[], [], [], [], []],
-		facePairs: [],
-		orders: {},
-		tortilla_tortilla: [],
-		taco_tortilla: [],
-	});
+	// layer-crossing: paper crosses itself at edges 11 and 14
+	expect(results[8]).toBe("error");
 
 	// expect(results[9]).toMatchObject("error");
 	expect(results[9]).toMatchObject({
